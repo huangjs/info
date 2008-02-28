@@ -1,0 +1,1722 @@
+This is data-rep.info, produced by makeinfo version 4.0 from
+data-rep.texi.
+
+INFO-DIR-SECTION The Algorithmic Language Scheme
+START-INFO-DIR-ENTRY
+* data-rep: (data-rep).  Data Representation in Guile -- how to use
+                         Guile objects in your C code.
+END-INFO-DIR-ENTRY
+
+   Data Representation in Guile
+
+   Copyright (C) 1998, 1999, 2000 Free Software Foundation
+
+   Permission is granted to make and distribute verbatim copies of this
+manual provided the copyright notice and this permission notice are
+preserved on all copies.
+
+   Permission is granted to copy and distribute modified versions of
+this manual under the conditions for verbatim copying, provided that
+the entire resulting derived work is distributed under the terms of a
+permission notice identical to this one.
+
+   Permission is granted to copy and distribute translations of this
+manual into another language, under the above conditions for modified
+versions, except that this permission notice may be stated in a
+translation approved by the Free Software Foundation.
+
+
+File: data-rep.info,  Node: Top,  Next: Data Representation in Scheme,  Prev: (dir),  Up: (dir)
+
+Data Representation in Guile
+****************************
+
+   This essay is meant to provide the background necessary to read and
+write C code that manipulates Scheme values in a way that conforms to
+libguile's interface.  If you would like to write or maintain a
+Guile-based application in C or C++, this is the first information you
+need.
+
+   In order to make sense of Guile's `SCM_' functions, or read
+libguile's source code, it's essential to have a good grasp of how Guile
+actually represents Scheme values.  Otherwise, a lot of the code, and
+the conventions it follows, won't make very much sense.
+
+   We assume you know both C and Scheme, but we do not assume you are
+familiar with Guile's C interface.
+
+* Menu:
+
+* Data Representation in Scheme::       Why things aren't just totally
+                                        straightforward, in general terms.
+* How Guile does it::                   How to write C code that manipulates
+                                        Guile values, with an explanation
+                                        of Guile's garbage collector.
+* Defining New Types (Smobs)::          How to extend Guile with your own
+                                        application-specific datatypes.
+
+
+File: data-rep.info,  Node: Data Representation in Scheme,  Next: How Guile does it,  Prev: Top,  Up: Top
+
+Data Representation in Scheme
+=============================
+
+   Scheme is a latently-typed language; this means that the system
+cannot, in general, determine the type of a given expression at compile
+time.  Types only become apparent at run time.  Variables do not have
+fixed types; a variable may hold a pair at one point, an integer at the
+next, and a thousand-element vector later.  Instead, values, not
+variables, have fixed types.
+
+   In order to implement standard Scheme functions like `pair?' and
+`string?' and provide garbage collection, the representation of every
+value must contain enough information to accurately determine its type
+at run time.  Often, Scheme systems also use this information to
+determine whether a program has attempted to apply an operation to an
+inappropriately typed value (such as taking the `car' of a string).
+
+   Because variables, pairs, and vectors may hold values of any type,
+Scheme implementations use a uniform representation for values -- a
+single type large enough to hold either a complete value or a pointer
+to a complete value, along with the necessary typing information.
+
+   The following sections will present a simple typing system, and then
+make some refinements to correct its major weaknesses.  However, this is
+not a description of the system Guile actually uses.  It is only an
+illustration of the issues Guile's system must address.  We provide all
+the information one needs to work with Guile's data in *Note How Guile
+does it::.
+
+* Menu:
+
+* A Simple Representation::
+* Faster Integers::
+* Cheaper Pairs::
+* Guile Is Hairier::
+
+
+File: data-rep.info,  Node: A Simple Representation,  Next: Faster Integers,  Prev: Data Representation in Scheme,  Up: Data Representation in Scheme
+
+A Simple Representation
+-----------------------
+
+   The simplest way to meet the above requirements in C would be to
+represent each value as a pointer to a structure containing a type
+indicator, followed by a union carrying the real value.  Assuming that
+`SCM' is the name of our universal type, we can write:
+
+     enum type { integer, pair, string, vector, ... };
+     
+     typedef struct value *SCM;
+     
+     struct value {
+       enum type type;
+       union {
+         int integer;
+         struct { SCM car, cdr; } pair;
+         struct { int length; char *elts; } string;
+         struct { int length; SCM  *elts; } vector;
+         ...
+       } value;
+     };
+   with the ellipses replaced with code for the remaining Scheme types.
+
+   This representation is sufficient to implement all of Scheme's
+semantics.  If X is an `SCM' value:
+   *   To test if X is an integer, we can write `X->type == integer'.
+
+   *   To find its value, we can write `X->value.integer'.
+
+   *   To test if X is a vector, we can write `X->type == vector'.
+
+   *   If we know X is a vector, we can write
+     `X->value.vector.elts[0]' to refer to its first element.
+
+   *   If we know X is a pair, we can write   `X->value.pair.car' to
+     extract its car.
+
+
+File: data-rep.info,  Node: Faster Integers,  Next: Cheaper Pairs,  Prev: A Simple Representation,  Up: Data Representation in Scheme
+
+Faster Integers
+---------------
+
+   Unfortunately, the above representation has a serious disadvantage.
+In order to return an integer, an expression must allocate a `struct
+value', initialize it to represent that integer, and return a pointer to
+it.  Furthermore, fetching an integer's value requires a memory
+reference, which is much slower than a register reference on most
+processors.  Since integers are extremely common, this representation is
+too costly, in both time and space.  Integers should be very cheap to
+create and manipulate.
+
+   One possible solution comes from the observation that, on many
+architectures, structures must be aligned on a four-byte boundary.
+(Whether or not the machine actually requires it, we can write our own
+allocator for `struct value' objects that assures this is true.)  In
+this case, the lower two bits of the structure's address are known to
+be zero.
+
+   This gives us the room we need to provide an improved representation
+for integers.  We make the following rules:
+   * If the lower two bits of an `SCM' value are zero, then the SCM
+     value is a pointer to a `struct value', and everything proceeds as
+     before.
+
+   * Otherwise, the `SCM' value represents an integer, whose value
+     appears in its upper bits.
+
+   Here is C code implementing this convention:
+     enum type { pair, string, vector, ... };
+     
+     typedef struct value *SCM;
+     
+     struct value {
+       enum type type;
+       union {
+         struct { SCM car, cdr; } pair;
+         struct { int length; char *elts; } string;
+         struct { int length; SCM  *elts; } vector;
+         ...
+       } value;
+     };
+     
+     #define POINTER_P(x) (((int) (x) & 3) == 0)
+     #define INTEGER_P(x) (! POINTER_P (x))
+     
+     #define GET_INTEGER(x)  ((int) (x) >> 2)
+     #define MAKE_INTEGER(x) ((SCM) (((x) << 2) | 1))
+
+   Notice that `integer' no longer appears as an element of `enum
+type', and the union has lost its `integer' member.  Instead, we use
+the `POINTER_P' and `INTEGER_P' macros to make a coarse classification
+of values into integers and non-integers, and do further type testing
+as before.
+
+   Here's how we would answer the questions posed above (again, assume
+X is an `SCM' value):
+   *   To test if X is an integer, we can write `INTEGER_P (X)'.
+
+   *   To find its value, we can write `GET_INTEGER (X)'.
+
+   *   To test if X is a vector, we can write:
+            `POINTER_P (X) && X->type == vector'
+       Given the new representation, we must make sure X is truly a
+     pointer before we dereference it to determine its complete type.
+
+   *   If we know X is a vector, we can write
+     `X->value.vector.elts[0]' to refer to its first element, as
+     before.
+
+   *   If we know X is a pair, we can write   `X->value.pair.car' to
+     extract its car, just as before.
+
+   This representation allows us to operate more efficiently on integers
+than the first.  For example, if X and Y are known to be integers, we
+can compute their sum as follows:
+     MAKE_INTEGER (GET_INTEGER (X) + GET_INTEGER (Y))
+   Now, integer math requires no allocation or memory references.  Most
+real Scheme systems actually use an even more efficient representation,
+but this essay isn't about bit-twiddling.  (Hint: what if pointers had
+`01' in their least significant bits, and integers had `00'?)
+
+
+File: data-rep.info,  Node: Cheaper Pairs,  Next: Guile Is Hairier,  Prev: Faster Integers,  Up: Data Representation in Scheme
+
+Cheaper Pairs
+-------------
+
+   However, there is yet another issue to confront.  Most Scheme heaps
+contain more pairs than any other type of object; Jonathan Rees says
+that pairs occupy 45% of the heap in his Scheme implementation, Scheme
+48.  However, our representation above spends three `SCM'-sized words
+per pair -- one for the type, and two for the CAR and CDR.  Is there
+any way to represent pairs using only two words?
+
+   Let us refine the convention we established earlier.  Let us assert
+that:
+   *   If the bottom two bits of an `SCM' value are `#b00', then   it
+     is a pointer, as before.
+
+   *   If the bottom two bits are `#b01', then the upper bits are an
+     integer.  This is a bit more restrictive than before.
+
+   *   If the bottom two bits are `#b10', then the value, with the
+     bottom   two bits masked out, is the address of a pair.
+
+   Here is the new C code:
+     enum type { string, vector, ... };
+     
+     typedef struct value *SCM;
+     
+     struct value {
+       enum type type;
+       union {
+         struct { int length; char *elts; } string;
+         struct { int length; SCM  *elts; } vector;
+         ...
+       } value;
+     };
+     
+     struct pair {
+       SCM car, cdr;
+     };
+     
+     #define POINTER_P(x) (((int) (x) & 3) == 0)
+     
+     #define INTEGER_P(x)  (((int) (x) & 3) == 1)
+     #define GET_INTEGER(x)  ((int) (x) >> 2)
+     #define MAKE_INTEGER(x) ((SCM) (((x) << 2) | 1))
+     
+     #define PAIR_P(x) (((int) (x) & 3) == 2)
+     #define GET_PAIR(x) ((struct pair *) ((int) (x) & ~3))
+
+   Notice that `enum type' and `struct value' now only contain
+provisions for vectors and strings; both integers and pairs have become
+special cases.  The code above also assumes that an `int' is large
+enough to hold a pointer, which isn't generally true.
+
+   Our list of examples is now as follows:
+   *   To test if X is an integer, we can write `INTEGER_P   (X)'; this
+     is as before.
+
+   *   To find its value, we can write `GET_INTEGER (X)', as   before.
+
+   *   To test if X is a vector, we can write:
+            `POINTER_P (X) && X->type == vector'
+       We must still make sure that X is a pointer to a `struct
+     value' before dereferencing it to find its type.
+
+   *   If we know X is a vector, we can write
+     `X->value.vector.elts[0]' to refer to its first element, as
+     before.
+
+   *   We can write `PAIR_P (X)' to determine if X is a   pair, and
+     then write `GET_PAIR (X)->car' to refer to its   car.
+
+   This change in representation reduces our heap size by 15%.  It also
+makes it cheaper to decide if a value is a pair, because no memory
+references are necessary; it suffices to check the bottom two bits of
+the `SCM' value.  This may be significant when traversing lists, a
+common activity in a Scheme system.
+
+   Again, most real Scheme systems use a slighty different
+implementation; for example, if GET_PAIR subtracts off the low bits of
+`x', instead of masking them off, the optimizer will often be able to
+combine that subtraction with the addition of the offset of the
+structure member we are referencing, making a modified pointer as fast
+to use as an unmodified pointer.
+
+
+File: data-rep.info,  Node: Guile Is Hairier,  Prev: Cheaper Pairs,  Up: Data Representation in Scheme
+
+Guile Is Hairier
+----------------
+
+   We originally started with a very simple typing system -- each object
+has a field that indicates its type.  Then, for the sake of efficiency
+in both time and space, we moved some of the typing information directly
+into the `SCM' value, and left the rest in the `struct value'.  Guile
+itself employs a more complex hierarchy, storing finer and finer
+gradations of type information in different places, depending on the
+object's coarser type.
+
+   In the author's opinion, Guile could be simplified greatly without
+significant loss of efficiency, but the simplified system would still be
+more complex than what we've presented above.
+
+
+File: data-rep.info,  Node: How Guile does it,  Next: Defining New Types (Smobs),  Prev: Data Representation in Scheme,  Up: Top
+
+How Guile does it
+=================
+
+   Here we present the specifics of how Guile represents its data.  We
+don't go into complete detail; an exhaustive description of Guile's
+system would be boring, and we do not wish to encourage people to write
+code which depends on its details anyway.  We do, however, present
+everything one need know to use Guile's data.
+
+* Menu:
+
+* General Rules::
+* Garbage Collection::
+* Immediates vs. Non-immediates::
+* Immediate Datatypes::
+* Non-immediate Datatypes::
+* Signalling Type Errors::
+
+
+File: data-rep.info,  Node: General Rules,  Next: Garbage Collection,  Prev: How Guile does it,  Up: How Guile does it
+
+General Rules
+-------------
+
+   Any code which operates on Guile datatypes must `#include' the
+header file `<libguile.h>'.  This file contains a definition for the
+`SCM' typedef (Guile's universal type, as in the examples above), and
+definitions and declarations for a host of macros and functions that
+operate on `SCM' values.
+
+   All identifiers declared by `<libguile.h>' begin with `scm_' or
+`SCM_'.
+
+   The functions described here generally check the types of their
+`SCM' arguments, and signal an error if their arguments are of an
+inappropriate type.  Macros generally do not, unless that is their
+specified purpose.  You must verify their argument types beforehand, as
+necessary.
+
+   Macros and functions that return a boolean value have names ending in
+`P' or `_p' (for "predicate").  Those that return a negated boolean
+value have names starting with `SCM_N'.  For example, `SCM_IMP (X)' is
+a predicate which returns non-zero iff X is an immediate value (an
+`IM').  `SCM_NCONSP (X)' is a predicate which returns non-zero iff X is
+_not_ a pair object (a `CONS').
+
+
+File: data-rep.info,  Node: Garbage Collection,  Next: Immediates vs. Non-immediates,  Prev: General Rules,  Up: How Guile does it
+
+Garbage Collection
+------------------
+
+   Aside from the latent typing, the major source of constraints on a
+Scheme implementation's data representation is the garbage collector.
+The collector must be able to traverse every live object in the heap, to
+determine which objects are not live.
+
+   There are many ways to implement this, but Guile uses an algorithm
+called "mark and sweep".  The collector scans the system's global
+variables and the local variables on the stack to determine which
+objects are immediately accessible by the C code.  It then scans those
+objects to find the objects they point to, et cetera.  The collector
+sets a "mark bit" on each object it finds, so each object is traversed
+only once.  This process is called "tracing".
+
+   When the collector can find no unmarked objects pointed to by marked
+objects, it assumes that any objects that are still unmarked will never
+be used by the program (since there is no path of dereferences from any
+global or local variable that reaches them) and deallocates them.
+
+   In the above paragraphs, we did not specify how the garbage collector
+finds the global and local variables; as usual, there are many different
+approaches.  Frequently, the programmer must maintain a list of pointers
+to all global variables that refer to the heap, and another list
+(adjusted upon entry to and exit from each function) of local variables,
+for the collector's benefit.
+
+   The list of global variables is usually not too difficult to
+maintain, since global variables are relatively rare.  However, an
+explicitly maintained list of local variables (in the author's personal
+experience) is a nightmare to maintain.  Thus, Guile uses a technique
+called "conservative garbage collection", to make the local variable
+list unnecessary.
+
+   The trick to conservative collection is to treat the stack as an
+ordinary range of memory, and assume that _every_ word on the stack is
+a pointer into the heap.  Thus, the collector marks all objects whose
+addresses appear anywhere in the stack, without knowing for sure how
+that word is meant to be interpreted.
+
+   Obviously, such a system will occasionally retain objects that are
+actually garbage, and should be freed.  In practice, this is not a
+problem.  The alternative, an explicitly maintained list of local
+variable addresses, is effectively much less reliable, due to programmer
+error.
+
+   To accomodate this technique, data must be represented so that the
+collector can accurately determine whether a given stack word is a
+pointer or not.  Guile does this as follows:
+   * Every heap object has a two-word header, called a "cell".  Some
+     objects, like pairs, fit entirely in a cell's two words; others may
+     store pointers to additional memory in either of the words.  For
+     example, strings and vectors store their length in the first word,
+     and a pointer to their elements in the second.
+
+   * Guile allocates whole arrays of cells at a time, called "heap
+     segments".  These segments are always allocated so that the cells
+     they contain fall on eight-byte boundaries, or whatever is
+     appropriate for the machine's word size.  Guile keeps all cells in
+     a heap segment initialized, whether or not they are currently in
+     use.
+
+   * Guile maintains a sorted table of heap segments.
+
+
+   Thus, given any random word W fetched from the stack, Guile's
+garbage collector can consult the table to see if W falls within a
+known heap segment, and check W's alignment.  If both tests pass, the
+collector knows that W is a valid pointer to a cell, intentional or
+not, and proceeds to trace the cell.
+
+   Note that heap segments do not contain all the data Guile uses; cells
+for objects like vectors and strings contain pointers to other memory
+areas.  However, since those pointers are internal, and not shared among
+many pieces of code, it is enough for the collector to find the cell,
+and then use the cell's type to find more pointers to trace.
+
+
+File: data-rep.info,  Node: Immediates vs. Non-immediates,  Next: Immediate Datatypes,  Prev: Garbage Collection,  Up: How Guile does it
+
+Immediates vs. Non-immediates
+-----------------------------
+
+   Guile classifies Scheme objects into two kinds: those that fit
+entirely within an `SCM', and those that require heap storage.
+
+   The former class are called "immediates".  The class of immediates
+includes small integers, characters, boolean values, the empty list, the
+mysterious end-of-file object, and some others.
+
+   The remaining types are called, not suprisingly, "non-immediates".
+They include pairs, procedures, strings, vectors, and all other data
+types in Guile.
+
+ - Macro: int SCM_IMP (SCM X)
+     Return non-zero iff X is an immediate object.
+
+ - Macro: int SCM_NIMP (SCM X)
+     Return non-zero iff X is a non-immediate object.  This is the
+     exact complement of `SCM_IMP', above.
+
+     You must use this macro before calling a finer-grained predicate to
+     determine X's type.  For example, to see if X is a pair, you must
+     write:
+          SCM_NIMP (X) && SCM_CONSP (X)
+     This is because Guile stores typing information for non-immediate
+     values in their cells, rather than in the `SCM' value itself;
+     thus, you must determine whether X refers to a cell before looking
+     inside it.
+
+     This is somewhat of a pity, because it means that the programmer
+     needs to know which types Guile implements as immediates vs.
+     non-immediates.  There are (possibly better) representations in
+     which `SCM_CONSP' can be self-sufficient.  The immediate type
+     predicates do not suffer from this weakness.
+
+
+File: data-rep.info,  Node: Immediate Datatypes,  Next: Non-immediate Datatypes,  Prev: Immediates vs. Non-immediates,  Up: How Guile does it
+
+Immediate Datatypes
+-------------------
+
+   The following datatypes are immediate values; that is, they fit
+entirely within an `SCM' value.  The `SCM_IMP' and `SCM_NIMP' macros
+will distinguish these from non-immediates; see *Note Immediates vs.
+Non-immediates:: for an explanation of the distinction.
+
+   Note that the type predicates for immediate values work correctly on
+any `SCM' value; you do not need to call `SCM_IMP' first, to establish
+that a value is immediate.  This differs from the non-immediate type
+predicates, which work correctly only on non-immediate values; you must
+be sure the value is `SCM_NIMP' before applying them.
+
+* Menu:
+
+* Integers::
+* Characters::
+* Booleans::
+* Unique Values::
+
+
+File: data-rep.info,  Node: Integers,  Next: Characters,  Prev: Immediate Datatypes,  Up: Immediate Datatypes
+
+Integers
+........
+
+   Here are functions for operating on small integers, that fit within
+an `SCM'.  Such integers are called "immediate numbers", or "INUMs".
+In general, INUMs occupy all but two bits of an `SCM'.
+
+   Bignums and floating-point numbers are non-immediate objects, and
+have their own, separate accessors.  The functions here will not work on
+them.  This is not as much of a problem as you might think, however,
+because the system never constructs bignums that could fit in an INUM,
+and never uses floating point values for exact integers.
+
+ - Macro: int SCM_INUMP (SCM X)
+     Return non-zero iff X is a small integer value.
+
+ - Macro: int SCM_NINUMP (SCM X)
+     The complement of SCM_INUMP.
+
+ - Macro: int SCM_INUM (SCM X)
+     Return the value of X as an ordinary, C integer.  If X is not an
+     INUM, the result is undefined.
+
+ - Macro: SCM SCM_MAKINUM (int I)
+     Given a C integer I, return its representation as an `SCM'.  This
+     function does not check for overflow.
+
+
+File: data-rep.info,  Node: Characters,  Next: Booleans,  Prev: Integers,  Up: Immediate Datatypes
+
+Characters
+..........
+
+   Here are functions for operating on characters.
+
+ - Macro: int SCM_CHARP (SCM X)
+     Return non-zero iff X is a character value.
+
+ - Macro: unsigned int SCM_CHAR (SCM X)
+     Return the value of `x' as a C character.  If X is not a Scheme
+     character, the result is undefined.
+
+ - Macro: SCM SCM_MAKE_CHAR (int C)
+     Given a C character C, return its representation as a Scheme
+     character value.
+
+
+File: data-rep.info,  Node: Booleans,  Next: Unique Values,  Prev: Characters,  Up: Immediate Datatypes
+
+Booleans
+........
+
+   Here are functions and macros for operating on booleans.
+
+ - Macro: SCM SCM_BOOL_T
+ - Macro: SCM SCM_BOOL_F
+     The Scheme true and false values.
+
+ - Macro: int SCM_NFALSEP (X)
+     Convert the Scheme boolean value to a C boolean.  Since every
+     object in Scheme except `#f' is true, this amounts to comparing X
+     to `#f'; hence the name.
+
+ - Macro: SCM SCM_BOOL_NOT (X)
+     Return the boolean inverse of X.  If X is not a Scheme boolean,
+     the result is undefined.
+
+
+File: data-rep.info,  Node: Unique Values,  Prev: Booleans,  Up: Immediate Datatypes
+
+Unique Values
+.............
+
+   The immediate values that are neither small integers, characters, nor
+booleans are all unique values -- that is, datatypes with only one
+instance.
+
+ - Macro: SCM SCM_EOL
+     The Scheme empty list object, or "End Of List" object, usually
+     written in Scheme as `'()'.
+
+ - Macro: SCM SCM_EOF_VAL
+     The Scheme end-of-file value.  It has no standard written
+     representation, for obvious reasons.
+
+ - Macro: SCM SCM_UNSPECIFIED
+     The value returned by expressions which the Scheme standard says
+     return an "unspecified" value.
+
+     This is sort of a weirdly literal way to take things, but the
+     standard read-eval-print loop prints nothing when the expression
+     returns this value, so it's not a bad idea to return this when you
+     can't think of anything else helpful.
+
+ - Macro: SCM SCM_UNDEFINED
+     The "undefined" value.  Its most important property is that is not
+     equal to any valid Scheme value.  This is put to various internal
+     uses by C code interacting with Guile.
+
+     For example, when you write a C function that is callable from
+     Scheme and which takes optional arguments, the interpreter passes
+     `SCM_UNDEFINED' for any arguments you did not receive.
+
+     We also use this to mark unbound variables.
+
+ - Macro: int SCM_UNBNDP (SCM X)
+     Return true if X is `SCM_UNDEFINED'.  Apply this to a symbol's
+     value to see if it has a binding as a global variable.
+
+
+File: data-rep.info,  Node: Non-immediate Datatypes,  Next: Signalling Type Errors,  Prev: Immediate Datatypes,  Up: How Guile does it
+
+Non-immediate Datatypes
+-----------------------
+
+   A non-immediate datatype is one which lives in the heap, either
+because it cannot fit entirely within a `SCM' word, or because it
+denotes a specific storage location (in the nomenclature of the
+Revised^4 Report on Scheme).
+
+   The `SCM_IMP' and `SCM_NIMP' macros will distinguish these from
+immediates; see *Note Immediates vs. Non-immediates::.
+
+   Given a cell, Guile distinguishes between pairs and other
+non-immediate types by storing special "tag" values in a non-pair
+cell's car, that cannot appear in normal pairs.  A cell with a non-tag
+value in its car is an ordinary pair.  The type of a cell with a tag in
+its car depends on the tag; the non-immediate type predicates test this
+value.  If a tag value appears elsewhere (in a vector, for example),
+the heap may become corrupted.
+
+* Menu:
+
+* Non-immediate Type Predicates::  Special rules for using the type
+                                        predicates described here.
+* Pairs::
+* Vectors::
+* Procedures::
+* Closures::
+* Subrs::
+* Ports::
+
+
+File: data-rep.info,  Node: Non-immediate Type Predicates,  Next: Pairs,  Prev: Non-immediate Datatypes,  Up: Non-immediate Datatypes
+
+Non-immediate Type Predicates
+.............................
+
+   As mentioned in *Note Garbage Collection::, all non-immediate objects
+start with a "cell", or a pair of words.  Furthermore, all type
+information that distinguishes one kind of non-immediate from another is
+stored in the cell.  The type information in the `SCM' value indicates
+only that the object is a non-immediate; all finer distinctions require
+one to examine the cell itself, usually with the appropriate type
+predicate macro.
+
+   The type predicates for non-immediate objects generally assume that
+their argument is a non-immediate value.  Thus, you must be sure that a
+value is `SCM_NIMP' first before passing it to a non-immediate type
+predicate.  Thus, the idiom for testing whether a value is a cell or not
+is:
+     SCM_NIMP (X) && SCM_CONSP (X)
+
+
+File: data-rep.info,  Node: Pairs,  Next: Vectors,  Prev: Non-immediate Type Predicates,  Up: Non-immediate Datatypes
+
+Pairs
+.....
+
+   Pairs are the essential building block of list structure in Scheme.
+A pair object has two fields, called the "car" and the "cdr".
+
+   It is conventional for a pair's CAR to contain an element of a list,
+and the CDR to point to the next pair in the list, or to contain
+`SCM_EOL', indicating the end of the list.  Thus, a set of pairs
+chained through their CDRs constitutes a singly-linked list.  Scheme
+and libguile define many functions which operate on lists constructed
+in this fashion, so although lists chained through the CARs of pairs
+will work fine too, they may be less convenient to manipulate, and
+receive less support from the community.
+
+   Guile implements pairs by mapping the CAR and CDR of a pair directly
+into the two words of the cell.
+
+ - Macro: int SCM_CONSP (SCM X)
+     Return non-zero iff X is a Scheme pair object.  The results are
+     undefined if X is an immediate value.
+
+ - Macro: int SCM_NCONSP (SCM X)
+     The complement of SCM_CONSP.
+
+ - Macro: void SCM_NEWCELL (SCM INTO)
+     Allocate a new cell, and set INTO to point to it.  This macro
+     expands to a statement, not an expression, and INTO must be an
+     lvalue of type SCM.
+
+     This is the most primitive way to allocate a cell; it is quite
+     fast.
+
+     The CAR of the cell initially tags it as a "free cell".  If the
+     caller intends to use it as an ordinary cons, she must store
+     ordinary SCM values in its CAR and CDR.
+
+     If the caller intends to use it as a header for some other type,
+     she must store an appropriate magic value in the cell's CAR, to
+     mark it as a member of that type, and store whatever value in the
+     CDR that type expects.  You should generally not do this, unless
+     you are implementing a new datatype, and thoroughly understand the
+     code in `<libguile/tags.h>'.
+
+ - Function: SCM scm_cons (SCM CAR, SCM CDR)
+     Allocate ("CONStruct") a new pair, with CAR and CDR as its
+     contents.
+
+   The macros below perform no typechecking.  The results are undefined
+if CELL is an immediate.  However, since all non-immediate Guile
+objects are constructed from cells, and these macros simply return the
+first element of a cell, they actually can be useful on datatypes other
+than pairs.  (Of course, it is not very modular to use them outside of
+the code which implements that datatype.)
+
+ - Macro: SCM SCM_CAR (SCM CELL)
+     Return the CAR, or first field, of CELL.
+
+ - Macro: SCM SCM_CDR (SCM CELL)
+     Return the CDR, or second field, of CELL.
+
+ - Macro: void SCM_SETCAR (SCM CELL, SCM X)
+     Set the CAR of CELL to X.
+
+ - Macro: void SCM_SETCDR (SCM CELL, SCM X)
+     Set the CDR of CELL to X.
+
+ - Macro: SCM SCM_CAAR (SCM CELL)
+ - Macro: SCM SCM_CADR (SCM CELL)
+ - Macro: SCM SCM_CDAR (SCM CELL) ...
+ - Macro: SCM SCM_CDDDDR (SCM CELL)
+     Return the CAR of the CAR of CELL, the CAR of the CDR of CELL, et
+     cetera.
+
+
+File: data-rep.info,  Node: Vectors,  Next: Procedures,  Prev: Pairs,  Up: Non-immediate Datatypes
+
+Vectors, Strings, and Symbols
+.............................
+
+   Vectors, strings, and symbols have some properties in common.  They
+all have a length, and they all have an array of elements.  In the case
+of a vector, the elements are `SCM' values; in the case of a string or
+symbol, the elements are characters.
+
+   All these types store their length (along with some tagging bits) in
+the CAR of their header cell, and store a pointer to the elements in
+their CDR.  Thus, the `SCM_CAR' and `SCM_CDR' macros are (somewhat)
+meaningful when applied to these datatypes.
+
+ - Macro: int SCM_VECTORP (SCM X)
+     Return non-zero iff X is a vector.  The results are undefined if X
+     is an immediate value.
+
+ - Macro: int SCM_STRINGP (SCM X)
+     Return non-zero iff X is a string.  The results are undefined if X
+     is an immediate value.
+
+ - Macro: int SCM_SYMBOLP (SCM X)
+     Return non-zero iff X is a symbol.  The results are undefined if X
+     is an immediate value.
+
+ - Macro: int SCM_LENGTH (SCM X)
+     Return the length of the object X.  The results are undefined if X
+     is not a vector, string, or symbol.
+
+ - Macro: SCM * SCM_VELTS (SCM X)
+     Return a pointer to the array of elements of the vector X.  The
+     results are undefined if X is not a vector.
+
+ - Macro: char * SCM_CHARS (SCM X)
+     Return a pointer to the characters of X.  The results are
+     undefined if X is not a symbol or a string.
+
+   There are also a few magic values stuffed into memory before a
+symbol's characters, but you don't want to know about those.  What
+cruft!
+
+
+File: data-rep.info,  Node: Procedures,  Next: Closures,  Prev: Vectors,  Up: Non-immediate Datatypes
+
+Procedures
+..........
+
+   Guile provides two kinds of procedures: "closures", which are the
+result of evaluating a `lambda' expression, and "subrs", which are C
+functions packaged up as Scheme objects, to make them available to
+Scheme programmers.
+
+   (There are actually other sorts of procedures: compiled closures, and
+continuations; see the source code for details about them.)
+
+ - Function: SCM scm_procedure_p (SCM X)
+     Return `SCM_BOOL_T' iff X is a Scheme procedure object, of any
+     sort.  Otherwise, return `SCM_BOOL_F'.
+
+
+File: data-rep.info,  Node: Closures,  Next: Subrs,  Prev: Procedures,  Up: Non-immediate Datatypes
+
+Closures
+........
+
+   [FIXME: this needs to be further subbed, but texinfo has no
+subsubsub]
+
+   A closure is a procedure object, generated as the value of a
+`lambda' expression in Scheme.  The representation of a closure is
+straightforward -- it contains a pointer to the code of the lambda
+expression from which it was created, and a pointer to the environment
+it closes over.
+
+   In Guile, each closure also has a property list, allowing the system
+to store information about the closure.  I'm not sure what this is used
+for at the moment -- the debugger, maybe?
+
+ - Macro: int SCM_CLOSUREP (SCM X)
+     Return non-zero iff X is a closure.  The results are undefined if
+     X is an immediate value.
+
+ - Macro: SCM SCM_PROCPROPS (SCM X)
+     Return the property list of the closure X.  The results are
+     undefined if X is not a closure.
+
+ - Macro: void SCM_SETPROCPROPS (SCM X, SCM P)
+     Set the property list of the closure X to P.  The results are
+     undefined if X is not a closure.
+
+ - Macro: SCM SCM_CODE (SCM X)
+     Return the code of the closure X.  The results are undefined if X
+     is not a closure.
+
+     This function should probably only be used internally by the
+     interpreter, since the representation of the code is intimately
+     connected with the interpreter's implementation.
+
+ - Macro: SCM SCM_ENV (SCM X)
+     Return the environment enclosed by X.  The results are undefined
+     if X is not a closure.
+
+     This function should probably only be used internally by the
+     interpreter, since the representation of the environment is
+     intimately connected with the interpreter's implementation.
+
+
+File: data-rep.info,  Node: Subrs,  Next: Ports,  Prev: Closures,  Up: Non-immediate Datatypes
+
+Subrs
+.....
+
+   [FIXME: this needs to be further subbed, but texinfo has no
+subsubsub]
+
+   A subr is a pointer to a C function, packaged up as a Scheme object
+to make it callable by Scheme code.  In addition to the function
+pointer, the subr also contains a pointer to the name of the function,
+and information about the number of arguments accepted by the C
+fuction, for the sake of error checking.
+
+   There is no single type predicate macro that recognizes subrs, as
+distinct from other kinds of procedures.  The closest thing is
+`scm_procedure_p'; see *Note Procedures::.
+
+ - Macro: char * SCM_SNAME (X)
+     Return the name of the subr X.  The results are undefined if X is
+     not a subr.
+
+ - Function: SCM scm_make_gsubr (char *NAME, int REQ, int OPT, int
+          REST, SCM (*FUNCTION)())
+     Create a new subr object named NAME, based on the C function
+     FUNCTION, make it visible to Scheme the value of as a global
+     variable named NAME, and return the subr object.
+
+     The subr object accepts REQ required arguments, OPT optional
+     arguments, and a REST argument iff REST is non-zero.  The C
+     function FUNCTION should accept `REQ + OPT' arguments, or `REQ +
+     OPT + 1' arguments if `rest' is non-zero.
+
+     When a subr object is applied, it must be applied to at least REQ
+     arguments, or else Guile signals an error.  FUNCTION receives the
+     subr's first REQ arguments as its first REQ arguments.  If there
+     are fewer than OPT arguments remaining, then FUNCTION receives the
+     value `SCM_UNDEFINED' for any missing optional arguments.  If RST
+     is non-zero, then any arguments after the first `REQ + OPT' are
+     packaged up as a list as passed as FUNCTION's last argument.
+
+     Note that subrs can actually only accept a predefined set of
+     combinations of required, optional, and rest arguments.  For
+     example, a subr can take one required argument, or one required
+     and one optional argument, but a subr can't take one required and
+     two optional arguments.  It's bizarre, but that's the way the
+     interpreter was written.  If the arguments to `scm_make_gsubr' do
+     not fit one of the predefined patterns, then `scm_make_gsubr' will
+     return a compiled closure object instead of a subr object.
+
+
+File: data-rep.info,  Node: Ports,  Prev: Subrs,  Up: Non-immediate Datatypes
+
+Ports
+.....
+
+   Haven't written this yet, 'cos I don't understand ports yet.
+
+
+File: data-rep.info,  Node: Signalling Type Errors,  Prev: Non-immediate Datatypes,  Up: How Guile does it
+
+Signalling Type Errors
+----------------------
+
+   Every function visible at the Scheme level should aggressively check
+the types of its arguments, to avoid misinterpreting a value, and
+perhaps causing a segmentation fault.  Guile provides some macros to
+make this easier.
+
+ - Macro: void SCM_ASSERT (int TEST, SCM OBJ, int POSITION, char *SUBR)
+     If TEST is zero, signal an error, attributed to the subroutine
+     named SUBR, operating on the value OBJ.  The POSITION value
+     determines exactly what sort of error to signal.
+
+     If POSITION is a string, `SCM_ASSERT' raises a "miscellaneous"
+     error whose message is that string.
+
+     Otherwise, POSITION should be one of the values defined below.
+
+ - Macro: int SCM_ARG1
+ - Macro: int SCM_ARG2
+ - Macro: int SCM_ARG3
+ - Macro: int SCM_ARG4
+ - Macro: int SCM_ARG5
+     Signal a "wrong type argument" error.  When used as the POSITION
+     argument of `SCM_ASSERT', `SCM_ARGN' claims that OBJ has the wrong
+     type for the N'th argument of SUBR.
+
+     The only way to complain about the type of an argument after the
+     fifth is to use `SCM_ARGn', defined below, which doesn't specify
+     which argument is wrong.  You could pass your own error message to
+     `SCM_ASSERT' as the POSITION, but then the error signalled is a
+     "miscellaneous" error, not a "wrong type argument" error.  This
+     seems kludgy to me.
+
+ - Macro: int SCM_ARGn
+     As above, but does not specify which argument's type is incorrect.
+
+ - Macro: int SCM_WNA
+     Signal an error complaining that the function received the wrong
+     number of arguments.
+
+     Interestingly, the message is attributed to the function named by
+     OBJ, not SUBR, so OBJ must be a Scheme string object naming the
+     function.  Usually, Guile catches these errors before ever
+     invoking the subr, so we don't run into these problems.
+
+ - Macro: int SCM_OUTOFRANGE
+     Signal an error complaining that OBJ is "out of range" for SUBR.
+
+
+File: data-rep.info,  Node: Defining New Types (Smobs),  Prev: How Guile does it,  Up: Top
+
+Defining New Types (Smobs)
+==========================
+
+   "Smobs" are Guile's mechanism for adding new non-immediate types to
+the system.(1)  To define a new smob type, the programmer provides
+Guile with some essential information about the type -- how to print
+it, how to garbage collect it, and so on -- and Guile returns a fresh
+type tag for use in the CAR of new cells.  The programmer can then use
+`scm_make_gsubr' to make a set of C functions that create and operate
+on these objects visible to Scheme code.
+
+   (You can find a complete version of the example code used in this
+section in the Guile distribution, in `doc/example-smob'.  That
+directory includes a makefile and a suitable `main' function, so you
+can build a complete interactive Guile shell, extended with the
+datatypes described here.)
+
+* Menu:
+
+* Describing a New Type::
+* Creating Instances::
+* Typechecking::
+* Garbage Collecting Smobs::
+* A Common Mistake In Allocating Smobs::
+* Garbage Collecting Simple Smobs::
+* A Complete Example::
+
+   ---------- Footnotes ----------
+
+   (1) The term "smob" was coined by Aubrey Jaffer, who says it comes
+from "small object", referring to the fact that only the CDR and part
+of the CAR of a smob's cell are available for use.
+
+
+File: data-rep.info,  Node: Describing a New Type,  Next: Creating Instances,  Prev: Defining New Types (Smobs),  Up: Defining New Types (Smobs)
+
+Describing a New Type
+---------------------
+
+   To define a new type, the programmer must write four functions to
+manage instances of the type:
+
+`mark'
+     Guile will apply this function to each instance of the new type it
+     encounters during garbage collection.  This function is
+     responsible for telling the collector about any other
+     non-immediate objects the object refers to.  The default smob mark
+     function is to not mark any data.  *Note Garbage Collecting
+     Smobs::, for more details.
+
+`free'
+     Guile will apply this function to each instance of the new type it
+     could not find any live pointers to.  The function should release
+     all resources held by the object and return the number of bytes
+     released.  This is analagous to the Java finalization method- it
+     is invoked at an unspecified time (when garbage collection occurs)
+     after the object is dead.  The default free function frees the
+     smob data (if the size of the struct passed to
+     `scm_make_smob_type' or `scm_make_smob_type_mfpe' is non-zero)
+     using `scm_must_free' and returns the size of that struct.  *Note
+     Garbage Collecting Smobs::, for more details.
+
+`print'
+     Guile will apply this function to each instance of the new type to
+     print the value, as for `display' or `write'.  The function should
+     write a printed representation of EXP on PORT, in accordance with
+     the parameters in PSTATE.  (For more information on print states,
+     see *Note Ports::.)  The default print function prints `#<NAME
+     ADDRESS>' where `NAME' is the first argument passed to
+     `scm_make_smob_type' or `scm_make_smob_type_mfpe'.
+
+`equalp'
+     If Scheme code asks the `equal?' function to compare two instances
+     of the same smob type, Guile calls this function.  It should return
+     `SCM_BOOL_T' if A and B should be considered `equal?', or
+     `SCM_BOOL_F' otherwise.  If `equalp' is `NULL', `equal?' will
+     assume that two instances of this type are never `equal?' unless
+     they are `eq?'.
+
+   To actually register the new smob type, call `scm_make_smob_type':
+
+ - Function: long scm_make_smob_type (const char *name, scm_sizet size)
+     This function implements the standard way of adding a new smob
+     type, named NAME, with instance size SIZE, to the system.  The
+     return value is a tag that is used in creating instances of the
+     type.  If SIZE is 0, then no memory will be allocated when
+     instances of the smob are created, and nothing will be freed by
+     the default free function.  Default values are provided for mark,
+     free, print, and, equalp, as described above.  If you want to
+     customize any of these functions, the call to `scm_make_smob_type'
+     should be immediately followed by calls to one or several of
+     `scm_set_smob_mark', `scm_set_smob_free', `scm_set_smob_print',
+     and/or `scm_set_smob_equalp'.
+
+   Each of the below `scm_set_smob_XXX' functions registers a smob
+special function for a given type.  Each function is intended to be used
+only zero or one time per type, and the call should be placed
+immediately following the call to `scm_make_smob_type'.
+
+ - Function: void scm_set_smob_mark (long tc, SCM (*mark) (SCM))
+     This function sets the smob marking procedure for the smob type
+     specified by the tag TC. TC is the tag returned by
+     `scm_make_smob_type'.
+
+ - Function: void scm_set_smob_free (long tc, scm_sizet (*free) (SCM))
+     This function sets the smob freeing procedure for the smob type
+     specified by the tag TC. TC is the tag returned by
+     `scm_make_smob_type'.
+
+ - Function: void scm_set_smob_print (long tc, int (*print)
+          (SCM,SCM,scm_print_state*))
+     This function sets the smob printing procedure for the smob type
+     specified by the tag TC. TC is the tag returned by
+     `scm_make_smob_type'.
+
+ - Function: void scm_set_smob_equalp (long tc, SCM (*equalp) (SCM,SCM))
+     This function sets the smob equality-testing predicate for the
+     smob type specified by the tag TC. TC is the tag returned by
+     `scm_make_smob_type'.
+
+   Instead of using `scm_make_smob_type' and calling each of the
+individual `scm_set_smob_XXX' functions to register each special
+function independently, you can use `scm_make_smob_type_mfpe' to
+register all of the special functions at once as you create the smob
+type(1):
+
+ - Function: long scm_make_smob_type_mfpe(const char *name, scm_sizet
+          size, SCM (*mark) (SCM), scm_sizet (*free) (SCM), int
+          (*print) (SCM, SCM, scm_print_state*), SCM (*equalp) (SCM,
+          SCM))
+     This function invokes `scm_make_smob_type' on its first two
+     arguments to add a new smob type named NAME, with instance size
+     SIZE to the system.  It also registers the MARK, FREE, PRINT,
+     EQUALP smob special functions for that new type.  Any of these
+     parameters can be `NULL' to have that special function use the
+     default behaviour for guile.  The return value is a tag that is
+     used in creating instances of the type.  If SIZE is 0, then no
+     memory will be allocated when instances of the smob are created,
+     and nothing will be freed by the default free function.
+
+   For example, here is how one might declare and register a new type
+representing eight-bit grayscale images:
+     #include <libguile.h>
+     
+     long image_tag;
+     
+     void
+     init_image_type ()
+     {
+       image_tag = scm_make_smob_type_mfpe ("image",sizeof(struct image),
+     				       mark_image, free_image, print_image, NULL);
+     }
+
+   ---------- Footnotes ----------
+
+   (1) Warning: There is an ongoing discussion among the developers
+which may result in deprecating `scm_make_smob_type_mfpe' in next
+release of Guile.
+
+
+File: data-rep.info,  Node: Creating Instances,  Next: Typechecking,  Prev: Describing a New Type,  Up: Defining New Types (Smobs)
+
+Creating Instances
+------------------
+
+   Like other non-immediate types, smobs start with a cell whose CAR
+contains typing information, and whose `cdr' is free for any use.  For
+smobs, the `cdr' stores a pointer to the internal C structure holding
+the smob-specific data.  To create an instance of a smob type following
+these standards, you should use `SCM_NEWSMOB':
+
+ - Macro: void SCM_NEWSMOB(SCM value,long tag,void *data)
+     Make VALUE contain a smob instance of the type with tag TAG and
+     smob data DATA.  VALUE must be previously declared as C type `SCM'.
+
+   Since it is often the case (e.g., in smob constructors) that you will
+create a smob instance and return it, there is also a slightly
+specialized macro for this situation:
+
+ - Macro: fn_returns SCM_RETURN_NEWSMOB(long tab, void *data)
+     This macro expands to a block of code that creates a smob instance
+     of the type with tag TAG and smob data DATA, and returns that
+     `SCM' value.  It should be the last piece of code in a block.
+
+   Guile provides the following functions for managing memory, which are
+often helpful when implementing smobs:
+
+ - Function: char * scm_must_malloc (long LEN, char *WHAT)
+     Allocate LEN bytes of memory, using `malloc', and return a pointer
+     to them.
+
+     If there is not enough memory available, invoke the garbage
+     collector, and try once more.  If there is still not enough,
+     signal an error, reporting that we could not allocate WHAT.
+
+     This function also helps maintain statistics about the size of the
+     heap.
+
+ - Function: char * scm_must_realloc (char *ADDR, long OLEN, long LEN,
+          char *WHAT)
+     Resize (and possibly relocate) the block of memory at ADDR, to
+     have a size of LEN bytes, by calling `realloc'.  Return a pointer
+     to the new block.
+
+     If there is not enough memory available, invoke the garbage
+     collector, and try once more.  If there is still not enough,
+     signal an error, reporting that we could not allocate WHAT.
+
+     The value OLEN should be the old size of the block of memory at
+     ADDR; it is only used for keeping statistics on the size of the
+     heap.
+
+ - Function: void scm_must_free (char *ADDR)
+     Free the block of memory at ADDR, using `free'.  If ADDR is zero,
+     signal an error, complaining of an attempt to free something that
+     is already free.
+
+     This does no record-keeping; instead, the smob's `free' function
+     must take care of that.
+
+     This function isn't usually sufficiently different from the usual
+     `free' function to be worth using.
+
+   Continuing the above example, if the global variable `image_tag'
+contains a tag returned by `scm_newsmob', here is how we could
+construct a smob whose CDR contains a pointer to a freshly allocated
+`struct image':
+
+     struct image {
+       int width, height;
+       char *pixels;
+     
+       /* The name of this image */
+       SCM name;
+     
+       /* A function to call when this image is
+          modified, e.g., to update the screen,
+          or SCM_BOOL_F if no action necessary */
+       SCM update_func;
+     };
+     
+     SCM
+     make_image (SCM name, SCM s_width, SCM s_height)
+     {
+       struct image *image;
+       int width, height;
+     
+       SCM_ASSERT (SCM_NIMP (name) && SCM_STRINGP (name), name,
+                   SCM_ARG1, "make-image");
+       SCM_ASSERT (SCM_INUMP (s_width),  s_width,  SCM_ARG2, "make-image");
+       SCM_ASSERT (SCM_INUMP (s_height), s_height, SCM_ARG3, "make-image");
+     
+       width = SCM_INUM (s_width);
+       height = SCM_INUM (s_height);
+     
+       image = (struct image *) scm_must_malloc (sizeof (struct image), "image");
+       image->width = width;
+       image->height = height;
+       image->pixels = scm_must_malloc (width * height, "image pixels");
+       image->name = name;
+       image->update_func = SCM_BOOL_F;
+     
+       SCM_RETURN_NEWSMOB (image_tag, image);
+     }
+
+
+File: data-rep.info,  Node: Typechecking,  Next: Garbage Collecting Smobs,  Prev: Creating Instances,  Up: Defining New Types (Smobs)
+
+Typechecking
+------------
+
+   Functions that operate on smobs should aggressively check the types
+of their arguments, to avoid misinterpreting some other datatype as a
+smob, and perhaps causing a segmentation fault.  Fortunately, this is
+pretty simple to do.  The function need only verify that its argument
+is a non-immediate, whose CAR is the type tag returned by `scm_newsmob'.
+
+   For example, here is a simple function that operates on an image
+smob, and checks the type of its argument.  We also present an expanded
+version of the `init_image_type' function, to make `clear_image' and
+the image constructor function `make_image' visible to Scheme code.
+     SCM
+     clear_image (SCM image_smob)
+     {
+       int area;
+       struct image *image;
+     
+       SCM_ASSERT ((SCM_NIMP (image_smob)
+                    && SCM_CAR (image_smob) == image_tag),
+                   image_smob, SCM_ARG1, "clear-image");
+     
+       image = (struct image *) SCM_CDR (image_smob);
+       area = image->width * image->height;
+       memset (image->pixels, 0, area);
+     
+       /* Invoke the image's update function.  */
+       if (image->update_func != SCM_BOOL_F)
+         scm_apply (image->update_func, SCM_EOL, SCM_EOL);
+     
+       return SCM_UNSPECIFIED;
+     }
+     
+     
+     void
+     init_image_type ()
+     {
+       image_tag = scm_newsmob (&image_funs);
+     
+       scm_make_gsubr ("make-image", 3, 0, 0, make_image);
+       scm_make_gsubr ("clear-image", 1, 0, 0, clear_image);
+     }
+
+   Note that checking types is a little more complicated during garbage
+collection; see the description of `SCM_GCTYP16' in *Note Garbage
+Collecting Smobs::.
+
+
+File: data-rep.info,  Node: Garbage Collecting Smobs,  Next: A Common Mistake In Allocating Smobs,  Prev: Typechecking,  Up: Defining New Types (Smobs)
+
+Garbage Collecting Smobs
+------------------------
+
+   Once a smob has been released to the tender mercies of the Scheme
+system, it must be prepared to survive garbage collection.  Guile calls
+the `mark' and `free' functions of the `scm_smobfuns' structure to
+manage this.
+
+   As described before (*note Garbage Collection::), every object in the
+Scheme system has a "mark bit", which the garbage collector uses to
+tell live objects from dead ones.  When collection starts, every
+object's mark bit is clear.  The collector traces pointers through the
+heap, starting from objects known to be live, and sets the mark bit on
+each object it encounters.  When it can find no more unmarked objects,
+the collector walks all objects, live and dead, frees those whose mark
+bits are still clear, and clears the mark bit on the others.
+
+   The two main portions of the collection are called the "mark phase",
+during which the collector marks live objects, and the "sweep phase",
+during which the collector frees all unmarked objects.
+
+   The mark bit of a smob lives in its CAR, along with the smob's type
+tag.  When the collector encounters a smob, it sets the smob's mark bit,
+and uses the smob's type tag to find the appropriate `mark' function
+for that smob: the one listed in that smob's `scm_smobfuns' structure.
+It then calls the `mark' function, passing it the smob as its only
+argument.
+
+   The `mark' function is responsible for marking any other Scheme
+objects the smob refers to.  If it does not do so, the objects' mark
+bits will still be clear when the collector begins to sweep, and the
+collector will free them.  If this occurs, it will probably break, or at
+least confuse, any code operating on the smob; the smob's `SCM' values
+will have become dangling references.
+
+   To mark an arbitrary Scheme object, the `mark' function may call
+this function:
+
+ - Function: void scm_gc_mark (SCM X)
+     Mark the object X, and recurse on any objects X refers to.  If X's
+     mark bit is already set, return immediately.
+
+   Thus, here is how we might write the `mark' function for the image
+smob type discussed above:
+     SCM
+     mark_image (SCM image_smob)
+     {
+       /* Mark the image's name and update function.  */
+       struct image *image = (struct image *) SCM_CDR (image_smob);
+     
+       scm_gc_mark (image->name);
+       scm_gc_mark (image->update_func);
+     
+       return SCM_BOOL_F;
+     }
+
+   Note that, even though the image's `update_func' could be an
+arbitrarily complex structure (representing a procedure and any values
+enclosed in its environment), `scm_gc_mark' will recurse as necessary
+to mark all its components.  Because `scm_gc_mark' sets an object's
+mark bit before it recurses, it is not confused by circular structures.
+
+   As an optimization, the collector will mark whatever value is
+returned by the `mark' function; this helps limit depth of recursion
+during the mark phase.  Thus, the code above could also be written as:
+     SCM
+     mark_image (SCM image_smob)
+     {
+       /* Mark the image's name and update function.  */
+       struct image *image = (struct image *) SCM_CDR (image_smob);
+     
+       scm_gc_mark (image->name);
+       return image->update_func;
+     }
+
+   Finally, when the collector encounters an unmarked smob during the
+sweep phase, it uses the smob's tag to find the appropriate `free'
+function for the smob.  It then calls the function, passing it the smob
+as its only argument.
+
+   The `free' function must release any resources used by the smob.
+However, it need not free objects managed by the collector; the
+collector will take care of them.  The return type of the `free'
+function should be `scm_sizet', an unsigned integral type; the `free'
+function should return the number of bytes released, to help the
+collector maintain statistics on the size of the heap.
+
+   Here is how we might write the `free' function for the image smob
+type:
+     scm_sizet
+     free_image (SCM image_smob)
+     {
+       struct image *image = (struct image *) SCM_CDR (image_smob);
+       scm_sizet size = image->width * image->height + sizeof (*image);
+     
+       free (image->pixels);
+       free (image);
+     
+       return size;
+     }
+
+   During the sweep phase, the garbage collector will clear the mark
+bits on all live objects.  The code which implements a smob need not do
+this itself.
+
+   There is no way for smob code to be notified when collection is
+complete.
+
+   Note that, since a smob's mark bit lives in its CAR, along with the
+smob's type tag, the technique for checking the type of a smob described
+in *Note Typechecking:: will not necessarily work during GC.  If you
+need to find out whether a given object is a particular smob type
+during GC, use the following macro:
+
+ - Macro: void SCM_GCTYP16 (SCM X)
+     Return the type bits of the smob X, with the mark bit clear.
+
+     Use this macro instead of `SCM_CAR' to check the type of a smob
+     during GC.  Usually, only code called by the smob's `mark' function
+     need worry about this.
+
+   It is usually a good idea to minimize the amount of processing done
+during garbage collection; keep `mark' and `free' functions very
+simple.  Since collections occur at unpredictable times, it is easy for
+any unusual activity to interfere with normal code.
+
+
+File: data-rep.info,  Node: A Common Mistake In Allocating Smobs,  Next: Garbage Collecting Simple Smobs,  Prev: Garbage Collecting Smobs,  Up: Defining New Types (Smobs)
+
+A Common Mistake In Allocating Smobs
+------------------------------------
+
+   When constructing new objects, you must be careful that the garbage
+collector can always find any new objects you allocate.  For example,
+suppose we wrote the `make_image' function this way:
+
+     SCM
+     make_image (SCM name, SCM s_width, SCM s_height)
+     {
+       struct image *image;
+       SCM image_smob;
+       int width, height;
+     
+       SCM_ASSERT (SCM_NIMP (name) && SCM_STRINGP (name), name,
+                   SCM_ARG1, "make-image");
+       SCM_ASSERT (SCM_INUMP (s_width),  s_width,  SCM_ARG2, "make-image");
+       SCM_ASSERT (SCM_INUMP (s_height), s_height, SCM_ARG3, "make-image");
+     
+       width = SCM_INUM (s_width);
+       height = SCM_INUM (s_height);
+     
+       image = (struct image *) scm_must_malloc (sizeof (struct image), "image");
+       image->width = width;
+       image->height = height;
+       image->pixels = scm_must_malloc (width * height, "image pixels");
+     
+       /* THESE TWO LINES HAVE CHANGED: */
+       image->name = scm_string_copy (name);
+       image->update_func = scm_make_gsubr (...);
+     
+       SCM_NEWCELL (image_smob);
+       SCM_SETCDR (image_smob, image);
+       SCM_SETCAR (image_smob, image_tag);
+     
+       return image_smob;
+     }
+
+   This code is incorrect.  The calls to `scm_string_copy' and
+`scm_make_gsubr' allocate fresh objects.  Allocating any new object may
+cause the garbage collector to run.  If `scm_make_gsubr' invokes a
+collection, the garbage collector has no way to discover that
+`image->name' points to the new string object; the `image' structure is
+not yet part of any Scheme object, so the garbage collector will not
+traverse it.  Since the garbage collector cannot find any references to
+the new string object, it will free it, leaving `image' pointing to a
+dead object.
+
+   A correct implementation might say, instead:
+       image->name = SCM_BOOL_F;
+       image->update_func = SCM_BOOL_F;
+     
+       SCM_NEWCELL (image_smob);
+       SCM_SETCDR (image_smob, image);
+       SCM_SETCAR (image_smob, image_tag);
+     
+       image->name = scm_string_copy (name);
+       image->update_func = scm_make_gsubr (...);
+     
+       return image_smob;
+
+   Now, by the time we allocate the new string and function objects,
+`image_smob' points to `image'.  If the garbage collector scans the
+stack, it will find a reference to `image_smob' and traverse `image',
+so any objects `image' points to will be preserved.
+
+
+File: data-rep.info,  Node: Garbage Collecting Simple Smobs,  Next: A Complete Example,  Prev: A Common Mistake In Allocating Smobs,  Up: Defining New Types (Smobs)
+
+Garbage Collecting Simple Smobs
+-------------------------------
+
+   It is often useful to define very simple smob types -- smobs which
+have no data to mark, other than the cell itself, or smobs whose CDR is
+simply an ordinary Scheme object, to be marked recursively.  Guile
+provides some functions to handle these common cases; you can use these
+functions as your smob type's `mark' function, if your smob's structure
+is simple enough.
+
+   If the smob refers to no other Scheme objects, then no action is
+necessary; the garbage collector has already marked the smob cell
+itself.  In that case, you can use zero as your mark function.
+
+ - Function: SCM scm_markcdr (SCM X)
+     Mark the references in the smob X, assuming that X's CDR contains
+     an ordinary Scheme object, and X refers to no other objects.  This
+     function simply returns X's CDR.
+
+ - Function: scm_sizet scm_free0 (SCM X)
+     Do nothing; return zero.  This function is appropriate for smobs
+     that use either zero or `scm_markcdr' as their marking functions,
+     and refer to no heap storage, including memory managed by `malloc',
+     other than the smob's header cell.
+
+
+File: data-rep.info,  Node: A Complete Example,  Prev: Garbage Collecting Simple Smobs,  Up: Defining New Types (Smobs)
+
+A Complete Example
+------------------
+
+   Here is the complete text of the implementation of the image
+datatype, as presented in the sections above.  We also provide a
+definition for the smob's `print' function, and make some objects and
+functions static, to clarify exactly what the surrounding code is using.
+
+   As mentioned above, you can find this code in the Guile
+distribution, in `doc/example-smob'.  That directory includes a
+makefile and a suitable `main' function, so you can build a complete
+interactive Guile shell, extended with the datatypes described here.)
+
+     /* file "image-type.c" */
+     
+     #include <stdlib.h>
+     #include <libguile.h>
+     
+     static long image_tag;
+     
+     struct image {
+       int width, height;
+       char *pixels;
+     
+       /* The name of this image */
+       SCM name;
+     
+       /* A function to call when this image is
+          modified, e.g., to update the screen,
+          or SCM_BOOL_F if no action necessary */
+       SCM update_func;
+     };
+     
+     static SCM
+     make_image (SCM name, SCM s_width, SCM s_height)
+     {
+       struct image *image;
+       SCM image_smob;
+       int width, height;
+     
+       SCM_ASSERT (SCM_NIMP (name) && SCM_STRINGP (name), name,
+                   SCM_ARG1, "make-image");
+       SCM_ASSERT (SCM_INUMP (s_width),  s_width,  SCM_ARG2, "make-image");
+       SCM_ASSERT (SCM_INUMP (s_height), s_height, SCM_ARG3, "make-image");
+     
+       width = SCM_INUM (s_width);
+       height = SCM_INUM (s_height);
+     
+       image = (struct image *) scm_must_malloc (sizeof (struct image), "image");
+       image->width = width;
+       image->height = height;
+       image->pixels = scm_must_malloc (width * height, "image pixels");
+       image->name = name;
+       image->update_func = SCM_BOOL_F;
+     
+       SCM_NEWCELL (image_smob);
+       SCM_SETCDR (image_smob, image);
+       SCM_SETCAR (image_smob, image_tag);
+     
+       return image_smob;
+     }
+     
+     static SCM
+     clear_image (SCM image_smob)
+     {
+       int area;
+       struct image *image;
+     
+       SCM_ASSERT ((SCM_NIMP (image_smob)
+                    && SCM_CAR (image_smob) == image_tag),
+                   image_smob, SCM_ARG1, "clear-image");
+     
+       image = (struct image *) SCM_CDR (image_smob);
+       area = image->width * image->height;
+       memset (image->pixels, 0, area);
+     
+       /* Invoke the image's update function.  */
+       if (image->update_func != SCM_BOOL_F)
+         scm_apply (image->update_func, SCM_EOL, SCM_EOL);
+     
+       return SCM_UNSPECIFIED;
+     }
+     
+     static SCM
+     mark_image (SCM image_smob)
+     {
+       struct image *image = (struct image *) SCM_CDR (image_smob);
+     
+       scm_gc_mark (image->name);
+       return image->update_func;
+     }
+     
+     static scm_sizet
+     free_image (SCM image_smob)
+     {
+       struct image *image = (struct image *) SCM_CDR (image_smob);
+       scm_sizet size = image->width * image->height + sizeof (struct image);
+     
+       free (image->pixels);
+       free (image);
+     
+       return size;
+     }
+     
+     static int
+     print_image (SCM image_smob, SCM port, scm_print_state *pstate)
+     {
+       struct image *image = (struct image *) SCM_CDR (image_smob);
+     
+       scm_puts ("#<image ", port);
+       scm_display (image->name, port);
+       scm_puts (">", port);
+     
+       /* non-zero means success */
+       return 1;
+     }
+     
+     static scm_smobfuns image_funs = {
+       mark_image, free_image, print_image, 0
+     };
+     
+     void
+     init_image_type ()
+     {
+       image_tag = scm_newsmob (&image_funs);
+     
+       scm_make_gsubr ("clear-image", 1, 0, 0, clear_image);
+       scm_make_gsubr ("make-image", 3, 0, 0, make_image);
+     }
+
+   Here is a sample build and interaction with the code from the
+`example-smob' directory, on the author's machine:
+
+     zwingli:example-smob$ make CC=gcc
+     gcc `guile-config compile`   -c image-type.c -o image-type.o
+     gcc `guile-config compile`   -c myguile.c -o myguile.o
+     gcc image-type.o myguile.o `guile-config link` -o myguile
+     zwingli:example-smob$ ./myguile
+     guile> make-image
+     #<primitive-procedure make-image>
+     guile> (define i (make-image "Whistler's Mother" 100 100))
+     guile> i
+     #<image Whistler's Mother>
+     guile> (clear-image i)
+     guile> (clear-image 4)
+     ERROR: In procedure clear-image in expression (clear-image 4):
+     ERROR: Wrong type argument in position 1: 4
+     ABORT: (wrong-type-arg)
+     
+     Type "(backtrace)" to get more information.
+     guile>
+
+
+
+Tag Table:
+Node: Top1057
+Node: Data Representation in Scheme2390
+Node: A Simple Representation4089
+Node: Faster Integers5488
+Node: Cheaper Pairs8957
+Node: Guile Is Hairier12254
+Node: How Guile does it13030
+Node: General Rules13688
+Node: Garbage Collection14883
+Node: Immediates vs. Non-immediates18986
+Node: Immediate Datatypes20635
+Node: Integers21491
+Node: Characters22600
+Node: Booleans23135
+Node: Unique Values23742
+Node: Non-immediate Datatypes25284
+Node: Non-immediate Type Predicates26479
+Node: Pairs27438
+Node: Vectors30449
+Node: Procedures32112
+Node: Closures32754
+Node: Subrs34496
+Node: Ports36867
+Node: Signalling Type Errors37026
+Node: Defining New Types (Smobs)39104
+Ref: Defining New Types (Smobs)-Footnote-140248
+Node: Describing a New Type40440
+Ref: Describing a New Type-Footnote-146168
+Node: Creating Instances46321
+Node: Typechecking50383
+Node: Garbage Collecting Smobs52178
+Node: A Common Mistake In Allocating Smobs57613
+Node: Garbage Collecting Simple Smobs60271
+Node: A Complete Example61589
+
+End Tag Table

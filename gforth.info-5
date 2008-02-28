@@ -1,0 +1,1355 @@
+This is gforth.info, produced by makeinfo version 4.2 from gforth.texi.
+
+This manual is for Gforth (version 0.6.2, August 25, 2003), a fast and
+portable implementation of the ANS Forth language
+
+   Copyright (C) 1995, 1996, 1997, 1998, 2000, 2003 Free Software
+Foundation, Inc.
+
+     Permission is granted to copy, distribute and/or modify this
+     document under the terms of the GNU Free Documentation License,
+     Version 1.1 or any later version published by the Free Software
+     Foundation; with no Invariant Sections, with the Front-Cover texts
+     being "A GNU Manual," and with the Back-Cover Texts as in (a)
+     below.  A copy of the license is included in the section entitled
+     "GNU Free Documentation License."
+
+     (a) The FSF's Back-Cover Text is: "You have freedom to copy and
+     modify this GNU Manual, like GNU software.  Copies published by
+     the Free Software Foundation raise funds for GNU development."
+   
+INFO-DIR-SECTION Software development
+START-INFO-DIR-ENTRY
+* Gforth: (gforth).             A fast interpreter for the Forth language.
+END-INFO-DIR-ENTRY
+
+
+File: gforth.info,  Node: Constants,  Next: Values,  Prev: Variables,  Up: Defining Words
+
+Constants
+---------
+
+   `Constant' allows you to declare a fixed value and refer to it by
+name. For example:
+
+     12 Constant INCHES-PER-FOOT
+     3E+08 fconstant SPEED-O-LIGHT
+
+   A `Variable' can be both read and written, so its run-time behaviour
+is to supply an address through which its current value can be
+manipulated. In contrast, the value of a `Constant' cannot be changed
+once it has been declared(1) so it's not necessary to supply the
+address - it is more efficient to return the value of the constant
+directly. That's exactly what happens; the run-time effect of a
+constant is to put its value on the top of the stack (You can find one
+way of implementing `Constant' in *Note User-defined Defining Words::).
+
+   Forth also provides `2Constant' and `fconstant' for defining double
+and floating-point constants, respectively.
+
+`Constant'       w "name" -         core       ``Constant''
+   Define a constant name with value w.
+
+   name execution: - w
+
+`2Constant'       w1 w2 "name" -         double       ``two-constant''
+
+`fconstant'       r "name" -         float       ``f-constant''
+
+   Constants in Forth behave differently from their equivalents in other
+programming languages. In other languages, a constant (such as an EQU in
+assembler or a #define in C) only exists at compile-time; in the
+executable program the constant has been translated into an absolute
+number and, unless you are using a symbolic debugger, it's impossible to
+know what abstract thing that number represents. In Forth a constant has
+an entry in the header space and remains there after the code that uses
+it has been defined. In fact, it must remain in the dictionary since it
+has run-time duties to perform. For example:
+
+     12 Constant INCHES-PER-FOOT
+     : FEET-TO-INCHES ( n1 -- n2 ) INCHES-PER-FOOT * ;
+
+   When `FEET-TO-INCHES' is executed, it will in turn execute the xt
+associated with the constant `INCHES-PER-FOOT'. If you use `see' to
+decompile the definition of `FEET-TO-INCHES', you can see that it makes
+a call to `INCHES-PER-FOOT'. Some Forth compilers attempt to optimise
+constants by in-lining them where they are used. You can force Gforth
+to in-line a constant like this:
+
+     : FEET-TO-INCHES ( n1 -- n2 ) [ INCHES-PER-FOOT ] LITERAL * ;
+
+   If you use `see' to decompile this version of `FEET-TO-INCHES', you
+can see that `INCHES-PER-FOOT' is no longer present. To understand how
+this works, read *Note Interpret/Compile states::, and *Note Literals::.
+
+   In-lining constants in this way might improve execution time
+fractionally, and can ensure that a constant is now only referenced at
+compile-time. However, the definition of the constant still remains in
+the dictionary. Some Forth compilers provide a mechanism for controlling
+a second dictionary for holding transient words such that this second
+dictionary can be deleted later in order to recover memory space.
+However, there is no standard way of doing this.
+
+   ---------- Footnotes ----------
+
+   (1) Well, often it can be - but not in a Standard, portable way.
+It's safer to use a `Value' (read on).
+
+
+File: gforth.info,  Node: Values,  Next: Colon Definitions,  Prev: Constants,  Up: Defining Words
+
+Values
+------
+
+   A `Value' behaves like a `Constant', but it can be changed.  `TO' is
+a parsing word that changes a `Values'.  In Gforth (not in ANS Forth)
+you can access (and change) a `value' also with `>body'.
+
+   Here are some examples:
+
+     12 Value APPLES     \ Define APPLES with an initial value of 12
+     34 TO APPLES        \ Change the value of APPLES. TO is a parsing word
+     1 ' APPLES >body +! \ Increment APPLES.  Non-standard usage.
+     APPLES              \ puts 35 on the top of the stack.
+
+`Value'       w "name" -         core-ext       ``Value''
+
+`TO'       w "name" -         core-ext       ``TO''
+
+
+File: gforth.info,  Node: Colon Definitions,  Next: Anonymous Definitions,  Prev: Values,  Up: Defining Words
+
+Colon Definitions
+-----------------
+
+     : name ( ... -- ... )
+         word1 word2 word3 ;
+
+Creates a word called `name' that, upon execution, executes `word1
+word2 word3'. `name' is a "(colon) definition".
+
+   The explanation above is somewhat superficial. For simple examples of
+colon definitions see *Note Your first definition::.  For an in-depth
+discussion of some of the issues involved, *Note Interpretation and
+Compilation Semantics::.
+
+`:'       "name" - colon-sys         core       ``colon''
+
+`;'       compilation colon-sys - ; run-time nest-sys         core       ``semicolon''
+
+
+File: gforth.info,  Node: Anonymous Definitions,  Next: Supplying names,  Prev: Colon Definitions,  Up: Defining Words
+
+Anonymous Definitions
+---------------------
+
+   Sometimes you want to define an "anonymous word"; a word without a
+name. You can do this with:
+
+`:noname'       - xt colon-sys         core-ext       ``colon-no-name''
+
+   This leaves the execution token for the word on the stack after the
+closing `;'. Here's an example in which a deferred word is initialised
+with an `xt' from an anonymous colon definition:
+
+     Defer deferred
+     :noname ( ... -- ... )
+       ... ;
+     IS deferred
+
+Gforth provides an alternative way of doing this, using two separate
+words:
+
+`noname'       -         gforth       ``noname''
+   The next defined word will be anonymous. The defining word will
+leave the input stream alone. The xt of the defined word will be given
+by `latestxt'.
+
+`latestxt'       - xt         gforth       ``latestxt''
+   xt is the execution token of the last word defined.
+
+The previous example can be rewritten using `noname' and `latestxt':
+
+     Defer deferred
+     noname : ( ... -- ... )
+       ... ;
+     latestxt IS deferred
+
+`noname' works with any defining word, not just `:'.
+
+   `latestxt' also works when the last word was not defined as
+`noname'.  It does not work for combined words, though.  It also has
+the useful property that is is valid as soon as the header for a
+definition has been built. Thus:
+
+     latestxt . : foo [ latestxt . ] ; ' foo .
+
+prints 3 numbers; the last two are the same.
+
+
+File: gforth.info,  Node: Supplying names,  Next: User-defined Defining Words,  Prev: Anonymous Definitions,  Up: Defining Words
+
+Supplying the name of a defined word
+------------------------------------
+
+   By default, a defining word takes the name for the defined word from
+the input stream. Sometimes you want to supply the name from a string.
+You can do this with:
+
+`nextname'       c-addr u -         gforth       ``nextname''
+   The next defined word will have the name C-ADDR U; the defining word
+will leave the input stream alone.
+
+   For example:
+
+     s" foo" nextname create
+
+is equivalent to:
+
+     create foo
+
+`nextname' works with any defining word.
+
+
+File: gforth.info,  Node: User-defined Defining Words,  Next: Deferred words,  Prev: Supplying names,  Up: Defining Words
+
+User-defined Defining Words
+---------------------------
+
+   You can create a new defining word by wrapping defining-time code
+around an existing defining word and putting the sequence in a colon
+definition.
+
+   For example, suppose that you have a word `stats' that gathers
+statistics about colon definitions given the xt of the definition, and
+you want every colon definition in your application to make a call to
+`stats'. You can define and use a new version of `:' like this:
+
+     : stats ( xt -- ) DUP ." (Gathering statistics for " . ." )"
+       ... ;  \ other code
+     
+     : my: : latestxt postpone literal ['] stats compile, ;
+     
+     my: foo + - ;
+
+   When `foo' is defined using `my:' these steps occur:
+
+   * `my:' is executed.
+
+   * The `:' within the definition (the one between `my:' and
+     `latestxt') is executed, and does just what it always does; it
+     parses the input stream for a name, builds a dictionary header for
+     the name `foo' and switches `state' from interpret to compile.
+
+   * The word `latestxt' is executed. It puts the xt for the word that
+     is being defined - `foo' - onto the stack.
+
+   * The code that was produced by `postpone literal' is executed; this
+     causes the value on the stack to be compiled as a literal in the
+     code area of `foo'.
+
+   * The code `['] stats' compiles a literal into the definition of
+     `my:'. When `compile,' is executed, that literal - the execution
+     token for `stats' - is layed down in the code area of `foo' ,
+     following the literal(1).
+
+   * At this point, the execution of `my:' is complete, and control
+     returns to the text interpreter. The text interpreter is in compile
+     state, so subsequent text `+ -' is compiled into the definition of
+     `foo' and the `;' terminates the definition as always.
+
+   You can use `see' to decompile a word that was defined using `my:'
+and see how it is different from a normal `:' definition. For example:
+
+     : bar + - ;  \ like foo but using : rather than my:
+     see bar
+     : bar
+       + - ;
+     see foo
+     : foo
+       107645672 stats + - ;
+     
+     \ use ' stats . to show that 107645672 is the xt for stats
+
+   You can use techniques like this to make new defining words in terms
+of any existing defining word.
+
+   If you want the words defined with your defining words to behave
+differently from words defined with standard defining words, you can
+write your defining word like this:
+
+     : def-word ( "name" -- )
+         CREATE code1
+     DOES> ( ... -- ... )
+         code2 ;
+     
+     def-word name
+
+   This fragment defines a "defining word" `def-word' and then executes
+it.  When `def-word' executes, it `CREATE's a new word, `name', and
+executes the code code1. The code code2 is not executed at this time.
+The word `name' is sometimes called a "child" of `def-word'.
+
+   When you execute `name', the address of the body of `name' is put on
+the data stack and code2 is executed (the address of the body of `name'
+is the address `HERE' returns immediately after the `CREATE', i.e., the
+address a `create'd word returns by default).
+
+   You can use `def-word' to define a set of child words that behave
+similarly; they all have a common run-time behaviour determined by
+code2. Typically, the code1 sequence builds a data area in the body of
+the child word. The structure of the data is common to all children of
+`def-word', but the data values are specific - and private - to each
+child word. When a child word is executed, the address of its private
+data area is passed as a parameter on TOS to be used and manipulated(2)
+by code2.
+
+   The two fragments of code that make up the defining words act (are
+executed) at two completely separate times:
+
+   * At define time, the defining word executes code1 to generate a
+     child word
+
+   * At child execution time, when a child word is invoked, code2 is
+     executed, using parameters (data) that are private and specific to
+     the child word.
+
+   Another way of understanding the behaviour of `def-word' and `name'
+is to say that, if you make the following definitions:
+     : def-word1 ( "name" -- )
+         CREATE code1 ;
+     
+     : action1 ( ... -- ... )
+         code2 ;
+     
+     def-word1 name1
+
+Then using `name1 action1' is equivalent to using `name'.
+
+   The classic example is that you can define `CONSTANT' in this way:
+
+     : CONSTANT ( w "name" -- )
+         CREATE ,
+     DOES> ( -- w )
+         @ ;
+
+   When you create a constant with `5 CONSTANT five', a set of
+define-time actions take place; first a new word `five' is created,
+then the value 5 is laid down in the body of `five' with `,'. When
+`five' is executed, the address of the body is put on the stack, and
+`@' retrieves the value 5. The word `five' has no code of its own; it
+simply contains a data field and a pointer to the code that follows
+`DOES>' in its defining word. That makes words created in this way very
+compact.
+
+   The final example in this section is intended to remind you that
+space reserved in `CREATE'd words is data space and therefore can be
+both read and written by a Standard program(3):
+
+     : foo ( "name" -- )
+         CREATE -1 ,
+     DOES> ( -- )
+         @ . ;
+     
+     foo first-word
+     foo second-word
+     
+     123 ' first-word >BODY !
+
+   If `first-word' had been a `CREATE'd word, we could simply have
+executed it to get the address of its data field. However, since it was
+defined to have `DOES>' actions, its execution semantics are to perform
+those `DOES>' actions. To get the address of its data field it's
+necessary to use `'' to get its xt, then `>BODY' to translate the xt
+into the address of the data field.  When you execute `first-word', it
+will display `123'. When you execute `second-word' it will display `-1'.
+
+   In the examples above the stack comment after the `DOES>' specifies
+the stack effect of the defined words, not the stack effect of the
+following code (the following code expects the address of the body on
+the top of stack, which is not reflected in the stack comment). This is
+the convention that I use and recommend (it clashes a bit with using
+locals declarations for stack effect specification, though).
+
+* Menu:
+
+* CREATE..DOES> applications::
+* CREATE..DOES> details::
+* Advanced does> usage example::
+* `Const-does>'::
+
+   ---------- Footnotes ----------
+
+   (1) Strictly speaking, the mechanism that `compile,' uses to convert
+an xt into something in the code area is implementation-dependent. A
+threaded implementation might spit out the execution token directly
+whilst another implementation might spit out a native code sequence.
+
+   (2) It is legitimate both to read and write to this data area.
+
+   (3) Exercise: use this example as a starting point for your own
+implementation of `Value' and `TO' - if you get stuck, investigate the
+behaviour of `'' and `[']'.
+
+
+File: gforth.info,  Node: CREATE..DOES> applications,  Next: CREATE..DOES> details,  Prev: User-defined Defining Words,  Up: User-defined Defining Words
+
+Applications of `CREATE..DOES>'
+...............................
+
+   You may wonder how to use this feature. Here are some usage patterns:
+
+   When you see a sequence of code occurring several times, and you can
+identify a meaning, you will factor it out as a colon definition. When
+you see similar colon definitions, you can factor them using
+`CREATE..DOES>'. E.g., an assembler usually defines several words that
+look very similar:
+     : ori, ( reg-target reg-source n -- )
+         0 asm-reg-reg-imm ;
+     : andi, ( reg-target reg-source n -- )
+         1 asm-reg-reg-imm ;
+
+This could be factored with:
+     : reg-reg-imm ( op-code -- )
+         CREATE ,
+     DOES> ( reg-target reg-source n -- )
+         @ asm-reg-reg-imm ;
+     
+     0 reg-reg-imm ori,
+     1 reg-reg-imm andi,
+
+   Another view of `CREATE..DOES>' is to consider it as a crude way to
+supply a part of the parameters for a word (known as "currying" in the
+functional language community). E.g., `+' needs two parameters.
+Creating versions of `+' with one parameter fixed can be done like this:
+
+     : curry+ ( n1 "name" -- )
+         CREATE ,
+     DOES> ( n2 -- n1+n2 )
+         @ + ;
+     
+      3 curry+ 3+
+     -2 curry+ 2-
+
+
+File: gforth.info,  Node: CREATE..DOES> details,  Next: Advanced does> usage example,  Prev: CREATE..DOES> applications,  Up: User-defined Defining Words
+
+The gory details of `CREATE..DOES>'
+...................................
+
+`DOES>'       compilation colon-sys1 - colon-sys2 ; run-time nest-sys -         core       ``does''
+
+   This means that you need not use `CREATE' and `DOES>' in the same
+definition; you can put the `DOES>'-part in a separate definition. This
+allows us to, e.g., select among different `DOES>'-parts:
+     : does1
+     DOES> ( ... -- ... )
+         ... ;
+     
+     : does2
+     DOES> ( ... -- ... )
+         ... ;
+     
+     : def-word ( ... -- ... )
+         create ...
+         IF
+            does1
+         ELSE
+            does2
+         ENDIF ;
+
+   In this example, the selection of whether to use `does1' or `does2'
+is made at definition-time; at the time that the child word is
+`CREATE'd.
+
+   In a standard program you can apply a `DOES>'-part only if the last
+word was defined with `CREATE'. In Gforth, the `DOES>'-part will
+override the behaviour of the last word defined in any case. In a
+standard program, you can use `DOES>' only in a colon definition. In
+Gforth, you can also use it in interpretation state, in a kind of
+one-shot mode; for example:
+     CREATE name ( ... -- ... )
+       initialization
+     DOES>
+       code ;
+
+is equivalent to the standard:
+     :noname
+     DOES>
+         code ;
+     CREATE name EXECUTE ( ... -- ... )
+         initialization
+
+`>body'       xt - a_addr         core       ``>body''
+   Get the address of the body of the word represented by xt (the
+address of the word's data field).
+
+
+File: gforth.info,  Node: Advanced does> usage example,  Next: `Const-does>',  Prev: CREATE..DOES> details,  Up: User-defined Defining Words
+
+Advanced does> usage example
+............................
+
+   The MIPS disassembler (`arch/mips/disasm.fs') contains many words
+for disassembling instructions, that follow a very repetetive scheme:
+
+     :noname DISASM-OPERANDS s" INST-NAME" type ;
+     ENTRY-NUM cells TABLE + !
+
+   Of course, this inspires the idea to factor out the commonalities to
+allow a definition like
+
+     DISASM-OPERANDS ENTRY-NUM TABLE define-inst INST-NAME
+
+   The parameters DISASM-OPERANDS and TABLE are usually correlated.
+Moreover, before I wrote the disassembler, there already existed code
+that defines instructions like this:
+
+     ENTRY-NUM INST-FORMAT INST-NAME
+
+   This code comes from the assembler and resides in
+`arch/mips/insts.fs'.
+
+   So I had to define the INST-FORMAT words that performed the scheme
+above when executed.  At first I chose to use run-time code-generation:
+
+     : INST-FORMAT ( entry-num "name" -- ; compiled code: addr w -- )
+       :noname Postpone DISASM-OPERANDS
+       name Postpone sliteral Postpone type Postpone ;
+       swap cells TABLE + ! ;
+
+   Note that this supplies the other two parameters of the scheme above.
+
+   An alternative would have been to write this using `create'/`does>':
+
+     : INST-FORMAT ( entry-num "name" -- )
+       here name string, ( entry-num c-addr ) \ parse and save "name"
+       noname create , ( entry-num )
+       latestxt swap cells TABLE + !
+     does> ( addr w -- )
+       \ disassemble instruction w at addr
+       @ >r
+       DISASM-OPERANDS
+       r> count type ;
+
+   Somehow the first solution is simpler, mainly because it's simpler to
+shift a string from definition-time to use-time with `sliteral' than
+with `string,' and friends.
+
+   I wrote a lot of words following this scheme and soon thought about
+factoring out the commonalities among them.  Note that this uses a
+two-level defining word, i.e., a word that defines ordinary defining
+words.
+
+   This time a solution involving `postpone' and friends seemed more
+difficult (try it as an exercise), so I decided to use a
+`create'/`does>' word; since I was already at it, I also used
+`create'/`does>' for the lower level (try using `postpone' etc. as an
+exercise), resulting in the following definition:
+
+     : define-format ( disasm-xt table-xt -- )
+         \ define an instruction format that uses disasm-xt for
+         \ disassembling and enters the defined instructions into table
+         \ table-xt
+         create 2,
+     does> ( u "inst" -- )
+         \ defines an anonymous word for disassembling instruction inst,
+         \ and enters it as u-th entry into table-xt
+         2@ swap here name string, ( u table-xt disasm-xt c-addr ) \ remember string
+         noname create 2,      \ define anonymous word
+         execute latestxt swap ! \ enter xt of defined word into table-xt
+     does> ( addr w -- )
+         \ disassemble instruction w at addr
+         2@ >r ( addr w disasm-xt R: c-addr )
+         execute ( R: c-addr ) \ disassemble operands
+         r> count type ; \ print name
+
+   Note that the tables here (in contrast to above) do the `cells +' by
+themselves (that's why you have to pass an xt).  This word is used in
+the following way:
+
+     ' DISASM-OPERANDS ' TABLE define-format INST-FORMAT
+
+   As shown above, the defined instruction format is then used like
+this:
+
+     ENTRY-NUM INST-FORMAT INST-NAME
+
+   In terms of currying, this kind of two-level defining word provides
+the parameters in three stages: first DISASM-OPERANDS and TABLE, then
+ENTRY-NUM and INST-NAME, finally `addr w', i.e., the instruction to be
+disassembled.
+
+   Of course this did not quite fit all the instruction format names
+used in `insts.fs', so I had to define a few wrappers that conditioned
+the parameters into the right form.
+
+   If you have trouble following this section, don't worry.  First,
+this is involved and takes time (and probably some playing around) to
+understand; second, this is the first two-level `create'/`does>' word I
+have written in seventeen years of Forth; and if I did not have
+`insts.fs' to start with, I may well have elected to use just a
+one-level defining word (with some repeating of parameters when using
+the defining word). So it is not necessary to understand this, but it
+may improve your understanding of Forth.
+
+
+File: gforth.info,  Node: `Const-does>',  Prev: Advanced does> usage example,  Up: User-defined Defining Words
+
+`Const-does>'
+.............
+
+   A frequent use of `create'...`does>' is for transferring some values
+from definition-time to run-time.  Gforth supports this use with
+
+   doc-const-does>
+
+   A typical use of this word is:
+
+     : curry+ ( n1 "name" -- )
+     1 0 CONST-DOES> ( n2 -- n1+n2 )
+         + ;
+     
+     3 curry+ 3+
+
+   Here the `1 0' means that 1 cell and 0 floats are transferred from
+definition to run-time.
+
+   The advantages of using `const-does>' are:
+
+   * You don't have to deal with storing and retrieving the values,
+     i.e., your program becomes more writable and readable.
+
+   * When using `does>', you have to introduce a `@' that cannot be
+     optimized away (because you could change the data using
+     `>body'...`!'); `const-does>' avoids this problem.
+
+
+   An ANS Forth implementation of `const-does>' is available in
+`compat/const-does.fs'.
+
+
+File: gforth.info,  Node: Deferred words,  Next: Aliases,  Prev: User-defined Defining Words,  Up: Defining Words
+
+Deferred words
+--------------
+
+   The defining word `Defer' allows you to define a word by name
+without defining its behaviour; the definition of its behaviour is
+deferred. Here are two situation where this can be useful:
+
+   * Where you want to allow the behaviour of a word to be altered
+     later, and for all precompiled references to the word to change
+     when its behaviour is changed.
+
+   * For mutual recursion; *Note Calls and returns::.
+
+   In the following example, `foo' always invokes the version of
+`greet' that prints "`Good morning'" whilst `bar' always invokes the
+version that prints "`Hello'". There is no way of getting `foo' to use
+the later version without re-ordering the source code and recompiling
+it.
+
+     : greet ." Good morning" ;
+     : foo ... greet ... ;
+     : greet ." Hello" ;
+     : bar ... greet ... ;
+
+   This problem can be solved by defining `greet' as a `Defer'red word.
+The behaviour of a `Defer'red word can be defined and redefined at any
+time by using `IS' to associate the xt of a previously-defined word
+with it. The previous example becomes:
+
+     Defer greet ( -- )
+     : foo ... greet ... ;
+     : bar ... greet ... ;
+     : greet1 ( -- ) ." Good morning" ;
+     : greet2 ( -- ) ." Hello" ;
+     ' greet2 <IS> greet  \ make greet behave like greet2
+
+   Programming style note: You should write a stack comment for every
+deferred word, and put only XTs into deferred words that conform to
+this stack effect.  Otherwise it's too difficult to use the deferred
+word.
+
+   A deferred word can be used to improve the statistics-gathering
+example from *Note User-defined Defining Words::; rather than edit the
+application's source code to change every `:' to a `my:', do this:
+
+     : real: : ;     \ retain access to the original
+     defer :         \ redefine as a deferred word
+     ' my: <IS> :      \ use special version of :
+     \
+     \ load application here
+     \
+     ' real: <IS> :    \ go back to the original
+
+   One thing to note is that `<IS>' consumes its name when it is
+executed.  If you want to specify the name at compile time, use `[IS]':
+
+     : set-greet ( xt -- )
+       [IS] greet ;
+     
+     ' greet1 set-greet
+
+   A deferred word can only inherit execution semantics from the xt
+(because that is all that an xt can represent - for more discussion of
+this *note Tokens for Words::); by default it will have default
+interpretation and compilation semantics deriving from this execution
+semantics.  However, you can change the interpretation and compilation
+semantics of the deferred word in the usual ways:
+
+     : bar .... ; compile-only
+     Defer fred immediate
+     Defer jim
+     
+     ' bar <IS> jim  \ jim has default semantics
+     ' bar <IS> fred \ fred is immediate
+
+`Defer'       "name" -         gforth       ``Defer''
+
+`<IS>'       "name" xt -         gforth       ``<IS>''
+   Changes the `defer'red word NAME to execute XT.
+
+`[IS]'       compilation "name" - ; run-time xt -         gforth       ``bracket-is''
+   At run-time, changes the `defer'red word NAME to execute XT.
+
+`IS'       xt "name" -         gforth       ``IS''
+   A combined word made up from `<IS>' and `[IS]'.
+
+`What's'       interpretation "name" - xt; compilation "name" - ; run-time - xt         gforth       ``What's''
+   Xt is the XT that is currently assigned to name.
+
+`defers'       compilation "name" - ; run-time ... - ...         gforth       ``defers''
+   Compiles the present contents of the deferred word name into the
+current definition.  I.e., this produces static binding as if name was
+not deferred.
+
+   Definitions in ANS Forth for `defer', `<is>' and `[is]' are provided
+in `compat/defer.fs'.
+
+
+File: gforth.info,  Node: Aliases,  Prev: Deferred words,  Up: Defining Words
+
+Aliases
+-------
+
+   The defining word `Alias' allows you to define a word by name that
+has the same behaviour as some other word. Here are two situation where
+this can be useful:
+
+   * When you want access to a word's definition from a different word
+     list (for an example of this, see the definition of the `Root'
+     word list in the Gforth source).
+
+   * When you want to create a synonym; a definition that can be known
+     by either of two names (for example, `THEN' and `ENDIF' are
+     aliases).
+
+   Like deferred words, an alias has default compilation and
+interpretation semantics at the beginning (not the modifications of the
+other word), but you can change them in the usual ways (`immediate',
+`compile-only'). For example:
+
+     : foo ... ; immediate
+     
+     ' foo Alias bar \ bar is not an immediate word
+     ' foo Alias fooby immediate \ fooby is an immediate word
+
+   Words that are aliases have the same xt, different headers in the
+dictionary, and consequently different name tokens (*note Tokens for
+Words::) and possibly different immediate flags.  An alias can only have
+default or immediate compilation semantics; you can define aliases for
+combined words with `interpret/compile:' - see *Note Combined words::.
+
+`Alias'       xt "name" -         gforth       ``Alias''
+
+
+File: gforth.info,  Node: Interpretation and Compilation Semantics,  Next: Tokens for Words,  Prev: Defining Words,  Up: Words
+
+Interpretation and Compilation Semantics
+========================================
+
+   The "interpretation semantics" of a (named) word are what the text
+interpreter does when it encounters the word in interpret state. It also
+appears in some other contexts, e.g., the execution token returned by
+`' word' identifies the interpretation semantics of word (in other
+words, `' word execute' is equivalent to interpret-state text
+interpretation of `word').
+
+   The "compilation semantics" of a (named) word are what the text
+interpreter does when it encounters the word in compile state. It also
+appears in other contexts, e.g, `POSTPONE word' compiles(1) the
+compilation semantics of word.
+
+   The standard also talks about "execution semantics". They are used
+only for defining the interpretation and compilation semantics of many
+words. By default, the interpretation semantics of a word are to
+`execute' its execution semantics, and the compilation semantics of a
+word are to `compile,' its execution semantics.(2)
+
+   Unnamed words (*note Anonymous Definitions::) cannot be encountered
+by the text interpreter, ticked, or `postpone'd, so they have no
+interpretation or compilation semantics.  Their behaviour is represented
+by their XT (*note Tokens for Words::), and we call it execution
+semantics, too.
+
+   You can change the semantics of the most-recently defined word:
+
+`immediate'       -         core       ``immediate''
+   Make the compilation semantics of a word be to `execute' the
+execution semantics.
+
+`compile-only'       -         gforth       ``compile-only''
+   Remove the interpretation semantics of a word.
+
+`restrict'       -         gforth       ``restrict''
+   A synonym for `compile-only'
+
+   By convention, words with non-default compilation semantics (e.g.,
+immediate words) often have names surrounded with brackets (e.g.,
+`[']', *note Execution token::).
+
+   Note that ticking (`'') a compile-only word gives an error
+("Interpreting a compile-only word").
+
+* Menu:
+
+* Combined words::
+
+   ---------- Footnotes ----------
+
+   (1) In standard terminology, "appends to the current definition".
+
+   (2) In standard terminology: The default interpretation semantics
+are its execution semantics; the default compilation semantics are to
+append its execution semantics to the execution semantics of the current
+definition.
+
+
+File: gforth.info,  Node: Combined words,  Prev: Interpretation and Compilation Semantics,  Up: Interpretation and Compilation Semantics
+
+Combined Words
+--------------
+
+   Gforth allows you to define "combined words" - words that have an
+arbitrary combination of interpretation and compilation semantics.
+
+`interpret/compile:'       interp-xt comp-xt "name" -         gforth       ``interpret/compile:''
+
+   This feature was introduced for implementing `TO' and `S"'. I
+recommend that you do not define such words, as cute as they may be:
+they make it hard to get at both parts of the word in some contexts.
+E.g., assume you want to get an execution token for the compilation
+part. Instead, define two words, one that embodies the interpretation
+part, and one that embodies the compilation part.  Once you have done
+that, you can define a combined word with `interpret/compile:' for the
+convenience of your users.
+
+   You might try to use this feature to provide an optimizing
+implementation of the default compilation semantics of a word. For
+example, by defining:
+     :noname
+        foo bar ;
+     :noname
+        POSTPONE foo POSTPONE bar ;
+     interpret/compile: opti-foobar
+
+as an optimizing version of:
+
+     : foobar
+         foo bar ;
+
+   Unfortunately, this does not work correctly with `[compile]',
+because `[compile]' assumes that the compilation semantics of all
+`interpret/compile:' words are non-default. I.e., `[compile]
+opti-foobar' would compile compilation semantics, whereas `[compile]
+foobar' would compile interpretation semantics.
+
+   Some people try to use "state-smart" words to emulate the feature
+provided by `interpret/compile:' (words are state-smart if they check
+`STATE' during execution). E.g., they would try to code `foobar' like
+this:
+
+     : foobar
+       STATE @
+       IF ( compilation state )
+         POSTPONE foo POSTPONE bar
+       ELSE
+         foo bar
+       ENDIF ; immediate
+
+   Although this works if `foobar' is only processed by the text
+interpreter, it does not work in other contexts (like `'' or
+`POSTPONE'). E.g., `' foobar' will produce an execution token for a
+state-smart word, not for the interpretation semantics of the original
+`foobar'; when you execute this execution token (directly with
+`EXECUTE' or indirectly through `COMPILE,') in compile state, the
+result will not be what you expected (i.e., it will not perform `foo
+bar'). State-smart words are a bad idea. Simply don't write them(1)!
+
+   It is also possible to write defining words that define words with
+arbitrary combinations of interpretation and compilation semantics. In
+general, they look like this:
+
+     : def-word
+         create-interpret/compile
+         code1
+     interpretation>
+         code2
+     <interpretation
+     compilation>
+         code3
+     <compilation ;
+
+   For a word defined with `def-word', the interpretation semantics are
+to push the address of the body of word and perform code2, and the
+compilation semantics are to push the address of the body of word and
+perform code3. E.g., `constant' can also be defined like this (except
+that the defined constants don't behave correctly when `[compile]'d):
+
+     : constant ( n "name" -- )
+         create-interpret/compile
+         ,
+     interpretation> ( -- n )
+         @
+     <interpretation
+     compilation> ( compilation. -- ; run-time. -- n )
+         @ postpone literal
+     <compilation ;
+
+`create-interpret/compile'       "name" -         gforth       ``create-interpret/compile''
+
+`interpretation>'       compilation. - orig colon-sys         gforth       ``interpretation>''
+
+`<interpretation'       compilation. orig colon-sys -         gforth       ``<interpretation''
+
+`compilation>'       compilation. - orig colon-sys         gforth       ``compilation>''
+
+`<compilation'       compilation. orig colon-sys -         gforth       ``<compilation''
+
+   Words defined with `interpret/compile:' and
+`create-interpret/compile' have an extended header structure that
+differs from other words; however, unless you try to access them with
+plain address arithmetic, you should not notice this. Words for
+accessing the header structure usually know how to deal with this; e.g.,
+`'' word `>body' also gives you the body of a word created with
+`create-interpret/compile'.
+
+   ---------- Footnotes ----------
+
+   (1) For a more detailed discussion of this topic, see M. Anton Ertl,
+``State'-smartness--Why it is Evil and How to Exorcise it
+(http://www.complang.tuwien.ac.at/papers/ertl98.ps.gz)', EuroForth '98.
+
+
+File: gforth.info,  Node: Tokens for Words,  Next: Compiling words,  Prev: Interpretation and Compilation Semantics,  Up: Words
+
+Tokens for Words
+================
+
+   This section describes the creation and use of tokens that represent
+words.
+
+* Menu:
+
+* Execution token::             represents execution/interpretation semantics
+* Compilation token::           represents compilation semantics
+* Name token::                  represents named words
+
+
+File: gforth.info,  Node: Execution token,  Next: Compilation token,  Prev: Tokens for Words,  Up: Tokens for Words
+
+Execution token
+---------------
+
+   An "execution token" (XT) represents some behaviour of a word.  You
+can use `execute' to invoke this behaviour.
+
+   You can use `'' to get an execution token that represents the
+interpretation semantics of a named word:
+
+     5 ' .   ( n xt )
+     execute ( )      \ execute the xt (i.e., ".")
+
+`''       "name" - xt         core       ``tick''
+   xt represents name's interpretation semantics. Perform `-14 throw'
+if the word has no interpretation semantics.
+
+   `'' parses at run-time; there is also a word `[']' that parses when
+it is compiled, and compiles the resulting XT:
+
+     : foo ['] . execute ;
+     5 foo
+     : bar ' execute ; \ by contrast,
+     5 bar .           \ ' parses "." when bar executes
+
+`[']'       compilation. "name" - ; run-time. - xt         core       ``bracket-tick''
+   xt represents name's interpretation semantics. Perform `-14 throw'
+if the word has no interpretation semantics.
+
+   If you want the execution token of word, write `['] word' in
+compiled code and `' word' in interpreted code.  Gforth's `'' and `[']'
+behave somewhat unusually by complaining about compile-only words
+(because these words have no interpretation semantics).  You might get
+what you want by using `COMP' word DROP' or `[COMP'] word DROP' (for
+details *note Compilation token::).
+
+   Another way to get an XT is `:noname' or `latestxt' (*note Anonymous
+Definitions::).  For anonymous words this gives an xt for the only
+behaviour the word has (the execution semantics).  For named words,
+`latestxt' produces an XT for the same behaviour it would produce if
+the word was defined anonymously.
+
+     :noname ." hello" ;
+     execute
+
+   An XT occupies one cell and can be manipulated like any other cell.
+
+   In ANS Forth the XT is just an abstract data type (i.e., defined by
+the operations that produce or consume it).  For old hands: In Gforth,
+the XT is implemented as a code field address (CFA).
+
+`execute'       xt -        core       ``execute''
+   Perform the semantics represented by the execution token, xt.
+
+`perform'       a-addr -        gforth       ``perform''
+   `@ execute'.
+
+
+File: gforth.info,  Node: Compilation token,  Next: Name token,  Prev: Execution token,  Up: Tokens for Words
+
+Compilation token
+-----------------
+
+   Gforth represents the compilation semantics of a named word by a
+"compilation token" consisting of two cells: w xt. The top cell xt is
+an execution token. The compilation semantics represented by the
+compilation token can be performed with `execute', which consumes the
+whole compilation token, with an additional stack effect determined by
+the represented compilation semantics.
+
+   At present, the w part of a compilation token is an execution token,
+and the xt part represents either `execute' or `compile,'(1). However,
+don't rely on that knowledge, unless necessary; future versions of
+Gforth may introduce unusual compilation tokens (e.g., a compilation
+token that represents the compilation semantics of a literal).
+
+   You can perform the compilation semantics represented by the
+compilation token with `execute'.  You can compile the compilation
+semantics with `postpone,'. I.e., `COMP' word postpone,' is equivalent
+to `postpone word'.
+
+`[COMP']'       compilation "name" - ; run-time - w xt         gforth       ``bracket-comp-tick''
+   Compilation token w xt represents name's compilation semantics.
+
+`COMP''       "name" - w xt         gforth       ``comp-tick''
+   Compilation token w xt represents name's compilation semantics.
+
+`postpone,'       w xt -         gforth       ``postpone-comma''
+   Compile the compilation semantics represented by the compilation
+token w xt.
+
+   ---------- Footnotes ----------
+
+   (1) Depending upon the compilation semantics of the word. If the
+word has default compilation semantics, the xt will represent
+`compile,'. Otherwise (e.g., for immediate words), the xt will
+represent `execute'.
+
+
+File: gforth.info,  Node: Name token,  Prev: Compilation token,  Up: Tokens for Words
+
+Name token
+----------
+
+   Gforth represents named words by the "name token", (nt).  Name token
+is an abstract data type that occurs as argument or result of the words
+below.
+
+   The closest thing to the nt in older Forth systems is the name field
+address (NFA), but there are significant differences: in older Forth
+systems each word had a unique NFA, LFA, CFA and PFA (in this order, or
+LFA, NFA, CFA, PFA) and there were words for getting from one to the
+next.  In contrast, in Gforth 0...n nts correspond to one xt; there is
+a link field in the structure identified by the name token, but
+searching usually uses a hash table external to these structures; the
+name in Gforth has a cell-wide count-and-flags field, and the nt is not
+implemented as the address of that count field.
+
+`find-name'       c-addr u - nt | 0         gforth       ``find-name''
+   Find the name c-addr u in the current search order. Return its nt,
+if found, otherwise 0.
+
+`latest'       - nt         gforth       ``latest''
+   NT is the name token of the last word defined; it is 0 if the last
+word has no name.
+
+`>name'       xt - nt|0         gforth       ``to-name''
+   tries to find the name token NT of the word represented by XT;
+returns 0 if it fails.  This word is not absolutely reliable, it may
+give false positives and produce wrong nts.
+
+`name>int'       nt - xt         gforth       ``name>int''
+   xt represents the interpretation semantics of the word nt. If nt has
+no interpretation semantics (i.e. is `compile-only'), xt is the
+execution token for `ticking-compile-only-error', which performs `-2048
+throw'.
+
+`name?int'       nt - xt         gforth       ``name?int''
+   Like `name>int', but perform `-2048 throw' if nt has no
+interpretation semantics.
+
+`name>comp'       nt - w xt         gforth       ``name>comp''
+   w xt is the compilation token for the word nt.
+
+`name>string'       nt - addr count         gforth       ``head-to-string''
+   addr count is the name of the word represented by nt.
+
+`id.'       nt -         gforth       ``id.''
+   Print the name of the word represented by NT.
+
+`.name'       nt -         unknown       ``.name''
+   Gforth <=0.5.0 name for `id.'.
+
+`.id'       nt -         unknown       ``.id''
+   F83 name for `id.'.
+
+
+File: gforth.info,  Node: Compiling words,  Next: The Text Interpreter,  Prev: Tokens for Words,  Up: Words
+
+Compiling words
+===============
+
+   In contrast to most other languages, Forth has no strict boundary
+between compilation and run-time.  E.g., you can run arbitrary code
+between defining words (or for computing data used by defining words
+like `constant'). Moreover, `Immediate' (*note Interpretation and
+Compilation Semantics:: and `['...`]' (see below) allow running
+arbitrary code while compiling a colon definition (exception: you must
+not allot dictionary space).
+
+* Menu:
+
+* Literals::                    Compiling data values
+* Macros::                      Compiling words
+
+
+File: gforth.info,  Node: Literals,  Next: Macros,  Prev: Compiling words,  Up: Compiling words
+
+Literals
+--------
+
+   The simplest and most frequent example is to compute a literal during
+compilation.  E.g., the following definition prints an array of strings,
+one string per line:
+
+     : .strings ( addr u -- ) \ gforth
+         2* cells bounds U+DO
+     	cr i 2@ type
+         2 cells +LOOP ;
+
+   With a simple-minded compiler like Gforth's, this computes `2 cells'
+on every loop iteration.  You can compute this value once and for all
+at compile time and compile it into the definition like this:
+
+     : .strings ( addr u -- ) \ gforth
+         2* cells bounds U+DO
+     	cr i 2@ type
+         [ 2 cells ] literal +LOOP ;
+
+   `[' switches the text interpreter to interpret state (you will get
+an `ok' prompt if you type this example interactively and insert a
+newline between `[' and `]'), so it performs the interpretation
+semantics of `2 cells'; this computes a number.  `]' switches the text
+interpreter back into compile state.  It then performs `Literal''s
+compilation semantics, which are to compile this number into the
+current word.  You can decompile the word with `see .strings' to see
+the effect on the compiled code.
+
+   You can also optimize the `2* cells' into `[ 2 cells ] literal *' in
+this way.
+
+`['       -         core       ``left-bracket''
+   Enter interpretation state. Immediate word.
+
+`]'       -         core       ``right-bracket''
+   Enter compilation state.
+
+`Literal'       compilation n - ; run-time - n         core       ``Literal''
+   Compilation semantics: compile the run-time semantics.
+Run-time Semantics: push n.
+Interpretation semantics: undefined.
+
+`]L'       compilation: n - ; run-time: - n         gforth       ``]L''
+   equivalent to `] literal'
+
+   There are also words for compiling other data types than single
+cells as literals:
+
+`2Literal'       compilation w1 w2 - ; run-time  - w1 w2         double       ``two-literal''
+   Compile appropriate code such that, at run-time, cell pair w1, w2 are
+placed on the stack. Interpretation semantics are undefined.
+
+`FLiteral'       compilation r - ; run-time - r         float       ``f-literal''
+   Compile appropriate code such that, at run-time, r is placed on the
+(floating-point) stack. Interpretation semantics are undefined.
+
+`SLiteral'       Compilation c-addr1 u ; run-time - c-addr2 u         string       ``SLiteral''
+   Compilation: compile the string specified by c-addr1, u into the
+current definition. Run-time: return c-addr2 u describing the address
+and length of the string.
+
+   You might be tempted to pass data from outside a colon definition to
+the inside on the data stack.  This does not work, because `:' puhes a
+colon-sys, making stuff below unaccessible.  E.g., this does not work:
+
+     5 : foo literal ; \ error: "unstructured"
+
+   Instead, you have to pass the value in some other way, e.g., through
+a variable:
+
+     variable temp
+     5 temp !
+     : foo [ temp @ ] literal ;
+
+
+File: gforth.info,  Node: Macros,  Prev: Literals,  Up: Compiling words
+
+Macros
+------
+
+   `Literal' and friends compile data values into the current
+definition.  You can also write words that compile other words into the
+current definition.  E.g.,
+
+     : compile-+ ( -- ) \ compiled code: ( n1 n2 -- n )
+       POSTPONE + ;
+     
+     : foo ( n1 n2 -- n )
+       [ compile-+ ] ;
+     1 2 foo .
+
+   This is equivalent to `: foo + ;' (`see foo' to check this).  What
+happens in this example?  `Postpone' compiles the compilation semantics
+of `+' into `compile-+'; later the text interpreter executes
+`compile-+' and thus the compilation semantics of +, which compile (the
+execution semantics of) `+' into `foo'.(1)
+
+`postpone'       "name" -         core       ``postpone''
+   Compiles the compilation semantics of name.
+
+`[compile]'       compilation "name" - ; run-time ? - ?         core-ext       ``bracket-compile''
+
+   Compiling words like `compile-+' are usually immediate (or similar)
+so you do not have to switch to interpret state to execute them;
+mopifying the last example accordingly produces:
+
+     : [compile-+] ( compilation: --; interpretation: -- )
+       \ compiled code: ( n1 n2 -- n )
+       POSTPONE + ; immediate
+     
+     : foo ( n1 n2 -- n )
+       [compile-+] ;
+     1 2 foo .
+
+   Immediate compiling words are similar to macros in other languages
+(in particular, Lisp).  The important differences to macros in, e.g., C
+are:
+
+   * You use the same language for defining and processing macros, not a
+     separate preprocessing language and processor.
+
+   * Consequently, the full power of Forth is available in macro
+     definitions.  E.g., you can perform arbitrarily complex
+     computations, or generate different code conditionally or in a
+     loop (e.g., *note Advanced macros Tutorial::).  This power is very
+     useful when writing a parser generators or other code-generating
+     software.
+
+   * Macros defined using `postpone' etc. deal with the language at a
+     higher level than strings; name binding happens at macro definition
+     time, so you can avoid the pitfalls of name collisions that can
+     happen in C macros.  Of course, Forth is a liberal language and
+     also allows to shoot yourself in the foot with text-interpreted
+     macros like
+
+          : [compile-+] s" +" evaluate ; immediate
+
+     Apart from binding the name at macro use time, using `evaluate'
+     also makes your definition `state'-smart (*note state-smartness::).
+
+   You may want the macro to compile a number into a word.  The word to
+do it is `literal', but you have to `postpone' it, so its compilation
+semantics take effect when the macro is executed, not when it is
+compiled:
+
+     : [compile-5] ( -- ) \ compiled code: ( -- n )
+       5 POSTPONE literal ; immediate
+     
+     : foo [compile-5] ;
+     foo .
+
+   You may want to pass parameters to a macro, that the macro should
+compile into the current definition.  If the parameter is a number, then
+you can use `postpone literal' (similar for other values).
+
+   If you want to pass a word that is to be compiled, the usual way is
+to pass an execution token and `compile,' it:
+
+     : twice1 ( xt -- ) \ compiled code: ... -- ...
+       dup compile, compile, ;
+     
+     : 2+ ( n1 -- n2 )
+       [ ' 1+ twice1 ] ;
+
+`compile,'       xt -         core-ext       ``compile-comma''
+    Compile the word represented by the execution token xt  into the
+current definition.
+
+   An alternative available in Gforth, that allows you to pass
+compile-only words as parameters is to use the compilation token (*note
+Compilation token::).  The same example in this technique:
+
+     : twice ( ... ct -- ... ) \ compiled code: ... -- ...
+       2dup 2>r execute 2r> execute ;
+     
+     : 2+ ( n1 -- n2 )
+       [ comp' 1+ twice ] ;
+
+   In the example above `2>r' and `2r>' ensure that `twice' works even
+if the executed compilation semantics has an effect on the data stack.
+
+   You can also define complete definitions with these words; this
+provides an alternative to using `does>' (*note User-defined Defining
+Words::).  E.g., instead of
+
+     : curry+ ( n1 "name" -- )
+         CREATE ,
+     DOES> ( n2 -- n1+n2 )
+         @ + ;
+
+   you could define
+
+     : curry+ ( n1 "name" -- )
+       \ name execution: ( n2 -- n1+n2 )
+       >r : r> POSTPONE literal POSTPONE + POSTPONE ; ;
+     
+     -3 curry+ 3-
+     see 3-
+
+   The sequence `>r : r>' is necessary, because `:' puts a colon-sys on
+the data stack that makes everything below it unaccessible.
+
+   This way of writing defining words is sometimes more, sometimes less
+convenient than using `does>' (*note Advanced does> usage example::).
+One advantage of this method is that it can be optimized better,
+because the compiler knows that the value compiled with `literal' is
+fixed, whereas the data associated with a `create'd word can be changed.
+
+   ---------- Footnotes ----------
+
+   (1) A recent RFI answer requires that compiling words should only be
+executed in compile state, so this example is not guaranteed to work on
+all standard systems, but on any decent system it will work.
+

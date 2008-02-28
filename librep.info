@@ -1,0 +1,214 @@
+This is librep.info, produced by makeinfo version 4.7 from librep.texi.
+
+INFO-DIR-SECTION Programming Languages
+START-INFO-DIR-ENTRY
+* librep: (librep).		A flexible Lisp environment
+END-INFO-DIR-ENTRY
+
+   This is Edition 1.2, last updated 8 September 2000, of `The librep
+Manual', for librep, Version 0.13.
+
+   Copyright 1999-2000 John Harper.
+
+   Permission is granted to make and distribute verbatim copies of this
+manual provided the copyright notice and this permission notice are
+preserved on all copies.
+
+   Permission is granted to copy and distribute modified versions of
+this manual under the conditions for verbatim copying, provided that
+the entire resulting derived work is distributed under the terms of a
+permission notice identical to this one.
+
+
+Indirect:
+librep.info-1: 761
+librep.info-2: 300068
+
+Tag Table:
+(Indirect)
+Node: Top761
+Node: Copying1809
+Node: Introduction3203
+Node: Invocation4617
+Node: The language7464
+Node: Intro10572
+Node: nil and t11531
+Node: The Lisp Reader13193
+Node: Notation13762
+Ref: Notation-Footnote-114470
+Node: Descriptions14875
+Node: Data Types16976
+Node: Types Summary19045
+Node: Read Syntax20651
+Node: Printed Representation23345
+Node: Equality Predicates24158
+Node: Comparison Predicates25722
+Node: Type Predicates27447
+Node: Garbage Collection28046
+Node: Numbers29689
+Ref: Numbers-Footnote-132654
+Node: Arithmetic Functions32778
+Node: Integer Functions34254
+Node: Rational Functions35315
+Node: Real Number Functions35752
+Node: Mathematical Functions36493
+Node: Bitwise Functions37625
+Node: Numeric Predicates39044
+Node: Random Numbers40097
+Node: Characters40660
+Node: Sequences42444
+Node: Cons Cells43302
+Node: Lists45561
+Node: List Structure46683
+Node: Building Lists48958
+Node: Accessing List Elements53916
+Node: Modifying Lists55834
+Node: Association Lists59951
+Node: Infinite Lists62032
+Node: Vectors63372
+Node: Strings64673
+Node: Array Functions69284
+Node: Sequence Functions70310
+Node: Symbols71651
+Node: Symbol Syntax72519
+Node: Symbol Attributes73708
+Node: Obarrays74987
+Node: Creating Symbols77295
+Node: Interning78159
+Node: Property Lists80369
+Node: Keyword Symbols82458
+Node: Evaluation83142
+Node: Symbol Forms85206
+Node: List Forms86028
+Node: Function Call Forms87141
+Node: Macro Call Forms89698
+Node: Special Forms90306
+Node: Autoload Forms91337
+Node: Self-Evaluating Forms91994
+Node: Quoting92677
+Node: Variables94057
+Node: Local Variables95150
+Node: Setting Variables99651
+Node: Scope and Extent101399
+Node: Void Variables103459
+Node: Defining Variables104370
+Node: Fluid Variables106233
+Node: Functions108495
+Node: Lambda Expressions110386
+Ref: Lambda Expressions-Footnote-1116525
+Ref: Lambda Expressions-Footnote-2116597
+Node: Defining Functions116749
+Node: Anonymous Functions118113
+Node: Predicate Functions119805
+Node: Local Functions120773
+Node: Calling Functions121409
+Node: Mapping Functions122309
+Node: Macros124842
+Node: Defining Macros126003
+Node: Backquoting127470
+Node: Macro Expansion128970
+Node: Compiling Macros131058
+Node: Definitions132451
+Node: Modules135004
+Node: Module Interfaces136574
+Node: Module Definition137697
+Node: Module Loading140956
+Node: Modules and Special Variables142370
+Ref: Modules and Special Variables-Footnote-1143633
+Node: Control Structures143744
+Node: Sequencing Structures144564
+Node: Conditional Structures146354
+Node: Looping Structures152373
+Node: Non-Local Exits156055
+Node: Catch and Throw156771
+Node: Function Exits160353
+Node: Cleanup Forms160850
+Node: Errors162125
+Node: Continuations165023
+Node: Threads168502
+Node: Thread Contexts169047
+Node: Creating Threads169792
+Node: Deleting Threads171112
+Node: Manipulating Threads171971
+Node: Mutexes174038
+Node: Thread Implementation Notes175144
+Node: Loading175866
+Node: Load Function176739
+Node: Autoloading180486
+Node: Features183169
+Node: Compiled Lisp185369
+Node: Compilation Functions186813
+Node: Compiler Declarations189210
+Node: Compilation Tips193815
+Node: Disassembly199039
+Node: Datums201126
+Node: Queues202503
+Node: Records203876
+Node: Hash Tables207441
+Node: Guardians209889
+Ref: Guardians-Footnote-1212215
+Node: Streams212456
+Node: Input Streams213682
+Node: Output Streams215890
+Node: Input Functions218034
+Node: Output Functions219539
+Node: Formatted Output222660
+Node: Hooks225990
+Node: Functions As Hooks226632
+Node: Normal Hooks227179
+Node: Files229443
+Node: File Names230581
+Node: File Objects235143
+Node: Creating File Objects235751
+Node: Destroying File Objects237010
+Node: Functions on File Objects237676
+Node: File Information240098
+Node: Manipulating Files242444
+Node: Manipulating Directories243412
+Node: Manipulating Symlinks244200
+Node: File Handlers244661
+Node: Remote Files248763
+Node: Processes252100
+Node: Process Objects253202
+Node: Asynchronous Processes257113
+Node: Synchronous Processes260577
+Node: Process I/O263567
+Node: Process States266681
+Node: Signalling Processes269065
+Node: Process Information270545
+Node: Regular Expressions271731
+Node: Regexp Syntax272952
+Node: Regexp Functions276119
+Node: Time and Date279951
+Node: Timestamps280360
+Node: Formatting Dates282064
+Node: Parsing Dates285058
+Node: i18n287174
+Node: System Information288710
+Node: User Information289675
+Node: Environment Variables290801
+Node: String Functions291793
+Node: Sleeping294417
+Node: Beeping294835
+Node: Messages295052
+Node: Command Line Options295857
+Node: Shell Commands297091
+Node: Timers298525
+Node: Debugging300068
+Node: Tips304315
+Node: Comment Styles304635
+Node: The REPL307411
+Node: librep Internals312859
+Node: Intro To Internals313424
+Node: Data Type Representation313603
+Node: Garbage Collection Internals313803
+Node: Defining Lisp Subrs314012
+Node: Useful Functions314195
+Node: Shared Libraries314360
+Node: Reporting bugs314497
+Node: News315406
+Node: Function index349660
+Node: Variable index385901
+Node: Concept index389839
+
+End Tag Table

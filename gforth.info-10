@@ -1,0 +1,1273 @@
+This is gforth.info, produced by makeinfo version 4.2 from gforth.texi.
+
+This manual is for Gforth (version 0.6.2, August 25, 2003), a fast and
+portable implementation of the ANS Forth language
+
+   Copyright (C) 1995, 1996, 1997, 1998, 2000, 2003 Free Software
+Foundation, Inc.
+
+     Permission is granted to copy, distribute and/or modify this
+     document under the terms of the GNU Free Documentation License,
+     Version 1.1 or any later version published by the Free Software
+     Foundation; with no Invariant Sections, with the Front-Cover texts
+     being "A GNU Manual," and with the Back-Cover Texts as in (a)
+     below.  A copy of the license is included in the section entitled
+     "GNU Free Documentation License."
+
+     (a) The FSF's Back-Cover Text is: "You have freedom to copy and
+     modify this GNU Manual, like GNU software.  Copies published by
+     the Free Software Foundation raise funds for GNU development."
+   
+INFO-DIR-SECTION Software development
+START-INFO-DIR-ENTRY
+* Gforth: (gforth).             A fast interpreter for the Forth language.
+END-INFO-DIR-ENTRY
+
+
+File: gforth.info,  Node: 386 Assembler,  Next: Alpha Assembler,  Prev: Common Disassembler,  Up: Assembler and Code Words
+
+386 Assembler
+-------------
+
+   The 386 assembler included in Gforth was written by Bernd Paysan,
+it's available under GPL, and originally part of bigFORTH.
+
+   The 386 disassembler included in Gforth was written by Andrew McKewan
+and is in the public domain.
+
+   The disassembler displays code in an Intel-like prefix syntax.
+
+   The assembler uses a postfix syntax with reversed parameters.
+
+   The assembler includes all instruction of the Athlon, i.e. 486 core
+instructions, Pentium and PPro extensions, floating point, MMX, 3Dnow!,
+but not ISSE. It's an integrated 16- and 32-bit assembler. Default is 32
+bit, you can switch to 16 bit with .86 and back to 32 bit with .386.
+
+   There are several prefixes to switch between different operation
+sizes, `.b' for byte accesses, `.w' for word accesses, `.d' for
+double-word accesses. Addressing modes can be switched with `.wa' for
+16 bit addresses, and `.da' for 32 bit addresses. You don't need a
+prefix for byte register names (`AL' et al).
+
+   For floating point operations, the prefixes are `.fs' (IEEE single),
+`.fl' (IEEE double), `.fx' (extended), `.fw' (word), `.fd'
+(double-word), and `.fq' (quad-word).
+
+   The MMX opcodes don't have size prefixes, they are spelled out like
+in the Intel assembler. Instead of move from and to memory, there are
+PLDQ/PLDD and PSTQ/PSTD.
+
+   The registers lack the 'e' prefix; even in 32 bit mode, eax is called
+ax.  Immediate values are indicated by postfixing them with `#', e.g.,
+`3 #'.  Here are some examples of addressing modes in various syntaxes:
+
+     Gforth          Intel (NASM)   AT&T (gas)      Name
+     .w ax           ax             %ax             register (16 bit)
+     ax              eax            %eax            register (32 bit)
+     3 #             offset 3       $3              immediate
+     1000 #)         byte ptr 1000  1000            displacement
+     bx )            [ebx]          (%ebx)          base
+     100 di d)       100[edi]       100(%edi)       base+displacement
+     20 ax *4 i#)    20[eax*4]      20(,%eax,4)     (index*scale)+displacement
+     di ax *4 i)     [edi][eax*4]   (%edi,%eax,4)   base+(index*scale)
+     4 bx cx di)     4[ebx][ecx]    4(%ebx,%ecx)    base+index+displacement
+     12 sp ax *2 di) 12[esp][eax*2] 12(%esp,%eax,2) base+(index*scale)+displacement
+
+   You can use `L)' and `LI)' instead of `D)' and `DI)' to enforce
+32-bit displacement fields (useful for later patching).
+
+   Some example of instructions are:
+
+     ax bx mov             \ move ebx,eax
+     3 # ax mov            \ mov eax,3
+     100 di ) ax mov       \ mov eax,100[edi]
+     4 bx cx di) ax mov    \ mov eax,4[ebx][ecx]
+     .w ax bx mov          \ mov bx,ax
+
+   The following forms are supported for binary instructions:
+
+     <reg> <reg> <inst>
+     <n> # <reg> <inst>
+     <mem> <reg> <inst>
+     <reg> <mem> <inst>
+
+   Immediate to memory is not supported.  The shift/rotate syntax is:
+
+     <reg/mem> 1 # shl \ shortens to shift without immediate
+     <reg/mem> 4 # shl
+     <reg/mem> cl shl
+
+   Precede string instructions (`movs' etc.) with `.b' to get the byte
+version.
+
+   The control structure words `IF' `UNTIL' etc. must be preceded by
+one of these conditions: `vs vc u< u>= 0= 0<> u<= u> 0< 0>= ps pc < >=
+<= >'. (Note that most of these words shadow some Forth words when
+`assembler' is in front of `forth' in the search path, e.g., in `code'
+words).  Currently the control structure words use one stack item, so
+you have to use `roll' instead of `cs-roll' to shuffle them (you can
+also use `swap' etc.).
+
+   Here is an example of a `code' word (assumes that the stack pointer
+is in esi and the TOS is in ebx):
+
+     code my+ ( n1 n2 -- n )
+         4 si D) bx add
+         4 # si add
+         Next
+     end-code
+
+
+File: gforth.info,  Node: Alpha Assembler,  Next: MIPS assembler,  Prev: 386 Assembler,  Up: Assembler and Code Words
+
+Alpha Assembler
+---------------
+
+   The Alpha assembler and disassembler were originally written by Bernd
+Thallner.
+
+   The register names `a0'-`a5' are not available to avoid shadowing
+hex numbers.
+
+   Immediate forms of arithmetic instructions are distinguished by a
+`#' just before the `,', e.g., `and#,' (note: `lda,' does not count as
+arithmetic instruction).
+
+   You have to specify all operands to an instruction, even those that
+other assemblers consider optional, e.g., the destination register for
+`br,', or the destination register and hint for `jmp,'.
+
+   You can specify conditions for `if,' by removing the first `b' and
+the trailing `,' from a branch with a corresponding name; e.g.,
+
+     11 fgt if, \ if F11>0e
+       ...
+     endif,
+
+   `fbgt,' gives `fgt'.
+
+
+File: gforth.info,  Node: MIPS assembler,  Next: Other assemblers,  Prev: Alpha Assembler,  Up: Assembler and Code Words
+
+MIPS assembler
+--------------
+
+   The MIPS assembler was originally written by Christian Pirker.
+
+   Currently the assembler and disassembler only cover the MIPS-I
+architecture (R3000), and don't support FP instructions.
+
+   The register names `$a0'-`$a3' are not available to avoid shadowing
+hex numbers.
+
+   Because there is no way to distinguish registers from immediate
+values, you have to explicitly use the immediate forms of instructions,
+i.e., `addiu,', not just `addu,' (`as' does this implicitly).
+
+   If the architecture manual specifies several formats for the
+instruction (e.g., for `jalr,'), you usually have to use the one with
+more arguments (i.e., two for `jalr,').  When in doubt, see
+`arch/mips/testasm.fs' for an example of correct use.
+
+   Branches and jumps in the MIPS architecture have a delay slot.  You
+have to fill it yourself (the simplest way is to use `nop,'), the
+assembler does not do it for you (unlike `as').  Even `if,', `ahead,',
+`until,', `again,', `while,', `else,' and `repeat,' need a delay slot.
+Since `begin,' and `then,' just specify branch targets, they are not
+affected.
+
+   Note that you must not put branches, jumps, or `li,' into the delay
+slot: `li,' may expand to several instructions, and control flow
+instructions may not be put into the branch delay slot in any case.
+
+   For branches the argument specifying the target is a relative
+address; You have to add the address of the delay slot to get the
+absolute address.
+
+   The MIPS architecture also has load delay slots and restrictions on
+using `mfhi,' and `mflo,'; you have to order the instructions yourself
+to satisfy these restrictions, the assembler does not do it for you.
+
+   You can specify the conditions for `if,' etc. by taking a
+conditional branch and leaving away the `b' at the start and the `,' at
+the end.  E.g.,
+
+     4 5 eq if,
+       ... \ do something if $4 equals $5
+     then,
+
+
+File: gforth.info,  Node: Other assemblers,  Prev: MIPS assembler,  Up: Assembler and Code Words
+
+Other assemblers
+----------------
+
+   If you want to contribute another assembler/disassembler, please
+contact us (<anton@mips.complang.tuwien.ac.at>) to check if we have such
+an assembler already.  If you are writing them from scratch, please use
+a similar syntax style as the one we use (i.e., postfix, commas at the
+end of the instruction names, *note Common Assembler::); make the output
+of the disassembler be valid input for the assembler, and keep the style
+similar to the style we used.
+
+   Hints on implementation: The most important part is to have a good
+test suite that contains all instructions.  Once you have that, the
+rest is easy.  For actual coding you can take a look at
+`arch/mips/disasm.fs' to get some ideas on how to use data for both the
+assembler and disassembler, avoiding redundancy and some potential
+bugs.  You can also look at that file (and *note Advanced does> usage
+example::) to get ideas how to factor a disassembler.
+
+   Start with the disassembler, because it's easier to reuse data from
+the disassembler for the assembler than the other way round.
+
+   For the assembler, take a look at `arch/alpha/asm.fs', which shows
+how simple it can be.
+
+
+File: gforth.info,  Node: Threading Words,  Next: Passing Commands to the OS,  Prev: Assembler and Code Words,  Up: Words
+
+Threading Words
+===============
+
+   These words provide access to code addresses and other threading
+stuff in Gforth (and, possibly, other interpretive Forths). It more or
+less abstracts away the differences between direct and indirect
+threading (and, for direct threading, the machine dependences).
+However, at present this wordset is still incomplete. It is also pretty
+low-level; some day it will hopefully be made unnecessary by an
+internals wordset that abstracts implementation details away completely.
+
+   The terminology used here stems from indirect threaded Forth
+systems; in such a system, the XT of a word is represented by the CFA
+(code field address) of a word; the CFA points to a cell that contains
+the code address.  The code address is the address of some machine code
+that performs the run-time action of invoking the word (e.g., the
+`dovar:' routine pushes the address of the body of the word (a
+variable) on the stack ).
+
+   In an indirect threaded Forth, you can get the code address of name
+with `' name @'; in Gforth you can get it with `' name >code-address',
+independent of the threading method.
+
+`threading-method'       - n        gforth       ``threading-method''
+   0 if the engine is direct threaded. Note that this may change during
+the lifetime of an image.
+
+`>code-address'       xt - c_addr         gforth       ``>code-address''
+   c-addr is the code address of the word xt.
+
+`code-address!'       c_addr xt -         gforth       ``code-address!''
+   Create a code field with code address c-addr at xt.
+
+   For a word defined with `DOES>', the code address usually points to
+a jump instruction (the "does-handler") that jumps to the dodoes
+routine (in Gforth on some platforms, it can also point to the dodoes
+routine itself).  What you are typically interested in, though, is
+whether a word is a `DOES>'-defined word, and what Forth code it
+executes; `>does-code' tells you that.
+
+`>does-code'       xt - a_addr         gforth       ``>does-code''
+   If xt is the execution token of a child of a `DOES>' word, a-addr is
+the start of the Forth code after the `DOES>'; Otherwise a-addr is 0.
+
+   To create a `DOES>'-defined word with the following basic words, you
+have to set up a `DOES>'-handler with `does-handler!'; `/does-handler'
+aus behind you have to place your executable Forth code.  Finally you
+have to create a word and modify its behaviour with `does-handler!'.
+
+`does-code!'       a_addr xt -         gforth       ``does-code!''
+   Create a code field at xt for a child of a `DOES>'-word; a-addr is
+the start of the Forth code after `DOES>'.
+
+`does-handler!'       a_addr -         gforth       ``does-handler!''
+   Create a `DOES>'-handler at address a-addr. Normally, a-addr points
+just behind a `DOES>'.
+
+`/does-handler'       - n         gforth       ``/does-handler''
+   The size of a `DOES>'-handler (includes possible padding).
+
+   The code addresses produced by various defining words are produced by
+the following words:
+
+`docol:'       - addr         gforth       ``docol:''
+   The code address of a colon definition.
+
+`docon:'       - addr         gforth       ``docon:''
+   The code address of a `CONSTANT'.
+
+`dovar:'       - addr         gforth       ``dovar:''
+   The code address of a `CREATE'd word.
+
+`douser:'       - addr         gforth       ``douser:''
+   The code address of a `USER' variable.
+
+`dodefer:'       - addr         gforth       ``dodefer:''
+   The code address of a `defer'ed word.
+
+`dofield:'       - addr         gforth       ``dofield:''
+   The code address of a `field'.
+
+   The following two words generalize `>code-address', `>does-code',
+`code-address!', and `does-code!':
+
+`>definer'       xt - definer         unknown       ``>definer''
+   DEFINER is a unique identifier for the way the XT was defined.
+Words defined with different `does>'-codes have different definers.
+The definer can be used for comparison and in `definer!'.
+
+`definer!'       definer xt -         unknown       ``definer!''
+   The word represented by XT changes its behaviour to the behaviour
+associated with DEFINER.
+
+
+File: gforth.info,  Node: Passing Commands to the OS,  Next: Keeping track of Time,  Prev: Threading Words,  Up: Words
+
+Passing Commands to the Operating System
+========================================
+
+   Gforth allows you to pass an arbitrary string to the host operating
+system shell (if such a thing exists) for execution.
+
+`sh'       "..." -         gforth       ``sh''
+   Parse a string and use `system' to pass it to the host operating
+system for execution in a sub-shell.
+
+`system'       c-addr u -         gforth       ``system''
+   Pass the string specified by C-ADDR U to the host operating system
+for execution in a sub-shell.
+
+`$?'       - n         gforth       ``dollar-question''
+   `Value' - the exit status returned by the most recently executed
+`system' command.
+
+`getenv'       c-addr1 u1 - c-addr2 u2        gforth       ``getenv''
+   The string c-addr1 u1 specifies an environment variable. The string
+c-addr2 u2 is the host operating system's expansion of that environment
+variable. If the environment variable does not exist, c-addr2 u2
+specifies a string 0 characters in length.
+
+
+File: gforth.info,  Node: Keeping track of Time,  Next: Miscellaneous Words,  Prev: Passing Commands to the OS,  Up: Words
+
+Keeping track of Time
+=====================
+
+`ms'       n -        facility-ext       ``ms''
+   Wait at least n milli-second.
+
+`time&date'       - nsec nmin nhour nday nmonth nyear        facility-ext       ``time-and-date''
+   Report the current time of day. Seconds, minutes and hours are
+numbered from 0.  Months are numbered from 1.
+
+`utime'       - dtime        gforth       ``utime''
+   Report the current time in microseconds since some epoch.
+
+`cputime'       - duser dsystem        gforth       ``cputime''
+   duser and dsystem are the respective user- and system-level CPU
+times used since the start of the Forth system (excluding child
+processes), in microseconds (the granularity may be much larger,
+however).  On platforms without the getrusage call, it reports elapsed
+time (since some epoch) for duser and 0 for dsystem.
+
+
+File: gforth.info,  Node: Miscellaneous Words,  Prev: Keeping track of Time,  Up: Words
+
+Miscellaneous Words
+===================
+
+   These section lists the ANS Forth words that are not documented
+elsewhere in this manual. Ultimately, they all need proper homes.
+
+`quit'       ?? - ??         core       ``quit''
+   Empty the return stack, make the user input device the input source,
+enter interpret state and start the text interpreter.
+
+   The following ANS Forth words are not currently supported by Gforth
+(*note ANS conformance::):
+
+   `EDITOR' `EMIT?' `FORGET'
+
+
+File: gforth.info,  Node: Error messages,  Next: Tools,  Prev: Words,  Up: Top
+
+Error messages
+**************
+
+   A typical Gforth error message looks like this:
+
+     in file included from \evaluated string/:-1
+     in file included from ./yyy.fs:1
+     ./xxx.fs:4: Invalid memory address
+     bar
+     ^^^
+     Backtrace:
+     $400E664C @
+     $400E6664 foo
+
+   The message identifying the error is `Invalid memory address'.  The
+error happened when text-interpreting line 4 of the file `./xxx.fs'.
+This line is given (it contains `bar'), and the word on the line where
+the error happened, is pointed out (with `^^^').
+
+   The file containing the error was included in line 1 of `./yyy.fs',
+and `yyy.fs' was included from a non-file (in this case, by giving
+`yyy.fs' as command-line parameter to Gforth).
+
+   At the end of the error message you find a return stack dump that
+can be interpreted as a backtrace (possibly empty). On top you find the
+top of the return stack when the `throw' happened, and at the bottom you
+find the return stack entry just above the return stack of the topmost
+text interpreter.
+
+   To the right of most return stack entries you see a guess for the
+word that pushed that return stack entry as its return address. This
+gives a backtrace. In our case we see that `bar' called `foo', and
+`foo' called `@' (and `@' had an _Invalid memory address_ exception).
+
+   Note that the backtrace is not perfect: We don't know which return
+stack entries are return addresses (so we may get false positives); and
+in some cases (e.g., for `abort"') we cannot determine from the return
+address the word that pushed the return address, so for some return
+addresses you see no names in the return stack dump.
+
+   The return stack dump represents the return stack at the time when a
+specific `throw' was executed.  In programs that make use of `catch',
+it is not necessarily clear which `throw' should be used for the return
+stack dump (e.g., consider one `throw' that indicates an error, which
+is caught, and during recovery another error happens; which `throw'
+should be used for the stack dump?).  Gforth presents the return stack
+dump for the first `throw' after the last executed (not returned-to)
+`catch'; this works well in the usual case.
+
+   `Gforth' is able to do a return stack dump for throws generated from
+primitives (e.g., invalid memory address, stack empty etc.);
+`gforth-fast' is only able to do a return stack dump from a directly
+called `throw' (including `abort' etc.).  Given an exception caused by
+a primitive in `gforth-fast', you will typically see no return stack
+dump at all; however, if the exception is caught by `catch' (e.g., for
+restoring some state), and then `throw'n again, the return stack dump
+will be for the first such `throw'.
+
+
+File: gforth.info,  Node: Tools,  Next: ANS conformance,  Prev: Error messages,  Up: Top
+
+Tools
+*****
+
+* Menu:
+
+* ANS Report::                  Report the words used, sorted by wordset.
+
+   See also *Note Emacs and Gforth::.
+
+
+File: gforth.info,  Node: ANS Report,  Prev: Tools,  Up: Tools
+
+`ans-report.fs': Report the words used, sorted by wordset
+=========================================================
+
+   If you want to label a Forth program as ANS Forth Program, you must
+document which wordsets the program uses; for extension wordsets, it is
+helpful to list the words the program requires from these wordsets
+(because Forth systems are allowed to provide only some words of them).
+
+   The `ans-report.fs' tool makes it easy for you to determine which
+words from which wordset and which non-ANS words your application uses.
+You simply have to include `ans-report.fs' before loading the program
+you want to check. After loading your program, you can get the report
+with `print-ans-report'. A typical use is to run this as batch job like
+this:
+     gforth ans-report.fs myprog.fs -e "print-ans-report bye"
+
+   The output looks like this (for `compat/control.fs'):
+     The program uses the following words
+     from CORE :
+     : POSTPONE THEN ; immediate ?dup IF 0=
+     from BLOCK-EXT :
+     \
+     from FILE :
+     (
+
+Caveats
+-------
+
+   Note that `ans-report.fs' just checks which words are used, not
+whether they are used in an ANS Forth conforming way!
+
+   Some words are defined in several wordsets in the standard.
+`ans-report.fs' reports them for only one of the wordsets, and not
+necessarily the one you expect. It depends on usage which wordset is
+the right one to specify. E.g., if you only use the compilation
+semantics of `S"', it is a Core word; if you also use its
+interpretation semantics, it is a File word.
+
+
+File: gforth.info,  Node: ANS conformance,  Next: Standard vs Extensions,  Prev: Tools,  Up: Top
+
+ANS conformance
+***************
+
+   To the best of our knowledge, Gforth is an
+
+   ANS Forth System
+   * providing the Core Extensions word set
+
+   * providing the Block word set
+
+   * providing the Block Extensions word set
+
+   * providing the Double-Number word set
+
+   * providing the Double-Number Extensions word set
+
+   * providing the Exception word set
+
+   * providing the Exception Extensions word set
+
+   * providing the Facility word set
+
+   * providing `EKEY', `EKEY>CHAR', `EKEY?', `MS' and `TIME&DATE' from
+     the Facility Extensions word set
+
+   * providing the File Access word set
+
+   * providing the File Access Extensions word set
+
+   * providing the Floating-Point word set
+
+   * providing the Floating-Point Extensions word set
+
+   * providing the Locals word set
+
+   * providing the Locals Extensions word set
+
+   * providing the Memory-Allocation word set
+
+   * providing the Memory-Allocation Extensions word set (that one's
+     easy)
+
+   * providing the Programming-Tools word set
+
+   * providing `;CODE', `AHEAD', `ASSEMBLER', `BYE', `CODE', `CS-PICK',
+     `CS-ROLL', `STATE', `[ELSE]', `[IF]', `[THEN]' from the
+     Programming-Tools Extensions word set
+
+   * providing the Search-Order word set
+
+   * providing the Search-Order Extensions word set
+
+   * providing the String word set
+
+   * providing the String Extensions word set (another easy one)
+
+   Gforth has the following environmental restrictions:
+
+   * While processing the OS command line, if an exception is not
+     caught, Gforth exits with a non-zero exit code instyead of
+     performing QUIT.
+
+   * When an `throw' is performed after a `query', Gforth does not
+     allways restore the input source specification in effect at the
+     corresponding catch.
+
+
+   In addition, ANS Forth systems are required to document certain
+implementation choices. This chapter tries to meet these requirements.
+In many cases it gives a way to ask the system for the information
+instead of providing the information directly, in particular, if the
+information depends on the processor, the operating system or the
+installation options chosen, or if they are likely to change during the
+maintenance of Gforth.
+
+* Menu:
+
+* The Core Words::
+* The optional Block word set::
+* The optional Double Number word set::
+* The optional Exception word set::
+* The optional Facility word set::
+* The optional File-Access word set::
+* The optional Floating-Point word set::
+* The optional Locals word set::
+* The optional Memory-Allocation word set::
+* The optional Programming-Tools word set::
+* The optional Search-Order word set::
+
+
+File: gforth.info,  Node: The Core Words,  Next: The optional Block word set,  Prev: ANS conformance,  Up: ANS conformance
+
+The Core Words
+==============
+
+* Menu:
+
+* core-idef::                   Implementation Defined Options
+* core-ambcond::                Ambiguous Conditions
+* core-other::                  Other System Documentation
+
+
+File: gforth.info,  Node: core-idef,  Next: core-ambcond,  Prev: The Core Words,  Up: The Core Words
+
+Implementation Defined Options
+------------------------------
+
+(Cell) aligned addresses:
+     processor-dependent. Gforth's alignment words perform natural
+     alignment (e.g., an address aligned for a datum of size 8 is
+     divisible by 8). Unaligned accesses usually result in a `-23
+     THROW'.
+
+`EMIT' and non-graphic characters:
+     The character is output using the C library function (actually,
+     macro) `putc'.
+
+character editing of `ACCEPT' and `EXPECT':
+     This is modeled on the GNU readline library (*note Command Line
+     Editing: (readline)Readline Interaction.) with Emacs-like key
+     bindings. `Tab' deviates a little by producing a full word
+     completion every time you type it (instead of producing the common
+     prefix of all completions). *Note Command-line editing::.
+
+character set:
+     The character set of your computer and display device. Gforth is
+     8-bit-clean (but some other component in your system may make
+     trouble).
+
+Character-aligned address requirements:
+     installation-dependent. Currently a character is represented by a C
+     `unsigned char'; in the future we might switch to `wchar_t'
+     (Comments on that requested).
+
+character-set extensions and matching of names:
+     Any character except the ASCII NUL character can be used in a
+     name. Matching is case-insensitive (except in `TABLE's). The
+     matching is performed using the C library function `strncasecmp',
+     whose function is probably influenced by the locale. E.g., the `C'
+     locale does not know about accents and umlauts, so they are matched
+     case-sensitively in that locale. For portability reasons it is
+     best to write programs such that they work in the `C' locale. Then
+     one can use libraries written by a Polish programmer (who might
+     use words containing ISO Latin-2 encoded characters) and by a
+     French programmer (ISO Latin-1) in the same program (of course,
+     `WORDS' will produce funny results for some of the words (which
+     ones, depends on the font you are using)). Also, the locale you
+     prefer may not be available in other operating systems. Hopefully,
+     Unicode will solve these problems one day.
+
+conditions under which control characters match a space delimiter:
+     If `word' is called with the space character as a delimiter, all
+     white-space characters (as identified by the C macro `isspace()')
+     are delimiters. `Parse', on the other hand, treats space like other
+     delimiters.  `Parse-word', which is used by the outer interpreter
+     (aka text interpreter) by default, treats all white-space
+     characters as delimiters.
+
+format of the control-flow stack:
+     The data stack is used as control-flow stack. The size of a
+     control-flow stack item in cells is given by the constant
+     `cs-item-size'. At the time of this writing, an item consists of a
+     (pointer to a) locals list (third), an address in the code
+     (second), and a tag for identifying the item (TOS). The following
+     tags are used: `defstart', `live-orig', `dead-orig', `dest',
+     `do-dest', `scopestart'.
+
+conversion of digits > 35
+     The characters `[\]^_'' are the digits with the decimal value
+     36-41. There is no way to input many of the larger digits.
+
+display after input terminates in `ACCEPT' and `EXPECT':
+     The cursor is moved to the end of the entered string. If the input
+     is terminated using the `Return' key, a space is typed.
+
+exception abort sequence of `ABORT"':
+     The error string is stored into the variable `"error' and a `-2
+     throw' is performed.
+
+input line terminator:
+     For interactive input, `C-m' (CR) and `C-j' (LF) terminate lines.
+     One of these characters is typically produced when you type the
+     `Enter' or `Return' key.
+
+maximum size of a counted string:
+     `s" /counted-string" environment? drop .'. Currently 255 characters
+     on all platforms, but this may change.
+
+maximum size of a parsed string:
+     Given by the constant `/line'. Currently 255 characters.
+
+maximum size of a definition name, in characters:
+     MAXU/8
+
+maximum string length for `ENVIRONMENT?', in characters:
+     MAXU/8
+
+method of selecting the user input device:
+     The user input device is the standard input. There is currently no
+     way to change it from within Gforth. However, the input can
+     typically be redirected in the command line that starts Gforth.
+
+method of selecting the user output device:
+     `EMIT' and `TYPE' output to the file-id stored in the value
+     `outfile-id' (`stdout' by default). Gforth uses unbuffered output
+     when the user output device is a terminal, otherwise the output is
+     buffered.
+
+methods of dictionary compilation:
+     What are we expected to document here?
+
+number of bits in one address unit:
+     `s" address-units-bits" environment? drop .'. 8 in all current
+     platforms.
+
+number representation and arithmetic:
+     Processor-dependent. Binary two's complement on all current
+     platforms.
+
+ranges for integer types:
+     Installation-dependent. Make environmental queries for `MAX-N',
+     `MAX-U', `MAX-D' and `MAX-UD'. The lower bounds for unsigned (and
+     positive) types is 0. The lower bound for signed types on two's
+     complement and one's complement machines machines can be computed
+     by adding 1 to the upper bound.
+
+read-only data space regions:
+     The whole Forth data space is writable.
+
+size of buffer at `WORD':
+     `PAD HERE - .'. 104 characters on 32-bit machines. The buffer is
+     shared with the pictured numeric output string. If overwriting
+     `PAD' is acceptable, it is as large as the remaining dictionary
+     space, although only as much can be sensibly used as fits in a
+     counted string.
+
+size of one cell in address units:
+     `1 cells .'.
+
+size of one character in address units:
+     `1 chars .'. 1 on all current platforms.
+
+size of the keyboard terminal buffer:
+     Varies. You can determine the size at a specific time using `lp@
+     tib - .'. It is shared with the locals stack and TIBs of files that
+     include the current file. You can change the amount of space for
+     TIBs and locals stack at Gforth startup with the command line
+     option `-l'.
+
+size of the pictured numeric output buffer:
+     `PAD HERE - .'. 104 characters on 32-bit machines. The buffer is
+     shared with `WORD'.
+
+size of the scratch area returned by `PAD':
+     The remainder of dictionary space. `unused pad here - - .'.
+
+system case-sensitivity characteristics:
+     Dictionary searches are case-insensitive (except in `TABLE's).
+     However, as explained above under character-set extensions, the
+     matching for non-ASCII characters is determined by the locale you
+     are using. In the default `C' locale all non-ASCII characters are
+     matched case-sensitively.
+
+system prompt:
+     ` ok' in interpret state, ` compiled' in compile state.
+
+division rounding:
+     installation dependent. `s" floored" environment? drop .'. We leave
+     the choice to `gcc' (what to use for `/') and to you (whether to
+     use `fm/mod', `sm/rem' or simply `/').
+
+values of `STATE' when true:
+     -1.
+
+values returned after arithmetic overflow:
+     On two's complement machines, arithmetic is performed modulo
+     2**bits-per-cell for single arithmetic and 4**bits-per-cell for
+     double arithmetic (with appropriate mapping for signed types).
+     Division by zero typically results in a `-55 throw'
+     (Floating-point unidentified fault) or `-10 throw' (divide by
+     zero).
+
+whether the current definition can be found after DOES>:
+     No.
+
+
+File: gforth.info,  Node: core-ambcond,  Next: core-other,  Prev: core-idef,  Up: The Core Words
+
+Ambiguous conditions
+--------------------
+
+a name is neither a word nor a number:
+     `-13 throw' (Undefined word).
+
+a definition name exceeds the maximum length allowed:
+     `-19 throw' (Word name too long)
+
+addressing a region not inside the various data spaces of the forth system:
+     The stacks, code space and header space are accessible. Machine
+     code space is typically readable. Accessing other addresses gives
+     results dependent on the operating system. On decent systems: `-9
+     throw' (Invalid memory address).
+
+argument type incompatible with parameter:
+     This is usually not caught. Some words perform checks, e.g., the
+     control flow words, and issue a `ABORT"' or `-12 THROW' (Argument
+     type mismatch).
+
+attempting to obtain the execution token of a word with undefined execution semantics:
+     `-14 throw' (Interpreting a compile-only word). In some cases, you
+     get an execution token for `compile-only-error' (which performs a
+     `-14 throw' when executed).
+
+dividing by zero:
+     On some platforms, this produces a `-10 throw' (Division by zero);
+     on other systems, this typically results in a `-55 throw'
+     (Floating-point unidentified fault).
+
+insufficient data stack or return stack space:
+     Depending on the operating system, the installation, and the
+     invocation of Gforth, this is either checked by the memory
+     management hardware, or it is not checked. If it is checked, you
+     typically get a `-3 throw' (Stack overflow), `-5 throw' (Return
+     stack overflow), or `-9 throw' (Invalid memory address) (depending
+     on the platform and how you achieved the overflow) as soon as the
+     overflow happens. If it is not checked, overflows typically result
+     in mysterious illegal memory accesses, producing `-9 throw'
+     (Invalid memory address) or `-23 throw' (Address alignment
+     exception); they might also destroy the internal data structure of
+     `ALLOCATE' and friends, resulting in various errors in these words.
+
+insufficient space for loop control parameters:
+     Like other return stack overflows.
+
+insufficient space in the dictionary:
+     If you try to allot (either directly with `allot', or indirectly
+     with `,', `create' etc.) more memory than available in the
+     dictionary, you get a `-8 throw' (Dictionary overflow). If you try
+     to access memory beyond the end of the dictionary, the results are
+     similar to stack overflows.
+
+interpreting a word with undefined interpretation semantics:
+     For some words, we have defined interpretation semantics. For the
+     others: `-14 throw' (Interpreting a compile-only word).
+
+modifying the contents of the input buffer or a string literal:
+     These are located in writable memory and can be modified.
+
+overflow of the pictured numeric output string:
+     `-17 throw' (Pictured numeric ouput string overflow).
+
+parsed string overflow:
+     `PARSE' cannot overflow. `WORD' does not check for overflow.
+
+producing a result out of range:
+     On two's complement machines, arithmetic is performed modulo
+     2**bits-per-cell for single arithmetic and 4**bits-per-cell for
+     double arithmetic (with appropriate mapping for signed types).
+     Division by zero typically results in a `-10 throw' (divide by
+     zero) or `-55 throw' (floating point unidentified fault).
+     `convert' and `>number' currently overflow silently.
+
+reading from an empty data or return stack:
+     The data stack is checked by the outer (aka text) interpreter after
+     every word executed. If it has underflowed, a `-4 throw' (Stack
+     underflow) is performed. Apart from that, stacks may be checked or
+     not, depending on operating system, installation, and invocation.
+     If they are caught by a check, they typically result in `-4 throw'
+     (Stack underflow), `-6 throw' (Return stack underflow) or `-9
+     throw' (Invalid memory address), depending on the platform and
+     which stack underflows and by how much. Note that even if the
+     system uses checking (through the MMU), your program may have to
+     underflow by a significant number of stack items to trigger the
+     reaction (the reason for this is that the MMU, and therefore the
+     checking, works with a page-size granularity).  If there is no
+     checking, the symptoms resulting from an underflow are similar to
+     those from an overflow.  Unbalanced return stack errors can result
+     in a variety of symptoms, including `-9 throw' (Invalid memory
+     address) and Illegal Instruction (typically `-260 throw').
+
+unexpected end of the input buffer, resulting in an attempt to use a zero-length string as a name:
+     `Create' and its descendants perform a `-16 throw' (Attempt to use
+     zero-length string as a name). Words like `'' probably will not
+     find what they search. Note that it is possible to create
+     zero-length names with `nextname' (should it not?).
+
+`>IN' greater than input buffer:
+     The next invocation of a parsing word returns a string with length
+     0.
+
+`RECURSE' appears after `DOES>':
+     Compiles a recursive call to the defining word, not to the defined
+     word.
+
+argument input source different than current input source for `RESTORE-INPUT':
+     `-12 THROW'. Note that, once an input file is closed (e.g., because
+     the end of the file was reached), its source-id may be reused.
+     Therefore, restoring an input source specification referencing a
+     closed file may lead to unpredictable results instead of a `-12
+     THROW'.
+
+     In the future, Gforth may be able to restore input source
+     specifications from other than the current input source.
+
+data space containing definitions gets de-allocated:
+     Deallocation with `allot' is not checked. This typically results in
+     memory access faults or execution of illegal instructions.
+
+data space read/write with incorrect alignment:
+     Processor-dependent. Typically results in a `-23 throw' (Address
+     alignment exception). Under Linux-Intel on a 486 or later
+     processor with alignment turned on, incorrect alignment results in
+     a `-9 throw' (Invalid memory address). There are reportedly some
+     processors with alignment restrictions that do not report
+     violations.
+
+data space pointer not properly aligned, `,', `C,':
+     Like other alignment errors.
+
+less than u+2 stack items (`PICK' and `ROLL'):
+     Like other stack underflows.
+
+loop control parameters not available:
+     Not checked. The counted loop words simply assume that the top of
+     return stack items are loop control parameters and behave
+     accordingly.
+
+most recent definition does not have a name (`IMMEDIATE'):
+     `abort" last word was headerless"'.
+
+name not defined by `VALUE' used by `TO':
+     `-32 throw' (Invalid name argument) (unless name is a local or was
+     defined by `CONSTANT'; in the latter case it just changes the
+     constant).
+
+name not found (`'', `POSTPONE', `[']', `[COMPILE]'):
+     `-13 throw' (Undefined word)
+
+parameters are not of the same type (`DO', `?DO', `WITHIN'):
+     Gforth behaves as if they were of the same type. I.e., you can
+     predict the behaviour by interpreting all parameters as, e.g.,
+     signed.
+
+`POSTPONE' or `[COMPILE]' applied to `TO':
+     Assume `: X POSTPONE TO ; IMMEDIATE'. `X' performs the compilation
+     semantics of `TO'.
+
+String longer than a counted string returned by `WORD':
+     Not checked. The string will be ok, but the count will, of course,
+     contain only the least significant bits of the length.
+
+u greater than or equal to the number of bits in a cell (`LSHIFT', `RSHIFT'):
+     Processor-dependent. Typical behaviours are returning 0 and using
+     only the low bits of the shift count.
+
+word not defined via `CREATE':
+     `>BODY' produces the PFA of the word no matter how it was defined.
+
+     `DOES>' changes the execution semantics of the last defined word no
+     matter how it was defined. E.g., `CONSTANT DOES>' is equivalent to
+     `CREATE , DOES>'.
+
+words improperly used outside `<#' and `#>':
+     Not checked. As usual, you can expect memory faults.
+
+
+File: gforth.info,  Node: core-other,  Prev: core-ambcond,  Up: The Core Words
+
+Other system documentation
+--------------------------
+
+nonstandard words using `PAD':
+     None.
+
+operator's terminal facilities available:
+     After processing the OS's command line, Gforth goes into
+     interactive mode, and you can give commands to Gforth
+     interactively. The actual facilities available depend on how you
+     invoke Gforth.
+
+program data space available:
+     `UNUSED .' gives the remaining dictionary space. The total
+     dictionary space can be specified with the `-m' switch (*note
+     Invoking Gforth::) when Gforth starts up.
+
+return stack space available:
+     You can compute the total return stack space in cells with `s"
+     RETURN-STACK-CELLS" environment? drop .'. You can specify it at
+     startup time with the `-r' switch (*note Invoking Gforth::).
+
+stack space available:
+     You can compute the total data stack space in cells with `s"
+     STACK-CELLS" environment? drop .'. You can specify it at startup
+     time with the `-d' switch (*note Invoking Gforth::).
+
+system dictionary space required, in address units:
+     Type `here forthstart - .' after startup. At the time of this
+     writing, this gives 80080 (bytes) on a 32-bit system.
+
+
+File: gforth.info,  Node: The optional Block word set,  Next: The optional Double Number word set,  Prev: The Core Words,  Up: ANS conformance
+
+The optional Block word set
+===========================
+
+* Menu:
+
+* block-idef::                  Implementation Defined Options
+* block-ambcond::               Ambiguous Conditions
+* block-other::                 Other System Documentation
+
+
+File: gforth.info,  Node: block-idef,  Next: block-ambcond,  Prev: The optional Block word set,  Up: The optional Block word set
+
+Implementation Defined Options
+------------------------------
+
+the format for display by `LIST':
+     First the screen number is displayed, then 16 lines of 64
+     characters, each line preceded by the line number.
+
+the length of a line affected by `\':
+     64 characters.
+
+
+File: gforth.info,  Node: block-ambcond,  Next: block-other,  Prev: block-idef,  Up: The optional Block word set
+
+Ambiguous conditions
+--------------------
+
+correct block read was not possible:
+     Typically results in a `throw' of some OS-derived value (between
+     -512 and -2048). If the blocks file was just not long enough,
+     blanks are supplied for the missing portion.
+
+I/O exception in block transfer:
+     Typically results in a `throw' of some OS-derived value (between
+     -512 and -2048).
+
+invalid block number:
+     `-35 throw' (Invalid block number)
+
+a program directly alters the contents of `BLK':
+     The input stream is switched to that other block, at the same
+     position. If the storing to `BLK' happens when interpreting
+     non-block input, the system will get quite confused when the block
+     ends.
+
+no current block buffer for `UPDATE':
+     `UPDATE' has no effect.
+
+
+File: gforth.info,  Node: block-other,  Prev: block-ambcond,  Up: The optional Block word set
+
+Other system documentation
+--------------------------
+
+any restrictions a multiprogramming system places on the use of buffer addresses:
+     No restrictions (yet).
+
+the number of blocks available for source and data:
+     depends on your disk space.
+
+
+File: gforth.info,  Node: The optional Double Number word set,  Next: The optional Exception word set,  Prev: The optional Block word set,  Up: ANS conformance
+
+The optional Double Number word set
+===================================
+
+* Menu:
+
+* double-ambcond::              Ambiguous Conditions
+
+
+File: gforth.info,  Node: double-ambcond,  Prev: The optional Double Number word set,  Up: The optional Double Number word set
+
+Ambiguous conditions
+--------------------
+
+d outside of range of n in `D>S':
+     The least significant cell of d is produced.
+
+
+File: gforth.info,  Node: The optional Exception word set,  Next: The optional Facility word set,  Prev: The optional Double Number word set,  Up: ANS conformance
+
+The optional Exception word set
+===============================
+
+* Menu:
+
+* exception-idef::              Implementation Defined Options
+
+
+File: gforth.info,  Node: exception-idef,  Prev: The optional Exception word set,  Up: The optional Exception word set
+
+Implementation Defined Options
+------------------------------
+
+`THROW'-codes used in the system:
+     The codes -256--511 are used for reporting signals. The mapping
+     from OS signal numbers to throw codes is -256-signal. The codes
+     -512--2047 are used for OS errors (for file and memory allocation
+     operations). The mapping from OS error numbers to throw codes is
+     -512-`errno'. One side effect of this mapping is that undefined OS
+     errors produce a message with a strange number; e.g., `-1000
+     THROW' results in `Unknown error 488' on my system.
+
+
+File: gforth.info,  Node: The optional Facility word set,  Next: The optional File-Access word set,  Prev: The optional Exception word set,  Up: ANS conformance
+
+The optional Facility word set
+==============================
+
+* Menu:
+
+* facility-idef::               Implementation Defined Options
+* facility-ambcond::            Ambiguous Conditions
+
+
+File: gforth.info,  Node: facility-idef,  Next: facility-ambcond,  Prev: The optional Facility word set,  Up: The optional Facility word set
+
+Implementation Defined Options
+------------------------------
+
+encoding of keyboard events (`EKEY'):
+     Keys corresponding to ASCII characters are encoded as ASCII
+     characters.  Other keys are encoded with the constants `k-left',
+     `k-right', `k-up', `k-down', `k-home', `k-end', `k1', `k2', `k3',
+     `k4', `k5', `k6', `k7', `k8', `k9', `k10', `k11', `k12'.
+
+duration of a system clock tick:
+     System dependent. With respect to `MS', the time is specified in
+     microseconds. How well the OS and the hardware implement this, is
+     another question.
+
+repeatability to be expected from the execution of `MS':
+     System dependent. On Unix, a lot depends on load. If the system is
+     lightly loaded, and the delay is short enough that Gforth does not
+     get swapped out, the performance should be acceptable. Under
+     MS-DOS and other single-tasking systems, it should be good.
+
+
+File: gforth.info,  Node: facility-ambcond,  Prev: facility-idef,  Up: The optional Facility word set
+
+Ambiguous conditions
+--------------------
+
+`AT-XY' can't be performed on user output device:
+     Largely terminal dependent. No range checks are done on the
+     arguments.  No errors are reported. You may see some garbage
+     appearing, you may see simply nothing happen.
+
+
+File: gforth.info,  Node: The optional File-Access word set,  Next: The optional Floating-Point word set,  Prev: The optional Facility word set,  Up: ANS conformance
+
+The optional File-Access word set
+=================================
+
+* Menu:
+
+* file-idef::                   Implementation Defined Options
+* file-ambcond::                Ambiguous Conditions
+
+
+File: gforth.info,  Node: file-idef,  Next: file-ambcond,  Prev: The optional File-Access word set,  Up: The optional File-Access word set
+
+Implementation Defined Options
+------------------------------
+
+file access methods used:
+     `R/O', `R/W' and `BIN' work as you would expect. `W/O' translates
+     into the C file opening mode `w' (or `wb'): The file is cleared,
+     if it exists, and created, if it does not (with both `open-file'
+     and `create-file').  Under Unix `create-file' creates a file with
+     666 permissions modified by your umask.
+
+file exceptions:
+     The file words do not raise exceptions (except, perhaps, memory
+     access faults when you pass illegal addresses or file-ids).
+
+file line terminator:
+     System-dependent. Gforth uses C's newline character as line
+     terminator. What the actual character code(s) of this are is
+     system-dependent.
+
+file name format:
+     System dependent. Gforth just uses the file name format of your OS.
+
+information returned by `FILE-STATUS':
+     `FILE-STATUS' returns the most powerful file access mode allowed
+     for the file: Either `R/O', `W/O' or `R/W'. If the file cannot be
+     accessed, `R/O BIN' is returned. `BIN' is applicable along with
+     the returned mode.
+
+input file state after an exception when including source:
+     All files that are left via the exception are closed.
+
+ior values and meaning:
+     The iors returned by the file and memory allocation words are
+     intended as throw codes. They typically are in the range
+     -512--2047 of OS errors.  The mapping from OS error numbers to
+     iors is -512-errno.
+
+maximum depth of file input nesting:
+     limited by the amount of return stack, locals/TIB stack, and the
+     number of open files available. This should not give you troubles.
+
+maximum size of input line:
+     `/line'. Currently 255.
+
+methods of mapping block ranges to files:
+     By default, blocks are accessed in the file `blocks.fb' in the
+     current working directory. The file can be switched with `USE'.
+
+number of string buffers provided by `S"':
+     1
+
+size of string buffer used by `S"':
+     `/line'. currently 255.
+
+
+File: gforth.info,  Node: file-ambcond,  Prev: file-idef,  Up: The optional File-Access word set
+
+Ambiguous conditions
+--------------------
+
+attempting to position a file outside its boundaries:
+     `REPOSITION-FILE' is performed as usual: Afterwards,
+     `FILE-POSITION' returns the value given to `REPOSITION-FILE'.
+
+attempting to read from file positions not yet written:
+     End-of-file, i.e., zero characters are read and no error is
+     reported.
+
+file-id is invalid (`INCLUDE-FILE'):
+     An appropriate exception may be thrown, but a memory fault or other
+     problem is more probable.
+
+I/O exception reading or closing file-id (`INCLUDE-FILE', `INCLUDED'):
+     The ior produced by the operation, that discovered the problem, is
+     thrown.
+
+named file cannot be opened (`INCLUDED'):
+     The ior produced by `open-file' is thrown.
+
+requesting an unmapped block number:
+     There are no unmapped legal block numbers. On some operating
+     systems, writing a block with a large number may overflow the file
+     system and have an error message as consequence.
+
+using `source-id' when `blk' is non-zero:
+     `source-id' performs its function. Typically it will give the id of
+     the source which loaded the block. (Better ideas?)
+
+
+File: gforth.info,  Node: The optional Floating-Point word set,  Next: The optional Locals word set,  Prev: The optional File-Access word set,  Up: ANS conformance
+
+The optional Floating-Point word set
+====================================
+
+* Menu:
+
+* floating-idef::               Implementation Defined Options
+* floating-ambcond::            Ambiguous Conditions
+

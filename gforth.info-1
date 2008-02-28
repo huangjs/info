@@ -1,0 +1,1522 @@
+This is gforth.info, produced by makeinfo version 4.2 from gforth.texi.
+
+This manual is for Gforth (version 0.6.2, August 25, 2003), a fast and
+portable implementation of the ANS Forth language
+
+   Copyright (C) 1995, 1996, 1997, 1998, 2000, 2003 Free Software
+Foundation, Inc.
+
+     Permission is granted to copy, distribute and/or modify this
+     document under the terms of the GNU Free Documentation License,
+     Version 1.1 or any later version published by the Free Software
+     Foundation; with no Invariant Sections, with the Front-Cover texts
+     being "A GNU Manual," and with the Back-Cover Texts as in (a)
+     below.  A copy of the license is included in the section entitled
+     "GNU Free Documentation License."
+
+     (a) The FSF's Back-Cover Text is: "You have freedom to copy and
+     modify this GNU Manual, like GNU software.  Copies published by
+     the Free Software Foundation raise funds for GNU development."
+   
+INFO-DIR-SECTION Software development
+START-INFO-DIR-ENTRY
+* Gforth: (gforth).             A fast interpreter for the Forth language.
+END-INFO-DIR-ENTRY
+
+
+File: gforth.info,  Node: Top,  Next: Goals,  Prev: (dir),  Up: (dir)
+
+Gforth
+******
+
+This manual is for Gforth (version 0.6.2, August 25, 2003), a fast and
+portable implementation of the ANS Forth language
+
+   Copyright (C) 1995, 1996, 1997, 1998, 2000, 2003 Free Software
+Foundation, Inc.
+
+     Permission is granted to copy, distribute and/or modify this
+     document under the terms of the GNU Free Documentation License,
+     Version 1.1 or any later version published by the Free Software
+     Foundation; with no Invariant Sections, with the Front-Cover texts
+     being "A GNU Manual," and with the Back-Cover Texts as in (a)
+     below.  A copy of the license is included in the section entitled
+     "GNU Free Documentation License."
+
+     (a) The FSF's Back-Cover Text is: "You have freedom to copy and
+     modify this GNU Manual, like GNU software.  Copies published by
+     the Free Software Foundation raise funds for GNU development."
+   
+* Menu:
+
+* Goals::                       About the Gforth Project
+* Gforth Environment::          Starting (and exiting) Gforth
+* Tutorial::                    Hands-on Forth Tutorial
+* Introduction::                An introduction to ANS Forth
+* Words::                       Forth words available in Gforth
+* Error messages::              How to interpret them
+* Tools::                       Programming tools
+* ANS conformance::             Implementation-defined options etc.
+* Standard vs Extensions::      Should I use extensions?
+* Model::                       The abstract machine of Gforth
+* Integrating Gforth::          Forth as scripting language for applications
+* Emacs and Gforth::            The Gforth Mode
+* Image Files::                 `.fi' files contain compiled code
+* Engine::                      The inner interpreter and the primitives
+* Cross Compiler::              The Cross Compiler
+* Bugs::                        How to report them
+* Origin::                      Authors and ancestors of Gforth
+* Forth-related information::   Books and places to look on the WWW
+* Licenses::
+* Word Index::                  An item for each Forth word
+* Concept Index::               A menu covering many topics
+
+ --- The Detailed Node Listing ---
+
+Gforth Environment
+
+* Invoking Gforth::             Getting in
+* Leaving Gforth::              Getting out
+* Command-line editing::
+* Environment variables::       that affect how Gforth starts up
+* Gforth Files::                What gets installed and where
+* Gforth in pipes::
+* Startup speed::               When 35ms is not fast enough ...
+
+Forth Tutorial
+
+* Starting Gforth Tutorial::
+* Syntax Tutorial::
+* Crash Course Tutorial::
+* Stack Tutorial::
+* Arithmetics Tutorial::
+* Stack Manipulation Tutorial::
+* Using files for Forth code Tutorial::
+* Comments Tutorial::
+* Colon Definitions Tutorial::
+* Decompilation Tutorial::
+* Stack-Effect Comments Tutorial::
+* Types Tutorial::
+* Factoring Tutorial::
+* Designing the stack effect Tutorial::
+* Local Variables Tutorial::
+* Conditional execution Tutorial::
+* Flags and Comparisons Tutorial::
+* General Loops Tutorial::
+* Counted loops Tutorial::
+* Recursion Tutorial::
+* Leaving definitions or loops Tutorial::
+* Return Stack Tutorial::
+* Memory Tutorial::
+* Characters and Strings Tutorial::
+* Alignment Tutorial::
+* Files Tutorial::
+* Interpretation and Compilation Semantics and Immediacy Tutorial::
+* Execution Tokens Tutorial::
+* Exceptions Tutorial::
+* Defining Words Tutorial::
+* Arrays and Records Tutorial::
+* POSTPONE Tutorial::
+* Literal Tutorial::
+* Advanced macros Tutorial::
+* Compilation Tokens Tutorial::
+* Wordlists and Search Order Tutorial::
+
+An Introduction to ANS Forth
+
+* Introducing the Text Interpreter::
+* Stacks and Postfix notation::
+* Your first definition::
+* How does that work?::
+* Forth is written in Forth::
+* Review - elements of a Forth system::
+* Where to go next::
+* Exercises::
+
+Forth Words
+
+* Notation::
+* Case insensitivity::
+* Comments::
+* Boolean Flags::
+* Arithmetic::
+* Stack Manipulation::
+* Memory::
+* Control Structures::
+* Defining Words::
+* Interpretation and Compilation Semantics::
+* Tokens for Words::
+* Compiling words::
+* The Text Interpreter::
+* The Input Stream::
+* Word Lists::
+* Environmental Queries::
+* Files::
+* Blocks::
+* Other I/O::
+* Locals::
+* Structures::
+* Object-oriented Forth::
+* Programming Tools::
+* Assembler and Code Words::
+* Threading Words::
+* Passing Commands to the OS::
+* Keeping track of Time::
+* Miscellaneous Words::
+
+Arithmetic
+
+* Single precision::
+* Double precision::            Double-cell integer arithmetic
+* Bitwise operations::
+* Numeric comparison::
+* Mixed precision::             Operations with single and double-cell integers
+* Floating Point::
+
+Stack Manipulation
+
+* Data stack::
+* Floating point stack::
+* Return stack::
+* Locals stack::
+* Stack pointer manipulation::
+
+Memory
+
+* Memory model::
+* Dictionary allocation::
+* Heap Allocation::
+* Memory Access::
+* Address arithmetic::
+* Memory Blocks::
+
+Control Structures
+
+* Selection::                   IF ... ELSE ... ENDIF
+* Simple Loops::                BEGIN ...
+* Counted Loops::               DO
+* Arbitrary control structures::
+* Calls and returns::
+* Exception Handling::
+
+Defining Words
+
+* CREATE::
+* Variables::                   Variables and user variables
+* Constants::
+* Values::                      Initialised variables
+* Colon Definitions::
+* Anonymous Definitions::       Definitions without names
+* Supplying names::             Passing definition names as strings
+* User-defined Defining Words::
+* Deferred words::              Allow forward references
+* Aliases::
+
+User-defined Defining Words
+
+* CREATE..DOES> applications::
+* CREATE..DOES> details::
+* Advanced does> usage example::
+* `Const-does>'::
+
+Interpretation and Compilation Semantics
+
+* Combined words::
+
+Tokens for Words
+
+* Execution token::             represents execution/interpretation semantics
+* Compilation token::           represents compilation semantics
+* Name token::                  represents named words
+
+Compiling words
+
+* Literals::                    Compiling data values
+* Macros::                      Compiling words
+
+The Text Interpreter
+
+* Input Sources::
+* Number Conversion::
+* Interpret/Compile states::
+* Interpreter Directives::
+
+Word Lists
+
+* Vocabularies::
+* Why use word lists?::
+* Word list example::
+
+Files
+
+* Forth source files::
+* General files::
+* Search Paths::
+
+Search Paths
+
+* Source Search Paths::
+* General Search Paths::
+
+Other I/O
+
+* Simple numeric output::       Predefined formats
+* Formatted numeric output::    Formatted (pictured) output
+* String Formats::              How Forth stores strings in memory
+* Displaying characters and strings::  Other stuff
+* Input::                       Input
+* Pipes::                       How to create your own pipes
+
+Locals
+
+* Gforth locals::
+* ANS Forth locals::
+
+Gforth locals
+
+* Where are locals visible by name?::
+* How long do locals live?::
+* Locals programming style::
+* Locals implementation::
+
+Structures
+
+* Why explicit structure support?::
+* Structure Usage::
+* Structure Naming Convention::
+* Structure Implementation::
+* Structure Glossary::
+
+Object-oriented Forth
+
+* Why object-oriented programming?::
+* Object-Oriented Terminology::
+* Objects::
+* OOF::
+* Mini-OOF::
+* Comparison with other object models::
+
+The `objects.fs' model
+
+* Properties of the Objects model::
+* Basic Objects Usage::
+* The Objects base class::
+* Creating objects::
+* Object-Oriented Programming Style::
+* Class Binding::
+* Method conveniences::
+* Classes and Scoping::
+* Dividing classes::
+* Object Interfaces::
+* Objects Implementation::
+* Objects Glossary::
+
+The `oof.fs' model
+
+* Properties of the OOF model::
+* Basic OOF Usage::
+* The OOF base class::
+* Class Declaration::
+* Class Implementation::
+
+The `mini-oof.fs' model
+
+* Basic Mini-OOF Usage::
+* Mini-OOF Example::
+* Mini-OOF Implementation::
+
+Programming Tools
+
+* Examining::
+* Forgetting words::
+* Debugging::                   Simple and quick.
+* Assertions::                  Making your programs self-checking.
+* Singlestep Debugger::         Executing your program word by word.
+
+Assembler and Code Words
+
+* Code and ;code::
+* Common Assembler::            Assembler Syntax
+* Common Disassembler::
+* 386 Assembler::               Deviations and special cases
+* Alpha Assembler::             Deviations and special cases
+* MIPS assembler::              Deviations and special cases
+* Other assemblers::            How to write them
+
+Tools
+
+* ANS Report::                  Report the words used, sorted by wordset.
+
+ANS conformance
+
+* The Core Words::
+* The optional Block word set::
+* The optional Double Number word set::
+* The optional Exception word set::
+* The optional Facility word set::
+* The optional File-Access word set::
+* The optional Floating-Point word set::
+* The optional Locals word set::
+* The optional Memory-Allocation word set::
+* The optional Programming-Tools word set::
+* The optional Search-Order word set::
+
+The Core Words
+
+* core-idef::                   Implementation Defined Options
+* core-ambcond::                Ambiguous Conditions
+* core-other::                  Other System Documentation
+
+The optional Block word set
+
+* block-idef::                  Implementation Defined Options
+* block-ambcond::               Ambiguous Conditions
+* block-other::                 Other System Documentation
+
+The optional Double Number word set
+
+* double-ambcond::              Ambiguous Conditions
+
+The optional Exception word set
+
+* exception-idef::              Implementation Defined Options
+
+The optional Facility word set
+
+* facility-idef::               Implementation Defined Options
+* facility-ambcond::            Ambiguous Conditions
+
+The optional File-Access word set
+
+* file-idef::                   Implementation Defined Options
+* file-ambcond::                Ambiguous Conditions
+
+The optional Floating-Point word set
+
+* floating-idef::               Implementation Defined Options
+* floating-ambcond::            Ambiguous Conditions
+
+The optional Locals word set
+
+* locals-idef::                 Implementation Defined Options
+* locals-ambcond::              Ambiguous Conditions
+
+The optional Memory-Allocation word set
+
+* memory-idef::                 Implementation Defined Options
+
+The optional Programming-Tools word set
+
+* programming-idef::            Implementation Defined Options
+* programming-ambcond::         Ambiguous Conditions
+
+The optional Search-Order word set
+
+* search-idef::                 Implementation Defined Options
+* search-ambcond::              Ambiguous Conditions
+
+Emacs and Gforth
+
+* Installing gforth.el::        Making Emacs aware of Forth.
+* Emacs Tags::                  Viewing the source of a word in Emacs.
+* Hilighting::                  Making Forth code look prettier.
+* Auto-Indentation::            Customizing auto-indentation.
+* Blocks Files::                Reading and writing blocks files.
+
+Image Files
+
+* Image Licensing Issues::      Distribution terms for images.
+* Image File Background::       Why have image files?
+* Non-Relocatable Image Files::  don't always work.
+* Data-Relocatable Image Files::  are better.
+* Fully Relocatable Image Files::  better yet.
+* Stack and Dictionary Sizes::  Setting the default sizes for an image.
+* Running Image Files::         `gforth -i file' or file.
+* Modifying the Startup Sequence::  and turnkey applications.
+
+Fully Relocatable Image Files
+
+* gforthmi::                    The normal way
+* cross.fs::                    The hard way
+
+Engine
+
+* Portability::
+* Threading::
+* Primitives::
+* Performance::
+
+Threading
+
+* Scheduling::
+* Direct or Indirect Threaded?::
+* Dynamic Superinstructions::
+* DOES>::
+
+Primitives
+
+* Automatic Generation::
+* TOS Optimization::
+* Produced code::
+
+Cross Compiler
+
+* Using the Cross Compiler::
+* How the Cross Compiler Works::
+
+Licenses
+
+* GNU Free Documentation License::  License for copying this manual.
+* Copying::                         GPL (for copying this software).
+
+
+File: gforth.info,  Node: Goals,  Next: Gforth Environment,  Prev: Top,  Up: Top
+
+Goals of Gforth
+***************
+
+   The goal of the Gforth Project is to develop a standard model for
+ANS Forth. This can be split into several subgoals:
+
+   * Gforth should conform to the ANS Forth Standard.
+
+   * It should be a model, i.e. it should define all the
+     implementation-dependent things.
+
+   * It should become standard, i.e. widely accepted and used. This goal
+     is the most difficult one.
+
+   To achieve these goals Gforth should be
+   * Similar to previous models (fig-Forth, F83)
+
+   * Powerful. It should provide for all the things that are considered
+     necessary today and even some that are not yet considered
+     necessary.
+
+   * Efficient. It should not get the reputation of being exceptionally
+     slow.
+
+   * Free.
+
+   * Available on many machines/easy to port.
+
+   Have we achieved these goals? Gforth conforms to the ANS Forth
+standard. It may be considered a model, but we have not yet documented
+which parts of the model are stable and which parts we are likely to
+change. It certainly has not yet become a de facto standard, but it
+appears to be quite popular. It has some similarities to and some
+differences from previous models. It has some powerful features, but not
+yet everything that we envisioned. We certainly have achieved our
+execution speed goals (*note Performance::)(1).  It is free and
+available on many machines.
+
+   ---------- Footnotes ----------
+
+   (1) However, in 1998 the bar was raised when the major commercial
+Forth vendors switched to native code compilers.
+
+
+File: gforth.info,  Node: Gforth Environment,  Next: Tutorial,  Prev: Goals,  Up: Top
+
+Gforth Environment
+******************
+
+   Note: ultimately, the Gforth man page will be auto-generated from the
+material in this chapter.
+
+* Menu:
+
+* Invoking Gforth::             Getting in
+* Leaving Gforth::              Getting out
+* Command-line editing::
+* Environment variables::       that affect how Gforth starts up
+* Gforth Files::                What gets installed and where
+* Gforth in pipes::
+* Startup speed::               When 35ms is not fast enough ...
+
+   For related information about the creation of images see *Note Image
+Files::.
+
+
+File: gforth.info,  Node: Invoking Gforth,  Next: Leaving Gforth,  Prev: Gforth Environment,  Up: Gforth Environment
+
+Invoking Gforth
+===============
+
+   Gforth is made up of two parts; an executable "engine" (named
+`gforth' or `gforth-fast') and an image file. To start it, you will
+usually just say `gforth' - this automatically loads the default image
+file `gforth.fi'. In many other cases the default Gforth image will be
+invoked like this:
+     gforth [file | -e forth-code] ...
+
+This interprets the contents of the files and the Forth code in the
+order they are given.
+
+   In addition to the `gforth' engine, there is also an engine called
+`gforth-fast', which is faster, but gives less informative error
+messages (*note Error messages::) and may catch some stack underflows
+later or not at all.  You should use it for debugged,
+performance-critical programs.
+
+   Moreover, there is an engine called `gforth-itc', which is useful in
+some backwards-compatibility situations (*note Direct or Indirect
+Threaded?::).
+
+   In general, the command line looks like this:
+
+     gforth[-fast] [engine options] [image options]
+
+   The engine options must come before the rest of the command line.
+They are:
+
+`--image-file file'
+`-i file'
+     Loads the Forth image file instead of the default `gforth.fi'
+     (*note Image Files::).
+
+`--appl-image file'
+     Loads the image file and leaves all further command-line arguments
+     to the image (instead of processing them as engine options).  This
+     is useful for building executable application images on Unix,
+     built with `gforthmi --application ...'.
+
+`--path path'
+`-p path'
+     Uses path for searching the image file and Forth source code files
+     instead of the default in the environment variable `GFORTHPATH' or
+     the path specified at installation time (e.g.,
+     `/usr/local/share/gforth/0.2.0:.'). A path is given as a list of
+     directories, separated by `:' (on Unix) or `;' (on other OSs).
+
+`--dictionary-size size'
+`-m size'
+     Allocate size space for the Forth dictionary space instead of
+     using the default specified in the image (typically 256K). The
+     size specification for this and subsequent options consists of an
+     integer and a unit (e.g., `4M'). The unit can be one of `b'
+     (bytes), `e' (element size, in this case Cells), `k' (kilobytes),
+     `M' (Megabytes), `G' (Gigabytes), and `T' (Terabytes). If no unit
+     is specified, `e' is used.
+
+`--data-stack-size size'
+`-d size'
+     Allocate size space for the data stack instead of using the
+     default specified in the image (typically 16K).
+
+`--return-stack-size size'
+`-r size'
+     Allocate size space for the return stack instead of using the
+     default specified in the image (typically 15K).
+
+`--fp-stack-size size'
+`-f size'
+     Allocate size space for the floating point stack instead of using
+     the default specified in the image (typically 15.5K). In this case
+     the unit specifier `e' refers to floating point numbers.
+
+`--locals-stack-size size'
+`-l size'
+     Allocate size space for the locals stack instead of using the
+     default specified in the image (typically 14.5K).
+
+`--help'
+`-h'
+     Print a message about the command-line options
+
+`--version'
+`-v'
+     Print version and exit
+
+`--debug'
+     Print some information useful for debugging on startup.
+
+`--offset-image'
+     Start the dictionary at a slightly different position than would
+     be used otherwise (useful for creating data-relocatable images,
+     *note Data-Relocatable Image Files::).
+
+`--no-offset-im'
+     Start the dictionary at the normal position.
+
+`--clear-dictionary'
+     Initialize all bytes in the dictionary to 0 before loading the
+     image (*note Data-Relocatable Image Files::).
+
+`--die-on-signal'
+     Normally Gforth handles most signals (e.g., the user interrupt
+     SIGINT, or the segmentation violation SIGSEGV) by translating it
+     into a Forth `THROW'. With this option, Gforth exits if it
+     receives such a signal. This option is useful when the engine
+     and/or the image might be severely broken (such that it causes
+     another signal before recovering from the first); this option
+     avoids endless loops in such cases.
+
+`--no-dynamic'
+
+`--dynamic'
+     Disable or enable dynamic superinstructions with replication
+     (*note Dynamic Superinstructions::).
+
+`--no-super'
+     Disable dynamic superinstructions, use just dynamic replication;
+     this is useful if you want to patch threaded code (*note Dynamic
+     Superinstructions::).
+
+`--ss-number=N'
+     Use only the first N static superinstructions compiled into the
+     engine (default: use them all; note that only `gforth-fast' has
+     any).  This option is useful for measuring the performance impact
+     of static superinstructions.
+
+`--ss-min-codesize'
+
+`--ss-min-ls'
+
+`--ss-min-lsu'
+
+`--ss-min-nexts'
+     Use specified metric for determining the cost of a primitive or
+     static superinstruction for static superinstruction selection.
+     `Codesize' is the native code size of the primive or static
+     superinstruction, `ls' is the number of loads and stores, `lsu' is
+     the number of loads, stores, and updates, and `nexts' is the
+     number of dispatches (not taking dynamic superinstructions into
+     account), i.e. every primitive or static superinstruction has cost
+     1. Default: `codesize' if you use dynamic code generation,
+     otherwise `nexts'.
+
+`--ss-greedy'
+     This option is useful for measuring the performance impact of
+     static superinstructions.  By default, an optimal shortest-path
+     algorithm is used for selecting static superinstructions.  With
+     `--ss-greedy' this algorithm is modified to assume that anything
+     after the static superinstruction currently under consideration is
+     not combined into static superinstructions.  With `--ss-min-nexts'
+     this produces the same result as a greedy algorithm that always
+     selects the longest superinstruction available at the moment.
+     E.g., if there are superinstructions AB and BCD, then for the
+     sequence A B C D the optimal algorithm will select A BCD and the
+     greedy algorithm will select AB C D.
+
+`--print-metrics'
+     Prints some metrics used during static superinstruction selection:
+     `code size' is the actual size of the dynamically generated code.
+     `Metric codesize' is the sum of the codesize metrics as seen by
+     static superinstruction selection; there is a difference from `code
+     size', because not all primitives and static superinstructions are
+     compiled into dynamically generated code, and because of markers.
+     The other metrics correspond to the `ss-min-...' options.  This
+     option is useful for evaluating the effects of the `--ss-...'
+     options.
+
+   As explained above, the image-specific command-line arguments for the
+default image `gforth.fi' consist of a sequence of filenames and `-e
+FORTH-CODE' options that are interpreted in the sequence in which they
+are given. The `-e FORTH-CODE' or `--evaluate FORTH-CODE' option
+evaluates the Forth code. This option takes only one argument; if you
+want to evaluate more Forth words, you have to quote them or use `-e'
+several times. To exit after processing the command line (instead of
+entering interactive mode) append `-e bye' to the command line.
+
+   If you have several versions of Gforth installed, `gforth' will
+invoke the version that was installed last. `gforth-version' invokes a
+specific version. If your environment contains the variable
+`GFORTHPATH', you may want to override it by using the `--path' option.
+
+   Not yet implemented: On startup the system first executes the system
+initialization file (unless the option `--no-init-file' is given; note
+that the system resulting from using this option may not be ANS Forth
+conformant). Then the user initialization file `.gforth.fs' is
+executed, unless the option `--no-rc' is given; this file is searched
+for in `.', then in `~', then in the normal path (see above).
+
+
+File: gforth.info,  Node: Leaving Gforth,  Next: Command-line editing,  Prev: Invoking Gforth,  Up: Gforth Environment
+
+Leaving Gforth
+==============
+
+   You can leave Gforth by typing `bye' or `Ctrl-d' (at the start of a
+line) or (if you invoked Gforth with the `--die-on-signal' option)
+`Ctrl-c'. When you leave Gforth, all of your definitions and data are
+discarded.  For ways of saving the state of the system before leaving
+Gforth see *Note Image Files::.
+
+`bye'       -         tools-ext       ``bye''
+   Return control to the host operating system (if any).
+
+
+File: gforth.info,  Node: Command-line editing,  Next: Environment variables,  Prev: Leaving Gforth,  Up: Gforth Environment
+
+Command-line editing
+====================
+
+   Gforth maintains a history file that records every line that you
+type to the text interpreter. This file is preserved between sessions,
+and is used to provide a command-line recall facility; if you type
+`Ctrl-P' repeatedly you can recall successively older commands from
+this (or previous) session(s). The full list of command-line editing
+facilities is:
+
+   * `Ctrl-p' ("previous") (or up-arrow) to recall successively older
+     commands from the history buffer.
+
+   * `Ctrl-n' ("next") (or down-arrow) to recall successively newer
+     commands from the history buffer.
+
+   * `Ctrl-f' (or right-arrow) to move the cursor right,
+     non-destructively.
+
+   * `Ctrl-b' (or left-arrow) to move the cursor left,
+     non-destructively.
+
+   * `Ctrl-h' (backspace) to delete the character to the left of the
+     cursor, closing up the line.
+
+   * `Ctrl-k' to delete ("kill") from the cursor to the end of the line.
+
+   * `Ctrl-a' to move the cursor to the start of the line.
+
+   * `Ctrl-e' to move the cursor to the end of the line.
+
+   * <RET> (`Ctrl-m') or <LFD> (`Ctrl-j') to submit the current line.
+
+   * <TAB> to step through all possible full-word completions of the
+     word currently being typed.
+
+   * `Ctrl-d' on an empty line line to terminate Gforth (gracefully,
+     using `bye').
+
+   * `Ctrl-x' (or `Ctrl-d' on a non-empty line) to delete the character
+     under the cursor.
+
+   When editing, displayable characters are inserted to the left of the
+cursor position; the line is always in "insert" (as opposed to
+"overstrike") mode.
+
+   On Unix systems, the history file is `~/.gforth-history' by
+default(1). You can find out the name and location of your history file
+using:
+
+     history-file type \ Unix-class systems
+     
+     history-file type \ Other systems
+     history-dir  type
+
+   If you enter long definitions by hand, you can use a text editor to
+paste them out of the history file into a Forth source file for reuse at
+a later time.
+
+   Gforth never trims the size of the history file, so you should do
+this periodically, if necessary.
+
+   ---------- Footnotes ----------
+
+   (1) i.e. it is stored in the user's home directory.
+
+
+File: gforth.info,  Node: Environment variables,  Next: Gforth Files,  Prev: Command-line editing,  Up: Gforth Environment
+
+Environment variables
+=====================
+
+   Gforth uses these environment variables:
+
+   * `GFORTHHIST' - (Unix systems only) specifies the directory in
+     which to open/create the history file, `.gforth-history'. Default:
+     `$HOME'.
+
+   * `GFORTHPATH' - specifies the path used when searching for the
+     gforth image file and for Forth source-code files.
+
+   * `GFORTH' - used by `gforthmi', *Note gforthmi::.
+
+   * `GFORTHD' - used by `gforthmi', *Note gforthmi::.
+
+   * `TMP', `TEMP' - (non-Unix systems only) used as a potential
+     location for the history file.
+
+   All the Gforth environment variables default to sensible values if
+they are not set.
+
+
+File: gforth.info,  Node: Gforth Files,  Next: Gforth in pipes,  Prev: Environment variables,  Up: Gforth Environment
+
+Gforth files
+============
+
+   When you install Gforth on a Unix system, it installs files in these
+locations by default:
+
+   * `/usr/local/bin/gforth'
+
+   * `/usr/local/bin/gforthmi'
+
+   * `/usr/local/man/man1/gforth.1' - man page.
+
+   * `/usr/local/info' - the Info version of this manual.
+
+   * `/usr/local/lib/gforth/<version>/...' - Gforth `.fi' files.
+
+   * `/usr/local/share/gforth/<version>/TAGS' - Emacs TAGS file.
+
+   * `/usr/local/share/gforth/<version>/...' - Gforth source files.
+
+   * `.../emacs/site-lisp/gforth.el' - Emacs gforth mode.
+
+   You can select different places for installation by using
+`configure' options (listed with `configure --help').
+
+
+File: gforth.info,  Node: Gforth in pipes,  Next: Startup speed,  Prev: Gforth Files,  Up: Gforth Environment
+
+Gforth in pipes
+===============
+
+   Gforth can be used in pipes created elsewhere (described here).  It
+can also create pipes on its own (*note Pipes::).
+
+   If you pipe into Gforth, your program should read with `read-file'
+or `read-line' from `stdin' (*note General files::).  `Key' does not
+recognize the end of input.  Words like `accept' echo the input and are
+therefore usually not useful for reading from a pipe.  You have to
+invoke the Forth program with an OS command-line option, as you have no
+chance to use the Forth command line (the text interpreter would try to
+interpret the pipe input).
+
+   You can output to a pipe with `type', `emit', `cr' etc.
+
+   When you write to a pipe that has been closed at the other end,
+Gforth receives a SIGPIPE signal ("pipe broken").  Gforth translates
+this into the exception `broken-pipe-error'.  If your application does
+not catch that exception, the system catches it and exits, usually
+silently (unless you were working on the Forth command line; then it
+prints an error message and exits).  This is usually the desired
+behaviour.
+
+   If you do not like this behaviour, you have to catch the exception
+yourself, and react to it.
+
+   Here's an example of an invocation of Gforth that is usable in a
+pipe:
+
+     gforth -e ": foo begin pad dup 10 stdin read-file throw dup while \
+      type repeat ; foo bye"
+
+   This example just copies the input verbatim to the output.  A very
+simple pipe containing this example looks like this:
+
+     cat startup.fs |
+     gforth -e ": foo begin pad dup 80 stdin read-file throw dup while \
+      type repeat ; foo bye"|
+     head
+
+   Pipes involving Gforth's `stderr' output do not work.
+
+
+File: gforth.info,  Node: Startup speed,  Prev: Gforth in pipes,  Up: Gforth Environment
+
+Startup speed
+=============
+
+   If Gforth is used for CGI scripts or in shell scripts, its startup
+speed may become a problem.  On a 300MHz 21064a under Linux-2.2.13 with
+glibc-2.0.7, `gforth -e bye' takes about 24.6ms user and 11.3ms system
+time.
+
+   If startup speed is a problem, you may consider the following ways to
+improve it; or you may consider ways to reduce the number of startups
+(for example, by using Fast-CGI).
+
+   An easy step that influences Gforth startup speed is the use of the
+`--no-dynamic' option; this decreases image loading speed, but
+increases compile-time and run-time.
+
+   Another step to improve startup speed is to statically link Gforth,
+by building it with `XLDFLAGS=-static'.  This requires more memory for
+the code and will therefore slow down the first invocation, but
+subsequent invocations avoid the dynamic linking overhead.  Another
+disadvantage is that Gforth won't profit from library upgrades.  As a
+result, `gforth-static -e bye' takes about 17.1ms user and 8.2ms system
+time.
+
+   The next step to improve startup speed is to use a non-relocatable
+image (*note Non-Relocatable Image Files::).  You can create this image
+with `gforth -e "savesystem gforthnr.fi bye"' and later use it with
+`gforth -i gforthnr.fi ...'.  This avoids the relocation overhead and a
+part of the copy-on-write overhead.  The disadvantage is that the
+non-relocatable image does not work if the OS gives Gforth a different
+address for the dictionary, for whatever reason; so you better provide a
+fallback on a relocatable image.  `gforth-static -i gforthnr.fi -e bye'
+takes about 15.3ms user and 7.5ms system time.
+
+   The final step is to disable dictionary hashing in Gforth.  Gforth
+builds the hash table on startup, which takes much of the startup
+overhead. You can do this by commenting out the `include hash.fs' in
+`startup.fs' and everything that requires `hash.fs' (at the moment
+`table.fs' and `ekey.fs') and then doing `make'.  The disadvantages are
+that functionality like `table' and `ekey' is missing and that text
+interpretation (e.g., compiling) now takes much longer. So, you should
+only use this method if there is no significant text interpretation to
+perform (the script should be compiled into the image, amongst other
+things).  `gforth-static -i gforthnrnh.fi -e bye' takes about 2.1ms
+user and 6.1ms system time.
+
+
+File: gforth.info,  Node: Tutorial,  Next: Introduction,  Prev: Gforth Environment,  Up: Top
+
+Forth Tutorial
+**************
+
+   The difference of this chapter from the Introduction (*note
+Introduction::) is that this tutorial is more fast-paced, should be
+used while sitting in front of a computer, and covers much more
+material, but does not explain how the Forth system works.
+
+   This tutorial can be used with any ANS-compliant Forth; any
+Gforth-specific features are marked as such and you can skip them if you
+work with another Forth.  This tutorial does not explain all features of
+Forth, just enough to get you started and give you some ideas about the
+facilities available in Forth.  Read the rest of the manual and the
+standard when you are through this.
+
+   The intended way to use this tutorial is that you work through it
+while sitting in front of the console, take a look at the examples and
+predict what they will do, then try them out; if the outcome is not as
+expected, find out why (e.g., by trying out variations of the example),
+so you understand what's going on.  There are also some assignments
+that you should solve.
+
+   This tutorial assumes that you have programmed before and know what,
+e.g., a loop is.
+
+* Menu:
+
+* Starting Gforth Tutorial::
+* Syntax Tutorial::
+* Crash Course Tutorial::
+* Stack Tutorial::
+* Arithmetics Tutorial::
+* Stack Manipulation Tutorial::
+* Using files for Forth code Tutorial::
+* Comments Tutorial::
+* Colon Definitions Tutorial::
+* Decompilation Tutorial::
+* Stack-Effect Comments Tutorial::
+* Types Tutorial::
+* Factoring Tutorial::
+* Designing the stack effect Tutorial::
+* Local Variables Tutorial::
+* Conditional execution Tutorial::
+* Flags and Comparisons Tutorial::
+* General Loops Tutorial::
+* Counted loops Tutorial::
+* Recursion Tutorial::
+* Leaving definitions or loops Tutorial::
+* Return Stack Tutorial::
+* Memory Tutorial::
+* Characters and Strings Tutorial::
+* Alignment Tutorial::
+* Files Tutorial::
+* Interpretation and Compilation Semantics and Immediacy Tutorial::
+* Execution Tokens Tutorial::
+* Exceptions Tutorial::
+* Defining Words Tutorial::
+* Arrays and Records Tutorial::
+* POSTPONE Tutorial::
+* Literal Tutorial::
+* Advanced macros Tutorial::
+* Compilation Tokens Tutorial::
+* Wordlists and Search Order Tutorial::
+
+
+File: gforth.info,  Node: Starting Gforth Tutorial,  Next: Syntax Tutorial,  Prev: Tutorial,  Up: Tutorial
+
+Starting Gforth
+===============
+
+   You can start Gforth by typing its name:
+
+     gforth
+
+   That puts you into interactive mode; you can leave Gforth by typing
+`bye'.  While in Gforth, you can edit the command line and access the
+command line history with cursor keys, similar to bash.
+
+
+File: gforth.info,  Node: Syntax Tutorial,  Next: Crash Course Tutorial,  Prev: Starting Gforth Tutorial,  Up: Tutorial
+
+Syntax
+======
+
+   A "word" is a sequence of arbitrary characters (expcept white
+space).  Words are separated by white space.  E.g., each of the
+following lines contains exactly one word:
+
+     word
+     !@#$%^&*()
+     1234567890
+     5!a
+
+   A frequent beginner's error is to leave away necessary white space,
+resulting in an error like `Undefined word'; so if you see such an
+error, check if you have put spaces wherever necessary.
+
+     ." hello, world" \ correct
+     ."hello, world"  \ gives an "Undefined word" error
+
+   Gforth and most other Forth systems ignore differences in case (they
+are case-insensitive), i.e., `word' is the same as `Word'.  If your
+system is case-sensitive, you may have to type all the examples given
+here in upper case.
+
+
+File: gforth.info,  Node: Crash Course Tutorial,  Next: Stack Tutorial,  Prev: Syntax Tutorial,  Up: Tutorial
+
+Crash Course
+============
+
+   Type
+
+     0 0 !
+     here execute
+     ' catch >body 20 erase abort
+     ' (quit) >body 20 erase
+
+   The last two examples are guaranteed to destroy parts of Gforth (and
+most other systems), so you better leave Gforth afterwards (if it has
+not finished by itself).  On some systems you may have to kill gforth
+from outside (e.g., in Unix with `kill').
+
+   Now that you know how to produce crashes (and that there's not much
+to them), let's learn how to produce meaningful programs.
+
+
+File: gforth.info,  Node: Stack Tutorial,  Next: Arithmetics Tutorial,  Prev: Crash Course Tutorial,  Up: Tutorial
+
+Stack
+=====
+
+   The most obvious feature of Forth is the stack.  When you type in a
+number, it is pushed on the stack.  You can display the content of the
+stack with `.s'.
+
+     1 2 .s
+     3 .s
+
+   `.s' displays the top-of-stack to the right, i.e., the numbers
+appear in `.s' output as they appeared in the input.
+
+   You can print the top of stack element with `.'.
+
+     1 2 3 . . .
+
+   In general, words consume their stack arguments (`.s' is an
+exception).
+
+Assignment:
+     What does the stack contain after `5 6 7 .'?
+
+
+File: gforth.info,  Node: Arithmetics Tutorial,  Next: Stack Manipulation Tutorial,  Prev: Stack Tutorial,  Up: Tutorial
+
+Arithmetics
+===========
+
+   The words `+', `-', `*', `/', and `mod' always operate on the top
+two stack items:
+
+     2 2 .s
+     + .s
+     .
+     2 1 - .
+     7 3 mod .
+
+   The operands of `-', `/', and `mod' are in the same order as in the
+corresponding infix expression (this is generally the case in Forth).
+
+   Parentheses are superfluous (and not available), because the order of
+the words unambiguously determines the order of evaluation and the
+operands:
+
+     3 4 + 5 * .
+     3 4 5 * + .
+
+Assignment:
+     What are the infix expressions corresponding to the Forth code
+     above?  Write `6-7*8+9' in Forth notation(1).
+
+   To change the sign, use `negate':
+
+     2 negate .
+
+Assignment:
+     Convert -(-3)*4-5 to Forth.
+
+   `/mod' performs both `/' and `mod'.
+
+     7 3 /mod . .
+
+   Reference: *Note Arithmetic::.
+
+   ---------- Footnotes ----------
+
+   (1) This notation is also known as Postfix or RPN (Reverse Polish
+Notation).
+
+
+File: gforth.info,  Node: Stack Manipulation Tutorial,  Next: Using files for Forth code Tutorial,  Prev: Arithmetics Tutorial,  Up: Tutorial
+
+Stack Manipulation
+==================
+
+   Stack manipulation words rearrange the data on the stack.
+
+     1 .s drop .s
+     1 .s dup .s drop drop .s
+     1 2 .s over .s drop drop drop
+     1 2 .s swap .s drop drop
+     1 2 3 .s rot .s drop drop drop
+
+   These are the most important stack manipulation words.  There are
+also variants that manipulate twice as many stack items:
+
+     1 2 3 4 .s 2swap .s 2drop 2drop
+
+   Two more stack manipulation words are:
+
+     1 2 .s nip .s drop
+     1 2 .s tuck .s 2drop drop
+
+Assignment:
+     Replace `nip' and `tuck' with combinations of other stack
+     manipulation words.
+
+          Given:          How do you get:
+          1 2 3           3 2 1
+          1 2 3           1 2 3 2
+          1 2 3           1 2 3 3
+          1 2 3           1 3 3
+          1 2 3           2 1 3
+          1 2 3 4         4 3 2 1
+          1 2 3           1 2 3 1 2 3
+          1 2 3 4         1 2 3 4 1 2
+          1 2 3
+          1 2 3           1 2 3 4
+          1 2 3           1 3
+
+     5 dup * .
+
+Assignment:
+     Write 17^3 and 17^4 in Forth, without writing `17' more than once.
+     Write a piece of Forth code that expects two numbers on the stack
+     (A and B, with B on top) and computes `(a-b)(a+1)'.
+
+   Reference: *Note Stack Manipulation::.
+
+
+File: gforth.info,  Node: Using files for Forth code Tutorial,  Next: Comments Tutorial,  Prev: Stack Manipulation Tutorial,  Up: Tutorial
+
+Using files for Forth code
+==========================
+
+   While working at the Forth command line is convenient for one-line
+examples and short one-off code, you probably want to store your source
+code in files for convenient editing and persistence.  You can use your
+favourite editor (Gforth includes Emacs support, *note Emacs and
+Gforth::) to create FILE.FS and use
+
+     s" FILE.FS" included
+
+   to load it into your Forth system.  The file name extension I use for
+Forth files is `.fs'.
+
+   You can easily start Gforth with some files loaded like this:
+
+     gforth FILE1.FS FILE2.FS
+
+   If an error occurs during loading these files, Gforth terminates,
+whereas an error during `INCLUDED' within Gforth usually gives you a
+Gforth command line.  Starting the Forth system every time gives you a
+clean start every time, without interference from the results of earlier
+tries.
+
+   I often put all the tests in a file, then load the code and run the
+tests with
+
+     gforth CODE.FS TESTS.FS -e bye
+
+   (often by performing this command with `C-x C-e' in Emacs).  The `-e
+bye' ensures that Gforth terminates afterwards so that I can restart
+this command without ado.
+
+   The advantage of this approach is that the tests can be repeated
+easily every time the program ist changed, making it easy to catch bugs
+introduced by the change.
+
+   Reference: *Note Forth source files::.
+
+
+File: gforth.info,  Node: Comments Tutorial,  Next: Colon Definitions Tutorial,  Prev: Using files for Forth code Tutorial,  Up: Tutorial
+
+Comments
+========
+
+     \ That's a comment; it ends at the end of the line
+     ( Another comment; it ends here: )  .s
+
+   `\' and `(' are ordinary Forth words and therefore have to be
+separated with white space from the following text.
+
+     \This gives an "Undefined word" error
+
+   The first `)' ends a comment started with `(', so you cannot nest
+`('-comments; and you cannot comment out text containing a `)' with `(
+... )'(1).
+
+   I use `\'-comments for descriptive text and for commenting out code
+of one or more line; I use `('-comments for describing the stack
+effect, the stack contents, or for commenting out sub-line pieces of
+code.
+
+   The Emacs mode `gforth.el' (*note Emacs and Gforth::) supports these
+uses by commenting out a region with `C-x \', uncommenting a region
+with `C-u C-x \', and filling a `\'-commented region with `M-q'.
+
+   Reference: *Note Comments::.
+
+   ---------- Footnotes ----------
+
+   (1) therefore it's a good idea to avoid `)' in word names.
+
+
+File: gforth.info,  Node: Colon Definitions Tutorial,  Next: Decompilation Tutorial,  Prev: Comments Tutorial,  Up: Tutorial
+
+Colon Definitions
+=================
+
+   are similar to procedures and functions in other programming
+languages.
+
+     : squared ( n -- n^2 )
+        dup * ;
+     5 squared .
+     7 squared .
+
+   `:' starts the colon definition; its name is `squared'.  The
+following comment describes its stack effect.  The words `dup *' are
+not executed, but compiled into the definition.  `;' ends the colon
+definition.
+
+   The newly-defined word can be used like any other word, including
+using it in other definitions:
+
+     : cubed ( n -- n^3 )
+        dup squared * ;
+     -5 cubed .
+     : fourth-power ( n -- n^4 )
+        squared squared ;
+     3 fourth-power .
+
+Assignment:
+     Write colon definitions for `nip', `tuck', `negate', and `/mod' in
+     terms of other Forth words, and check if they work (hint: test
+     your tests on the originals first).  Don't let the
+     `redefined'-Messages spook you, they are just warnings.
+
+   Reference: *Note Colon Definitions::.
+
+
+File: gforth.info,  Node: Decompilation Tutorial,  Next: Stack-Effect Comments Tutorial,  Prev: Colon Definitions Tutorial,  Up: Tutorial
+
+Decompilation
+=============
+
+   You can decompile colon definitions with `see':
+
+     see squared
+     see cubed
+
+   In Gforth `see' shows you a reconstruction of the source code from
+the executable code.  Informations that were present in the source, but
+not in the executable code, are lost (e.g., comments).
+
+   You can also decompile the predefined words:
+
+     see .
+     see +
+
+
+File: gforth.info,  Node: Stack-Effect Comments Tutorial,  Next: Types Tutorial,  Prev: Decompilation Tutorial,  Up: Tutorial
+
+Stack-Effect Comments
+=====================
+
+   By convention the comment after the name of a definition describes
+the stack effect: The part in from of the `--' describes the state of
+the stack before the execution of the definition, i.e., the parameters
+that are passed into the colon definition; the part behind the `--' is
+the state of the stack after the execution of the definition, i.e., the
+results of the definition.  The stack comment only shows the top stack
+items that the definition accesses and/or changes.
+
+   You should put a correct stack effect on every definition, even if
+it is just `( -- )'.  You should also add some descriptive comment to
+more complicated words (I usually do this in the lines following `:').
+If you don't do this, your code becomes unreadable (because you have to
+work through every definition before you can understand any).
+
+Assignment:
+     The stack effect of `swap' can be written like this: `x1 x2 -- x2
+     x1'.  Describe the stack effect of `-', `drop', `dup', `over',
+     `rot', `nip', and `tuck'.  Hint: When you are done, you can
+     compare your stack effects to those in this manual (*note Word
+     Index::).
+
+   Sometimes programmers put comments at various places in colon
+definitions that describe the contents of the stack at that place (stack
+comments); i.e., they are like the first part of a stack-effect
+comment. E.g.,
+
+     : cubed ( n -- n^3 )
+        dup squared  ( n n^2 ) * ;
+
+   In this case the stack comment is pretty superfluous, because the
+word is simple enough.  If you think it would be a good idea to add
+such a comment to increase readability, you should also consider
+factoring the word into several simpler words (*note Factoring:
+Factoring Tutorial.), which typically eliminates the need for the stack
+comment; however, if you decide not to refactor it, then having such a
+comment is better than not having it.
+
+   The names of the stack items in stack-effect and stack comments in
+the standard, in this manual, and in many programs specify the type
+through a type prefix, similar to Fortran and Hungarian notation.  The
+most frequent prefixes are:
+
+`n'
+     signed integer
+
+`u'
+     unsigned integer
+
+`c'
+     character
+
+`f'
+     Boolean flags, i.e. `false' or `true'.
+
+`a-addr,a-'
+     Cell-aligned address
+
+`c-addr,c-'
+     Char-aligned address (note that a Char may have two bytes in
+     Windows NT)
+
+`xt'
+     Execution token, same size as Cell
+
+`w,x'
+     Cell, can contain an integer or an address.  It usually takes 32,
+     64 or 16 bits (depending on your platform and Forth system). A
+     cell is more commonly known as machine word, but the term _word_
+     already means something different in Forth.
+
+`d'
+     signed double-cell integer
+
+`ud'
+     unsigned double-cell integer
+
+`r'
+     Float (on the FP stack)
+
+   You can find a more complete list in *Note Notation::.
+
+Assignment:
+     Write stack-effect comments for all definitions you have written
+     up to now.
+
+
+File: gforth.info,  Node: Types Tutorial,  Next: Factoring Tutorial,  Prev: Stack-Effect Comments Tutorial,  Up: Tutorial
+
+Types
+=====
+
+   In Forth the names of the operations are not overloaded; so similar
+operations on different types need different names; e.g., `+' adds
+integers, and you have to use `f+' to add floating-point numbers.  The
+following prefixes are often used for related operations on different
+types:
+
+`(none)'
+     signed integer
+
+`u'
+     unsigned integer
+
+`c'
+     character
+
+`d'
+     signed double-cell integer
+
+`ud, du'
+     unsigned double-cell integer
+
+`2'
+     two cells (not-necessarily double-cell numbers)
+
+`m, um'
+     mixed single-cell and double-cell operations
+
+`f'
+     floating-point (note that in stack comments `f' represents flags,
+     and `r' represents FP numbers).
+
+   If there are no differences between the signed and the unsigned
+variant (e.g., for `+'), there is only the prefix-less variant.
+
+   Forth does not perform type checking, neither at compile time, nor at
+run time.  If you use the wrong oeration, the data are interpreted
+incorrectly:
+
+     -1 u.
+
+   If you have only experience with type-checked languages until now,
+and have heard how important type-checking is, don't panic!  In my
+experience (and that of other Forthers), type errors in Forth code are
+usually easy to find (once you get used to it), the increased vigilance
+of the programmer tends to catch some harder errors in addition to most
+type errors, and you never have to work around the type system, so in
+most situations the lack of type-checking seems to be a win (projects to
+add type checking to Forth have not caught on).
+
+
+File: gforth.info,  Node: Factoring Tutorial,  Next: Designing the stack effect Tutorial,  Prev: Types Tutorial,  Up: Tutorial
+
+Factoring
+=========
+
+   If you try to write longer definitions, you will soon find it hard to
+keep track of the stack contents.  Therefore, good Forth programmers
+tend to write only short definitions (e.g., three lines).  The art of
+finding meaningful short definitions is known as factoring (as in
+factoring polynomials).
+
+   Well-factored programs offer additional advantages: smaller, more
+general words, are easier to test and debug and can be reused more and
+better than larger, specialized words.
+
+   So, if you run into difficulties with stack management, when writing
+code, try to define meaningful factors for the word, and define the word
+in terms of those.  Even if a factor contains only two words, it is
+often helpful.
+
+   Good factoring is not easy, and it takes some practice to get the
+knack for it; but even experienced Forth programmers often don't find
+the right solution right away, but only when rewriting the program.
+So, if you don't come up with a good solution immediately, keep trying,
+don't despair.
+

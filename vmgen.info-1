@@ -1,0 +1,1266 @@
+This is vmgen.info, produced by makeinfo version 4.2 from vmgen.texi.
+
+This manual is for Vmgen (version 0.6.2, August 25, 2003), the virtual
+machine interpreter generator
+
+   Copyright (C) 2002, 03,2003 Free Software Foundation, Inc.
+
+     Permission is granted to copy, distribute and/or modify this
+     document under the terms of the GNU Free Documentation License,
+     Version 1.1 or any later version published by the Free Software
+     Foundation; with no Invariant Sections, with the Front-Cover texts
+     being "A GNU Manual," and with the Back-Cover Texts as in (a)
+     below.  A copy of the license is included in the section entitled
+     "GNU Free Documentation License."
+
+     (a) The FSF's Back-Cover Text is: "You have freedom to copy and
+     modify this GNU Manual, like GNU software.  Copies published by
+     the Free Software Foundation raise funds for GNU development."
+   
+INFO-DIR-SECTION Software development
+START-INFO-DIR-ENTRY
+* Vmgen: (vmgen).               Virtual machine interpreter generator
+END-INFO-DIR-ENTRY
+
+
+File: vmgen.info,  Node: Top,  Next: Introduction,  Prev: (dir),  Up: (dir)
+
+Vmgen
+*****
+
+This manual is for Vmgen (version 0.6.2, August 25, 2003), the virtual
+machine interpreter generator
+
+   Copyright (C) 2002, 03,2003 Free Software Foundation, Inc.
+
+     Permission is granted to copy, distribute and/or modify this
+     document under the terms of the GNU Free Documentation License,
+     Version 1.1 or any later version published by the Free Software
+     Foundation; with no Invariant Sections, with the Front-Cover texts
+     being "A GNU Manual," and with the Back-Cover Texts as in (a)
+     below.  A copy of the license is included in the section entitled
+     "GNU Free Documentation License."
+
+     (a) The FSF's Back-Cover Text is: "You have freedom to copy and
+     modify this GNU Manual, like GNU software.  Copies published by
+     the Free Software Foundation raise funds for GNU development."
+   
+* Menu:
+
+* Introduction::                What can Vmgen do for you?
+* Why interpreters?::           Advantages and disadvantages
+* Concepts::                    VM interpreter background
+* Invoking Vmgen::
+* Example::
+* Input File Format::
+* Error messages::              reported by Vmgen
+* Using the generated code::
+* Hints::                       VM archictecture, efficiency
+* The future::
+* Changes::                     from earlier versions
+* Contact::                     Bug reporting etc.
+* Copying This Manual::         Manual License
+* Index::
+
+ --- The Detailed Node Listing ---
+
+Concepts
+
+* Front end and VM interpreter::  Modularizing an interpretive system
+* Data handling::               Stacks, registers, immediate arguments
+* Dispatch::                    From one VM instruction to the next
+
+Example
+
+* Example overview::
+* Using profiling to create superinstructions::
+
+Input File Format
+
+* Input File Grammar::
+* Simple instructions::
+* Superinstructions::
+* Store Optimization::
+* Register Machines::           How to define register VM instructions
+
+Input File Grammar
+
+* Eval escapes::                what follows \E
+
+Simple instructions
+
+* C Code Macros::               Macros recognized by Vmgen
+* C Code restrictions::         Vmgen makes assumptions about C code
+* Stack growth direction::      is configurable per stack
+
+Using the generated code
+
+* VM engine::                   Executing VM code
+* VM instruction table::
+* VM code generation::          Creating VM code (in the front-end)
+* Peephole optimization::       Creating VM superinstructions
+* VM disassembler::             for debugging the front end
+* VM profiler::                 for finding worthwhile superinstructions
+
+Hints
+
+* Floating point::              and stacks
+
+Copying This Manual
+
+* GNU Free Documentation License::  License for copying this manual.
+
+
+File: vmgen.info,  Node: Introduction,  Next: Why interpreters?,  Prev: Top,  Up: Top
+
+Introduction
+************
+
+   Vmgen is a tool for writing efficient interpreters.  It takes a
+simple virtual machine description and generates efficient C code for
+dealing with the virtual machine code in various ways (in particular,
+executing it).  The run-time efficiency of the resulting interpreters
+is usually within a factor of 10 of machine code produced by an
+optimizing compiler.
+
+   The interpreter design strategy supported by Vmgen is to divide the
+interpreter into two parts:
+
+   * The _front end_ takes the source code of the language to be
+     implemented, and translates it into virtual machine code.  This is
+     similar to an ordinary compiler front end; typically an interpreter
+     front-end performs no optimization, so it is relatively simple to
+     implement and runs fast.
+
+   * The _virtual machine interpreter_ executes the virtual machine
+     code.
+
+
+   Such a division is usually used in interpreters, for modularity as
+well as for efficiency.  The virtual machine code is typically passed
+between front end and virtual machine interpreter in memory, like in a
+load-and-go compiler; this avoids the complexity and time cost of
+writing the code to a file and reading it again.
+
+   A _virtual machine_ (VM) represents the program as a sequence of _VM
+instructions_, following each other in memory, similar to real machine
+code.  Control flow occurs through VM branch instructions, like in a
+real machine.
+
+   In this setup, Vmgen can generate most of the code dealing with
+virtual machine instructions from a simple description of the virtual
+machine instructions (*note Input File Format::), in particular:
+
+*VM instruction execution*
+
+*VM code generation*
+     Useful in the front end.
+
+*VM code decompiler*
+     Useful for debugging the front end.
+
+*VM code tracing*
+     Useful for debugging the front end and the VM interpreter.  You
+     will typically provide other means for debugging the user's
+     programs at the source level.
+
+*VM code profiling*
+     Useful for optimizing the VM interpreter with superinstructions
+     (*note VM profiler::).
+
+   To create parts of the interpretive system that do not deal with VM
+instructions, you have to use other tools (e.g., `bison') and/or
+hand-code them.
+
+Vmgen supports efficient interpreters though various optimizations, in
+particular
+
+   * Threaded code
+
+   * Caching the top-of-stack in a register
+
+   * Combining VM instructions into superinstructions
+
+   * Replicating VM (super)instructions for better BTB prediction
+     accuracy (not yet in vmgen-ex, but already in Gforth).
+
+
+   As a result, Vmgen-based interpreters are only about an order of
+magnitude slower than native code from an optimizing C compiler on small
+benchmarks; on large benchmarks, which spend more time in the run-time
+system, the slowdown is often less (e.g., the slowdown of a
+Vmgen-generated JVM interpreter over the best JVM JIT compiler we
+measured is only a factor of 2-3 for large benchmarks; some other JITs
+and all other interpreters we looked at were slower than our
+interpreter).
+
+   VMs are usually designed as stack machines (passing data between VM
+instructions on a stack), and Vmgen supports such designs especially
+well; however, you can also use Vmgen for implementing a register VM
+(*note Register Machines::) and still benefit from most of the
+advantages offered by Vmgen.
+
+   There are many potential uses of the instruction descriptions that
+are not implemented at the moment, but we are open for feature
+requests, and we will consider new features if someone asks for them;
+so the feature list above is not exhaustive.
+
+
+File: vmgen.info,  Node: Why interpreters?,  Next: Concepts,  Prev: Introduction,  Up: Top
+
+Why interpreters?
+*****************
+
+   Interpreters are a popular language implementation technique because
+they combine all three of the following advantages:
+
+   * Ease of implementation
+
+   * Portability
+
+   * Fast edit-compile-run cycle
+
+
+   Vmgen makes it even easier to implement interpreters.
+
+   The main disadvantage of interpreters is their run-time speed.
+However, there are huge differences between different interpreters in
+this area: the slowdown over optimized C code on programs consisting of
+simple operations is typically a factor of 10 for the more efficient
+interpreters, and a factor of 1000 for the less efficient ones (the
+slowdown for programs executing complex operations is less, because the
+time spent in libraries for executing complex operations is the same in
+all implementation strategies).
+
+   Vmgen supports techniques for building efficient interpreters.
+
+
+File: vmgen.info,  Node: Concepts,  Next: Invoking Vmgen,  Prev: Why interpreters?,  Up: Top
+
+Concepts
+********
+
+* Menu:
+
+* Front end and VM interpreter::  Modularizing an interpretive system
+* Data handling::               Stacks, registers, immediate arguments
+* Dispatch::                    From one VM instruction to the next
+
+
+File: vmgen.info,  Node: Front end and VM interpreter,  Next: Data handling,  Prev: Concepts,  Up: Concepts
+
+Front end and VM interpreter
+============================
+
+   Interpretive systems are typically divided into a _front end_ that
+parses the input language and produces an intermediate representation
+for the program, and an interpreter that executes the intermediate
+representation of the program.
+
+   For efficient interpreters the intermediate representation of choice
+is virtual machine code (rather than, e.g., an abstract syntax tree).
+_Virtual machine_ (VM) code consists of VM instructions arranged
+sequentially in memory; they are executed in sequence by the VM
+interpreter, but VM branch instructions can change the control flow and
+are used for implementing control structures.  The conceptual similarity
+to real machine code results in the name _virtual machine_.  Various
+terms similar to terms for real machines are used; e.g., there are _VM
+registers_ (like the instruction pointer and stack pointer(s)), and the
+VM instruction consists of an _opcode_ and _immediate arguments_.
+
+   In this framework, Vmgen supports building the VM interpreter and any
+other component dealing with VM instructions.  It does not have any
+support for the front end, apart from VM code generation support.  The
+front end can be implemented with classical compiler front-end
+techniques, supported by tools like `flex' and `bison'.
+
+   The intermediate representation is usually just internal to the
+interpreter, but some systems also support saving it to a file, either
+as an image file, or in a full-blown linkable file format (e.g., JVM).
+Vmgen currently has no special support for such features, but the
+information in the instruction descriptions can be helpful, and we are
+open to feature requests and suggestions.
+
+
+File: vmgen.info,  Node: Data handling,  Next: Dispatch,  Prev: Front end and VM interpreter,  Up: Concepts
+
+Data handling
+=============
+
+   Most VMs use one or more stacks for passing temporary data between VM
+instructions.  Another option is to use a register machine architecture
+for the virtual machine; we believe that using a stack architecture is
+usually both simpler and faster.
+
+   however, this option is slower or significantly more complex to
+implement than a stack machine architecture.
+
+   Vmgen has special support and optimizations for stack VMs, making
+their implementation easy and efficient.
+
+   You can also implement a register VM with Vmgen (*note Register
+Machines::), and you will still profit from most Vmgen features.
+
+   Stack items all have the same size, so they typically will be as
+wide as an integer, pointer, or floating-point value.  Vmgen supports
+treating two consecutive stack items as a single value, but anything
+larger is best kept in some other memory area (e.g., the heap), with
+pointers to the data on the stack.
+
+   Another source of data is immediate arguments VM instructions (in
+the VM instruction stream).  The VM instruction stream is handled
+similar to a stack in Vmgen.
+
+   Vmgen has no built-in support for, nor restrictions against _garbage
+collection_.  If you need garbage collection, you need to provide it in
+your run-time libraries.  Using _reference counting_ is probably
+harder, but might be possible (contact us if you are interested).
+
+
+File: vmgen.info,  Node: Dispatch,  Prev: Data handling,  Up: Concepts
+
+Dispatch
+========
+
+   Understanding this section is probably not necessary for using Vmgen,
+but it may help.  You may want to skip it now, and read it if you find
+statements about dispatch methods confusing.
+
+   After executing one VM instruction, the VM interpreter has to
+dispatch the next VM instruction (Vmgen calls the dispatch routine
+`NEXT').  Vmgen supports two methods of dispatch:
+
+*switch dispatch*
+     In this method the VM interpreter contains a giant `switch'
+     statement, with one `case' for each VM instruction.  The VM
+     instruction opcodes are represented by integers (e.g., produced by
+     an `enum') in the VM code, and dispatch occurs by loading the next
+     opcode, `switch'ing on it, and continuing at the appropriate
+     `case'; after executing the VM instruction, the VM interpreter
+     jumps back to the dispatch code.
+
+*threaded code*
+     This method represents a VM instruction opcode by the address of
+     the start of the machine code fragment for executing the VM
+     instruction.  Dispatch consists of loading this address, jumping
+     to it, and incrementing the VM instruction pointer.  Typically the
+     threaded-code dispatch code is appended directly to the code for
+     executing the VM instruction.  Threaded code cannot be implemented
+     in ANSI C, but it can be implemented using GNU C's
+     labels-as-values extension (*note Labels as Values:
+     (gcc.info)Labels as Values.).
+
+   Threaded code can be twice as fast as switch dispatch, depending on
+the interpreter, the benchmark, and the machine.
+
+
+File: vmgen.info,  Node: Invoking Vmgen,  Next: Example,  Prev: Concepts,  Up: Top
+
+Invoking Vmgen
+**************
+
+   The usual way to invoke Vmgen is as follows:
+
+     vmgen INPUTFILE
+
+   Here INPUTFILE is the VM instruction description file, which usually
+ends in `.vmg'.  The output filenames are made by taking the basename
+of `inputfile' (i.e., the output files will be created in the current
+working directory) and replacing `.vmg' with `-vm.i', `-disasm.i',
+`-gen.i', `-labels.i', `-profile.i', and `-peephole.i'.  E.g., `vmgen
+hack/foo.vmg' will create `foo-vm.i', `foo-disasm.i', `foo-gen.i',
+`foo-labels.i', `foo-profile.i' and `foo-peephole.i'.
+
+   The command-line options supported by Vmgen are
+
+`--help'
+`-h'
+     Print a message about the command-line options
+
+`--version'
+`-v'
+     Print version and exit
+
+
+File: vmgen.info,  Node: Example,  Next: Input File Format,  Prev: Invoking Vmgen,  Up: Top
+
+Example
+*******
+
+* Menu:
+
+* Example overview::
+* Using profiling to create superinstructions::
+
+
+File: vmgen.info,  Node: Example overview,  Next: Using profiling to create superinstructions,  Prev: Example,  Up: Example
+
+Example overview
+================
+
+   There are two versions of the same example for using Vmgen:
+`vmgen-ex' and `vmgen-ex2' (you can also see Gforth as example, but it
+uses additional (undocumented) features, and also differs in some other
+respects).  The example implements _mini_, a tiny Modula-2-like
+language with a small JavaVM-like virtual machine.
+
+   The difference between the examples is that `vmgen-ex' uses many
+casts, and `vmgen-ex2' tries to avoids most casts and uses unions
+instead.  In the rest of this manual we usually mention just files in
+`vmgen-ex'; if you want to use unions, use the equivalent file in
+`vmgen-ex2'.
+
+   The files provided with each example are:
+
+     Makefile
+     README
+     disasm.c           wrapper file
+     engine.c           wrapper file
+     peephole.c         wrapper file
+     profile.c          wrapper file
+     mini-inst.vmg      simple VM instructions
+     mini-super.vmg     superinstructions (empty at first)
+     mini.h             common declarations
+     mini.l             scanner
+     mini.y             front end (parser, VM code generator)
+     support.c          main() and other support functions
+     fib.mini           example mini program
+     simple.mini        example mini program
+     test.mini          example mini program (tests everything)
+     test.out           test.mini output
+     stat.awk           script for aggregating profile information
+     peephole-blacklist list of instructions not allowed in superinstructions
+     seq2rule.awk       script for creating superinstructions
+
+   For your own interpreter, you would typically copy the following
+files and change little, if anything:
+
+     disasm.c           wrapper file
+     engine.c           wrapper file
+     peephole.c         wrapper file
+     profile.c          wrapper file
+     stat.awk           script for aggregating profile information
+     seq2rule.awk       script for creating superinstructions
+
+You would typically change much in or replace the following files:
+
+     Makefile
+     mini-inst.vmg      simple VM instructions
+     mini.h             common declarations
+     mini.l             scanner
+     mini.y             front end (parser, VM code generator)
+     support.c          main() and other support functions
+     peephole-blacklist list of instructions not allowed in superinstructions
+
+   You can build the example by `cd'ing into the example's directory,
+and then typing `make'; you can check that it works with `make check'.
+You can run run mini programs like this:
+
+     ./mini fib.mini
+
+   To learn about the options, type `./mini -h'.
+
+
+File: vmgen.info,  Node: Using profiling to create superinstructions,  Prev: Example overview,  Up: Example
+
+Using profiling to create superinstructions
+===========================================
+
+   I have not added rules for this in the `Makefile' (there are many
+options for selecting superinstructions, and I did not want to hardcode
+one into the `Makefile'), but there are some supporting scripts, and
+here's an example:
+
+   Suppose you want to use `fib.mini' and `test.mini' as training
+programs, you get the profiles like this:
+
+     make fib.prof test.prof #takes a few seconds
+
+   You can aggregate these profiles with `stat.awk':
+
+     awk -f stat.awk fib.prof test.prof
+
+   The result contains lines like:
+
+           2      16        36910041 loadlocal lit
+
+   This means that the sequence `loadlocal lit' statically occurs a
+total of 16 times in 2 profiles, with a dynamic execution count of
+36910041.
+
+   The numbers can be used in various ways to select superinstructions.
+E.g., if you just want to select all sequences with a dynamic execution
+count exceeding 10000, you would use the following pipeline:
+
+     awk -f stat.awk fib.prof test.prof|
+     awk '$3>=10000'|                #select sequences
+     fgrep -v -f peephole-blacklist| #eliminate wrong instructions
+     awk -f seq2rule.awk|  #transform sequences into superinstruction rules
+     sort -k 3 >mini-super.vmg       #sort sequences
+
+   The file `peephole-blacklist' contains all instructions that
+directly access a stack or stack pointer (for mini: `call', `return');
+the sort step is necessary to ensure that prefixes precede larger
+superinstructions.
+
+   Now you can create a version of mini with superinstructions by just
+saying `make'
+
+
+File: vmgen.info,  Node: Input File Format,  Next: Error messages,  Prev: Example,  Up: Top
+
+Input File Format
+*****************
+
+   Vmgen takes as input a file containing specifications of virtual
+machine instructions.  This file usually has a name ending in `.vmg'.
+
+   Most examples are taken from the example in `vmgen-ex'.
+
+* Menu:
+
+* Input File Grammar::
+* Simple instructions::
+* Superinstructions::
+* Store Optimization::
+* Register Machines::           How to define register VM instructions
+
+
+File: vmgen.info,  Node: Input File Grammar,  Next: Simple instructions,  Prev: Input File Format,  Up: Input File Format
+
+Input File Grammar
+==================
+
+   The grammar is in EBNF format, with `A|B' meaning "A or B", `{C}'
+meaning 0 or more repetitions of C and `[D]' meaning 0 or 1 repetitions
+of D.
+
+   Vmgen input is not free-format, so you have to take care where you
+put newlines (and, in a few cases, white space).
+
+     description: {instruction|comment|eval-escape|c-escape}
+     
+     instruction: simple-inst|superinst
+     
+     simple-inst: ident '(' stack-effect ')' newline c-code newline newline
+     
+     stack-effect: {ident} '--' {ident}
+     
+     super-inst: ident '=' ident {ident}
+     
+     comment:      '\ '  text newline
+     
+     eval-escape:  '\E ' text newline
+     
+     c-escape:     '\C ' text newline
+
+   Note that the `\'s in this grammar are meant literally, not as
+C-style encodings for non-printable characters.
+
+   There are two ways to delimit the C code in `simple-inst':
+
+   * If you start it with a `{' at the start of a line (i.e., not even
+     white space before it), you have to end it with a `}' at the start
+     of a line (followed by a newline).  In this case you may have empty
+     lines within the C code (typically used between variable
+     definitions and statements).
+
+   * You do not start it with `{'.  Then the C code ends at the first
+     empty line, so you cannot have empty lines within this code.
+
+
+   The text in `comment', `eval-escape' and `c-escape' must not contain
+a newline.  `Ident' must conform to the usual conventions of C
+identifiers (otherwise the C compiler would choke on the Vmgen output),
+except that idents in `stack-effect' may have a stack prefix (for stack
+prefix syntax, *note Eval escapes::).
+
+   The `c-escape' passes the text through to each output file (without
+the `\C').  This is useful mainly for conditional compilation (i.e.,
+you write `\C #if ...' etc.).
+
+   In addition to the syntax given in the grammer, Vmgen also processes
+sync lines (lines starting with `#line'), as produced by `m4 -s' (*note
+Invoking m4: (m4.info)Invoking m4.) and similar tools.  This allows
+associating C compiler error messages with the original source of the C
+code.
+
+   Vmgen understands a few extensions beyond the grammar given here, but
+these extensions are only useful for building Gforth.  You can find a
+description of the format used for Gforth in `prim'.
+
+* Menu:
+
+* Eval escapes::                what follows \E
+
+
+File: vmgen.info,  Node: Eval escapes,  Prev: Input File Grammar,  Up: Input File Grammar
+
+Eval escapes
+------------
+
+   The text in `eval-escape' is Forth code that is evaluated when Vmgen
+reads the line.  You will normally use this feature to define stacks
+and types.
+
+   If you do not know (and do not want to learn) Forth, you can build
+the text according to the following grammar; these rules are normally
+all Forth you need for using Vmgen:
+
+     text: stack-decl|type-prefix-decl|stack-prefix-decl|set-flag
+     
+     stack-decl: 'stack ' ident ident ident
+     type-prefix-decl:
+         's" ' string '" ' ('single'|'double') ident 'type-prefix' ident
+     stack-prefix-decl:  ident 'stack-prefix' string
+     set-flag: ('store-optimization'|'include-skipped-insts') ('on'|'off')
+
+   Note that the syntax of this code is not checked thoroughly (there
+are many other Forth program fragments that could be written in an
+eval-escape).
+
+   A stack prefix can contain letters, digits, or `:', and may start
+with an `#'; e.g., in Gforth the return stack has the stack prefix
+`R:'.  This restriction is not checked during the stack prefix
+definition, but it is enforced by the parsing rules for stack items
+later.
+
+   If you know Forth, the stack effects of the non-standard words
+involved are:
+     stack                 ( "name" "pointer" "type" -- )
+                           ( name execution: -- stack )
+     type-prefix           ( addr u item-size stack "prefix" -- )
+     single                ( -- item-size )
+     double                ( -- item-size )
+     stack-prefix          ( stack "prefix" -- )
+     store-optimization    ( -- addr )
+     include-skipped-insts ( -- addr )
+
+   An ITEM-SIZE takes three cells on the stack.
+
+
+File: vmgen.info,  Node: Simple instructions,  Next: Superinstructions,  Prev: Input File Grammar,  Up: Input File Format
+
+Simple instructions
+===================
+
+   We will use the following simple VM instruction description as
+example:
+
+     sub ( i1 i2 -- i )
+     i = i1-i2;
+
+   The first line specifies the name of the VM instruction (`sub') and
+its stack effect (`i1 i2 -- i').  The rest of the description is just
+plain C code.
+
+   The stack effect specifies that `sub' pulls two integers from the
+data stack and puts them in the C variables `i1' and `i2' (with the
+rightmost item (`i2') taken from the top of stack; intuition: if you
+push `i1', then `i2' on the stack, the resulting stack picture is `i1
+i2') and later pushes one integer (`i') on the data stack (the
+rightmost item is on the top afterwards).
+
+   How do we know the type and stack of the stack items?  Vmgen uses
+prefixes, similar to Fortran; in contrast to Fortran, you have to
+define the prefix first:
+
+     \E s" Cell"   single data-stack type-prefix i
+
+   This defines the prefix `i' to refer to the type `Cell' (defined as
+`long' in `mini.h') and, by default, to the `data-stack'.  It also
+specifies that this type takes one stack item (`single').  The type
+prefix is part of the variable name.
+
+   Before we can use `data-stack' in this way, we have to define it:
+
+     \E stack data-stack sp Cell
+
+   This line defines the stack `data-stack', which uses the stack
+pointer `sp', and each item has the basic type `Cell'; other types have
+to fit into one or two `Cell's (depending on whether the type is
+`single' or `double' wide), and are cast from and to Cells on accessing
+the `data-stack' with type cast macros (*note VM engine::).  By
+default, stacks grow towards lower addresses in Vmgen-erated
+interpreters (*note Stack growth direction::).
+
+   We can override the default stack of a stack item by using a stack
+prefix.  E.g., consider the following instruction:
+
+     lit ( #i -- i )
+
+   The VM instruction `lit' takes the item `i' from the instruction
+stream (indicated by the prefix `#'), and pushes it on the (default)
+data stack.  The stack prefix is not part of the variable name.  Stack
+prefixes are defined like this:
+
+     \E inst-stream stack-prefix #
+
+   This definition defines that the stack prefix `#' specifies the
+"stack" `inst-stream'.  Since the instruction stream behaves a little
+differently than an ordinary stack, it is predefined, and you do not
+need to define it.
+
+   The instruction stream contains instructions and their immediate
+arguments, so specifying that an argument comes from the instruction
+stream indicates an immediate argument.  Of course, instruction stream
+arguments can only appear to the left of `--' in the stack effect.  If
+there are multiple instruction stream arguments, the leftmost is the
+first one (just as the intuition suggests).
+
+* Menu:
+
+* C Code Macros::               Macros recognized by Vmgen
+* C Code restrictions::         Vmgen makes assumptions about C code
+* Stack growth direction::      is configurable per stack
+
+
+File: vmgen.info,  Node: C Code Macros,  Next: C Code restrictions,  Prev: Simple instructions,  Up: Simple instructions
+
+C Code Macros
+-------------
+
+   Vmgen recognizes the following strings in the C code part of simple
+instructions:
+
+`SET_IP'
+     As far as Vmgen is concerned, a VM instruction containing this
+     ends a VM basic block (used in profiling to delimit profiled
+     sequences).  On the C level, this also sets the instruction
+     pointer.
+
+`SUPER_END'
+     This ends a basic block (for profiling), even if the instruction
+     contains no `SET_IP'.
+
+`INST_TAIL;'
+     Vmgen replaces `INST_TAIL;' with code for ending a VM instruction
+     and dispatching the next VM instruction.  Even without a
+     `INST_TAIL;' this happens automatically when control reaches the
+     end of the C code.  If you want to have this in the middle of the
+     C code, you need to use `INST_TAIL;'.  A typical example is a
+     conditional VM branch:
+
+          if (branch_condition) {
+            SET_IP(target); INST_TAIL;
+          }
+          /* implicit tail follows here */
+
+     In this example, `INST_TAIL;' is not strictly necessary, because
+     there is another one implicitly after the if-statement, but using
+     it improves branch prediction accuracy slightly and allows other
+     optimizations.
+
+`SUPER_CONTINUE'
+     This indicates that the implicit tail at the end of the VM
+     instruction dispatches the sequentially next VM instruction even
+     if there is a `SET_IP' in the VM instruction.  This enables an
+     optimization that is not yet implemented in the vmgen-ex code (but
+     in Gforth).  The typical application is in conditional VM branches:
+
+          if (branch_condition) {
+            SET_IP(target); INST_TAIL; /* now this INST_TAIL is necessary */
+          }
+          SUPER_CONTINUE;
+
+   Note that Vmgen is not smart about C-level tokenization, comments,
+strings, or conditional compilation, so it will interpret even a
+commented-out SUPER_END as ending a basic block (or, e.g., `RESET_IP;'
+as `SET_IP;').  Conversely, Vmgen requires the literal presence of
+these strings; Vmgen will not see them if they are hiding in a C
+preprocessor macro.
+
+
+File: vmgen.info,  Node: C Code restrictions,  Next: Stack growth direction,  Prev: C Code Macros,  Up: Simple instructions
+
+C Code restrictions
+-------------------
+
+   Vmgen generates code and performs some optimizations under the
+assumption that the user-supplied C code does not access the stack
+pointers or stack items, and that accesses to the instruction pointer
+only occur through special macros.  In general you should heed these
+restrictions.  However, if you need to break these restrictions, read
+the following.
+
+   Accessing a stack or stack pointer directly can be a problem for
+several reasons:
+
+   * Vmgen optionally supports caching the top-of-stack item in a local
+     variable (that is allocated to a register).  This is the most
+     frequent source of trouble.  You can deal with it either by not
+     using top-of-stack caching (slowdown factor 1-1.4, depending on
+     machine), or by inserting flushing code (e.g., `IF_spTOS(sp[...] =
+     spTOS);') at the start and reloading code (e.g., `IF_spTOS(spTOS =
+     sp[0])') at the end of problematic C code.  Vmgen inserts a stack
+     pointer update before the start of the user-supplied C code, so
+     the flushing code has to use an index that corrects for that.  In
+     the future, this flushing may be done automatically by mentioning
+     a special string in the C code.
+
+   * The Vmgen-erated code loads the stack items from
+     stack-pointer-indexed memory into variables before the
+     user-supplied C code, and stores them from variables to
+     stack-pointer-indexed memory afterwards.  If you do any writes to
+     the stack through its stack pointer in your C code, it will not
+     affect the variables, and your write may be overwritten by the
+     stores after the C code.  Similarly, a read from a stack using a
+     stack pointer will not reflect computations of stack items in the
+     same VM instruction.
+
+   * Superinstructions keep stack items in variables across the whole
+     superinstruction.  So you should not include VM instructions, that
+     access a stack or stack pointer, as components of superinstructions
+     (*note VM profiler::).
+
+
+   You should access the instruction pointer only through its special
+macros (`IP', `SET_IP', `IPTOS'); this ensure that these macros can be
+implemented in several ways for best performance.  `IP' points to the
+next instruction, and `IPTOS' is its contents.
+
+
+File: vmgen.info,  Node: Stack growth direction,  Prev: C Code restrictions,  Up: Simple instructions
+
+Stack growth direction
+----------------------
+
+   By default, the stacks grow towards lower addresses.  You can change
+this for a stack by setting the `stack-access-transform' field of the
+stack to an xt `( itemnum -- index )' that performs the appropriate
+index transformation.
+
+   E.g., if you want to let `data-stack' grow towards higher addresses,
+with the stack pointer always pointing just beyond the top-of-stack,
+use this right after defining `data-stack':
+
+     \E : sp-access-transform ( itemnum -- index ) negate 1- ;
+     \E ' sp-access-transform ' data-stack >body stack-access-transform !
+
+   This means that `sp-access-transform' will be used to generate
+indexes for accessing `data-stack'.  The definition of
+`sp-access-transform' above transforms n into -n-1, e.g, 1 into -2.
+This will access the 0th data-stack element (top-of-stack) at sp[-1],
+the 1st at sp[-2], etc., which is the typical way upward-growing stacks
+are used.  If you need a different transform and do not know enough
+Forth to program it, let me know.
+
+
+File: vmgen.info,  Node: Superinstructions,  Next: Store Optimization,  Prev: Simple instructions,  Up: Input File Format
+
+Superinstructions
+=================
+
+   Note: don't invest too much work in (static) superinstructions; a
+future version of Vmgen will support dynamic superinstructions (see Ian
+Piumarta and Fabio Riccardi, `Optimizing Direct Threaded Code by
+Selective Inlining', PLDI'98), and static superinstructions have much
+less benefit in that context (preliminary results indicate only a factor
+1.1 speedup).
+
+   Here is an example of a superinstruction definition:
+
+     lit_sub = lit sub
+
+   `lit_sub' is the name of the superinstruction, and `lit' and `sub'
+are its components.  This superinstruction performs the same action as
+the sequence `lit' and `sub'.  It is generated automatically by the VM
+code generation functions whenever that sequence occurs, so if you want
+to use this superinstruction, you just need to add this definition (and
+even that can be partially automatized, *note VM profiler::).
+
+   Vmgen requires that the component instructions are simple
+instructions defined before superinstructions using the components.
+Currently, Vmgen also requires that all the subsequences at the start
+of a superinstruction (prefixes) must be defined as superinstruction
+before the superinstruction.  I.e., if you want to define a
+superinstruction
+
+     foo4 = load add sub mul
+
+   you first have to define `load', `add', `sub' and `mul', plus
+
+     foo2 = load add
+     foo3 = load add sub
+
+   Here, `sumof4' is the longest prefix of `sumof5', and `sumof3' is
+the longest prefix of `sumof4'.
+
+   Note that Vmgen assumes that only the code it generates accesses
+stack pointers, the instruction pointer, and various stack items, and it
+performs optimizations based on this assumption.  Therefore, VM
+instructions where your C code changes the instruction pointer should
+only be used as last component; a VM instruction where your C code
+accesses a stack pointer should not be used as component at all.  Vmgen
+does not check these restrictions, they just result in bugs in your
+interpreter.
+
+   The Vmgen flag `include-skipped-insts' influences superinstruction
+code generation.  Currently there is no support in the peephole
+optimizer for both variations, so leave this flag alone for now.
+
+
+File: vmgen.info,  Node: Store Optimization,  Next: Register Machines,  Prev: Superinstructions,  Up: Input File Format
+
+Store Optimization
+==================
+
+   This minor optimization (0.6\%-0.8\% reduction in executed
+instructions for Gforth) puts additional requirements on the
+instruction descriptions and is therefore disabled by default.
+
+   What does it do?  Consider an instruction like
+
+     dup ( n -- n n )
+
+   For simplicity, also assume that we are not caching the top-of-stack
+in a register.  Now, the C code for dup first loads `n' from the stack,
+and then stores it twice to the stack, one time to the address where it
+came from; that time is unnecessary, but gcc does not optimize it away,
+so vmgen can do it instead (if you turn on the store optimization).
+
+   Vmgen uses the stack item's name to determine if the stack item
+contains the same value as it did at the start.  Therefore, if you use
+the store optimization, you have to ensure that stack items that have
+the same name on input and output also have the same value, and are not
+changed in the C code you supply.  I.e., the following code could fail
+if you turn on the store optimization:
+
+     add1 ( n -- n )
+     n++;
+
+   Instead, you have to use different names, i.e.:
+
+     add1 ( n1 -- n1 )
+     n2=n1+1;
+
+   Similarly, the store optimization assumes that the stack pointer is
+only changed by Vmgen-erated code.  If your C code changes the stack
+pointer, use different names in input and output stack items to avoid a
+(probably wrong) store optimization, or turn the store optimization off
+for this VM instruction.
+
+   To turn on the store optimization, write
+
+     \E store-optimization on
+
+   at the start of the file.  You can turn this optimization on or off
+between any two VM instruction descriptions.  For turning it off again,
+you can use
+
+     \E store-optimization off
+
+
+File: vmgen.info,  Node: Register Machines,  Prev: Store Optimization,  Up: Input File Format
+
+Register Machines
+=================
+
+   If you want to implement a register VM rather than a stack VM with
+Vmgen, there are two ways to do it: Directly and through
+superinstructions.
+
+   If you use the direct way, you define instructions that take the
+register numbers as immediate arguments, like this:
+
+     add3 ( #src1 #src2 #dest -- )
+     reg[dest] = reg[src1]+reg[src2];
+
+   A disadvantage of this method is that during tracing you only see the
+register numbers, but not the register contents.  Actually, with an
+appropriate definition of `printarg_src' (*note VM engine::), you can
+print the values of the source registers on entry, but you cannot print
+the value of the destination register on exit.
+
+   If you use superinstructions to define a register VM, you define
+simple instructions that use a stack, and then define superinstructions
+that have no overall stack effect, like this:
+
+     loadreg ( #src -- n )
+     n = reg[src];
+     
+     storereg ( n #dest -- )
+     reg[dest] = n;
+     
+     adds ( n1 n2 -- n )
+     n = n1+n2;
+     
+     add3 = loadreg loadreg adds storereg
+
+   An advantage of this method is that you see the values and not just
+the register numbers in tracing.  A disadvantage of this method is that
+currently you cannot generate superinstructions directly, but only
+through generating a sequence of simple instructions (we might change
+this in the future if there is demand).
+
+   Could the register VM support be improved, apart from the issues
+mentioned above?  It is hard to see how to do it in a general way,
+because there are a number of different designs that different people
+mean when they use the term _register machine_ in connection with VM
+interpreters.  However, if you have ideas or requests in that
+direction, please let me know (*note Contact::).
+
+
+File: vmgen.info,  Node: Error messages,  Next: Using the generated code,  Prev: Input File Format,  Up: Top
+
+Error messages
+**************
+
+   These error messages are created by Vmgen:
+
+`# can only be on the input side'
+     You have used an instruction-stream prefix (usually `#') after the
+     `--' (the output side); you can only use it before (the input
+     side).
+
+`the prefix for this superinstruction must be defined earlier'
+     You have defined a superinstruction (e.g. `abc = a b c') without
+     defining its direct prefix (e.g., `ab = a b'), *Note
+     Superinstructions::.
+
+`sync line syntax'
+     If you are using a preprocessor (e.g., `m4') to generate Vmgen
+     input code, you may want to create `#line' directives (aka sync
+     lines).  This error indicates that such a line is not in th syntax
+     expected by Vmgen (this should not happen; please report the
+     offending line in a bug report).
+
+`syntax error, wrong char'
+     A syntax error.  If you do not see right away where the error is,
+     it may be helpful to check the following: Did you put an empty
+     line in a VM instruction where the C code is not delimited by
+     braces (then the empty line ends the VM instruction)?  If you used
+     brace-delimited C code, did you put the delimiting braces (and
+     only those) at the start of the line, without preceding white
+     space?  Did you forget a delimiting brace?
+
+`too many stacks'
+     Vmgen currently supports 3 stacks (plus the instruction stream);
+     if you need more, let us know.
+
+`unknown prefix'
+     The stack item does not match any defined type prefix (after
+     stripping away any stack prefix).  You should either declare the
+     type prefix you want for that stack item, or use a different type
+     prefix
+
+`unknown primitive'
+     You have used the name of a simple VM instruction in a
+     superinstruction definition without defining the simple VM
+     instruction first.
+
+   In addition, the C compiler can produce errors due to code produced
+by Vmgen; e.g., you need to define type cast functions.
+
+
+File: vmgen.info,  Node: Using the generated code,  Next: Hints,  Prev: Error messages,  Up: Top
+
+Using the generated code
+************************
+
+   The easiest way to create a working VM interpreter with Vmgen is
+probably to start with `vmgen-ex', and modify it for your purposes.
+This chapter explains what the various wrapper and generated files do.
+It also contains reference-manual style descriptions of the macros,
+variables etc. used by the generated code, and you can skip that on
+first reading.
+
+* Menu:
+
+* VM engine::                   Executing VM code
+* VM instruction table::
+* VM code generation::          Creating VM code (in the front-end)
+* Peephole optimization::       Creating VM superinstructions
+* VM disassembler::             for debugging the front end
+* VM profiler::                 for finding worthwhile superinstructions
+
+
+File: vmgen.info,  Node: VM engine,  Next: VM instruction table,  Prev: Using the generated code,  Up: Using the generated code
+
+VM engine
+=========
+
+   The VM engine is the VM interpreter that executes the VM code.  It is
+essential for an interpretive system.
+
+   Vmgen supports two methods of VM instruction dispatch: _threaded
+code_ (fast, but gcc-specific), and _switch dispatch_ (slow, but
+portable across C compilers); you can use conditional compilation
+(`defined(__GNUC__)') to choose between these methods, and our example
+does so.
+
+   For both methods, the VM engine is contained in a C-level function.
+Vmgen generates most of the contents of the function for you
+(`NAME-vm.i'), but you have to define this function, and macros and
+variables used in the engine, and initialize the variables.  In our
+example the engine function also includes `NAME-labels.i' (*note VM
+instruction table::).
+
+   In addition to executing the code, the VM engine can optionally also
+print out a trace of the executed instructions, their arguments and
+results.  For superinstructions it prints the trace as if only component
+instructions were executed; this allows to introduce new
+superinstructions while keeping the traces comparable to old ones
+(important for regression tests).
+
+   It costs significant performance to check in each instruction
+whether to print tracing code, so we recommend producing two copies of
+the engine: one for fast execution, and one for tracing.  See the rules
+for `engine.o' and `engine-debug.o' in `vmgen-ex/Makefile' for an
+example.
+
+   The following macros and variables are used in `NAME-vm.i':
+
+`LABEL(INST_NAME)'
+     This is used just before each VM instruction to provide a jump or
+     `switch' label (the `:' is provided by Vmgen).  For switch
+     dispatch this should expand to `case LABEL:'; for threaded-code
+     dispatch this should just expand to `LABEL:'.  In either case
+     LABEL is usually the INST_NAME with some prefix or suffix to avoid
+     naming conflicts.
+
+`LABEL2(INST_NAME)'
+     This will be used for dynamic superinstructions; at the moment,
+     this should expand to nothing.
+
+`NAME(INST_NAME_STRING)'
+     Called on entering a VM instruction with a string containing the
+     name of the VM instruction as parameter.  In normal execution this
+     should be expand to nothing, but for tracing this usually prints
+     the name, and possibly other information (several VM registers in
+     our example).
+
+`DEF_CA'
+     Usually empty.  Called just inside a new scope at the start of a VM
+     instruction.  Can be used to define variables that should be
+     visible during every VM instruction.  If you define this macro as
+     non-empty, you have to provide the finishing `;' in the macro.
+
+`NEXT_P0 NEXT_P1 NEXT_P2'
+     The three parts of instruction dispatch.  They can be defined in
+     different ways for best performance on various processors (see
+     `engine.c' in the example or `engine/threaded.h' in Gforth).
+     `NEXT_P0' is invoked right at the start of the VM instruction (but
+     after `DEF_CA'), `NEXT_P1' right after the user-supplied C code,
+     and `NEXT_P2' at the end.  The actual jump has to be performed by
+     `NEXT_P2' (if you would do it earlier, important parts of the VM
+     instruction would not be executed).
+
+     The simplest variant is if `NEXT_P2' does everything and the other
+     macros do nothing.  Then also related macros like `IP', `SET_IP',
+     `IP', `INC_IP' and `IPTOS' are very straightforward to define.
+     For switch dispatch this code consists just of a jump to the
+     dispatch code (`goto next_inst;' in our example); for direct
+     threaded code it consists of something like `({cfa=*ip++; goto
+     *cfa;})'.
+
+     Pulling code (usually the `cfa=*ip++;') up into `NEXT_P1' usually
+     does not cause problems, but pulling things up into `NEXT_P0'
+     usually requires changing the other macros (and, at least for
+     Gforth on Alpha, it does not buy much, because the compiler often
+     manages to schedule the relevant stuff up by itself).  An even more
+     extreme variant is to pull code up even further, into, e.g.,
+     NEXT_P1 of the previous VM instruction (prefetching, useful on
+     PowerPCs).
+
+`INC_IP(N)'
+     This increments `IP' by N.
+
+`SET_IP(TARGET)'
+     This sets `IP' to TARGET.
+
+`vm_A2B(a,b)'
+     Type casting macro that assigns `a' (of type A) to `b' (of type
+     B).  This is mainly used for getting stack items into variables
+     and back.  So you need to define macros for every combination of
+     stack basic type (`Cell' in our example) and type-prefix types
+     used with that stack (in both directions).  For the type-prefix
+     type, you use the type-prefix (not the C type string) as type name
+     (e.g., `vm_Cell2i', not `vm_Cell2Cell').  In addition, you have to
+     define a vm_X2X macro for the stack's basic type X (used in
+     superinstructions).
+
+     The stack basic type for the predefined `inst-stream' is `Cell'.
+     If you want a stack with the same item size, making its basic type
+     `Cell' usually reduces the number of macros you have to define.
+
+     Here our examples differ a lot: `vmgen-ex' uses casts in these
+     macros, whereas `vmgen-ex2' uses union-field selection (or
+     assignment to union fields).  Note that casting floats into
+     integers and vice versa changes the bit pattern (and you do not
+     want that).  In this case your options are to use a (temporary)
+     union, or to take the address of the value, cast the pointer, and
+     dereference that (not always possible, and sometimes expensive).
+
+`vm_twoA2B(a1,a2,b)'
+
+`vm_B2twoA(b,a1,a2)'
+     Type casting between two stack items (`a1', `a2') and a variable
+     `b' of a type that takes two stack items.  This does not occur in
+     our small examples, but you can look at Gforth for examples (see
+     `vm_twoCell2d' in `engine/forth.h').
+
+`STACKPOINTER'
+     For each stack used, the stackpointer name given in the stack
+     declaration is used.  For a regular stack this must be an
+     l-expression; typically it is a variable declared as a pointer to
+     the stack's basic type.  For `inst-stream', the name is `IP', and
+     it can be a plain r-value; typically it is a macro that abstracts
+     away the differences between the various implementations of
+     `NEXT_P*'.
+
+`IMM_ARG(access,value)'
+     Define this to expland to "(access)".  This is just a placeholder
+     for future extensions.
+
+`STACKPOINTERTOS'
+     The top-of-stack for the stack pointed to by STACKPOINTER.  If you
+     are using top-of-stack caching for that stack, this should be
+     defined as variable; if you are not using top-of-stack caching for
+     that stack, this should be a macro expanding to `STACKPOINTER[0]'.
+     The stack pointer for the predefined `inst-stream' is called
+     `IP', so the top-of-stack is called `IPTOS'.
+
+`IF_STACKPOINTERTOS(EXPR)'
+     Macro for executing EXPR, if top-of-stack caching is used for the
+     STACKPOINTER stack.  I.e., this should do EXPR if there is
+     top-of-stack caching for STACKPOINTER; otherwise it should do
+     nothing.
+
+`SUPER_END'
+     This is used by the VM profiler (*note VM profiler::); it should
+     not do anything in normal operation, and call `vm_count_block(IP)'
+     for profiling.
+
+`SUPER_CONTINUE'
+     This is just a hint to Vmgen and does nothing at the C level.
+
+`MAYBE_UNUSED'
+     This should be defined as `__attribute__((unused))' for gcc-2.7 and
+     higher.  It suppresses the warnings about unused variables in the
+     code for superinstructions.  You need to define this only if you
+     are using superinstructions.
+
+`VM_DEBUG'
+     If this is defined, the tracing code will be compiled in (slower
+     interpretation, but better debugging).  Our example compiles two
+     versions of the engine, a fast-running one that cannot trace, and
+     one with potential tracing and profiling.
+
+`vm_debug'
+     Needed only if `VM_DEBUG' is defined.  If this variable contains
+     true, the VM instructions produce trace output.  It can be turned
+     on or off at any time.
+
+`vm_out'
+     Needed only if `VM_DEBUG' is defined.  Specifies the file on which
+     to print the trace output (type `FILE *').
+
+`printarg_TYPE(VALUE)'
+     Needed only if `VM_DEBUG' is defined.  Macro or function for
+     printing VALUE in a way appropriate for the TYPE.  This is used
+     for printing the values of stack items during tracing.  TYPE is
+     normally the type prefix specified in a `type-prefix' definition
+     (e.g., `printarg_i'); in superinstructions it is currently the
+     basic type of the stack.
+

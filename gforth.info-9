@@ -1,0 +1,1226 @@
+This is gforth.info, produced by makeinfo version 4.2 from gforth.texi.
+
+This manual is for Gforth (version 0.6.2, August 25, 2003), a fast and
+portable implementation of the ANS Forth language
+
+   Copyright (C) 1995, 1996, 1997, 1998, 2000, 2003 Free Software
+Foundation, Inc.
+
+     Permission is granted to copy, distribute and/or modify this
+     document under the terms of the GNU Free Documentation License,
+     Version 1.1 or any later version published by the Free Software
+     Foundation; with no Invariant Sections, with the Front-Cover texts
+     being "A GNU Manual," and with the Back-Cover Texts as in (a)
+     below.  A copy of the license is included in the section entitled
+     "GNU Free Documentation License."
+
+     (a) The FSF's Back-Cover Text is: "You have freedom to copy and
+     modify this GNU Manual, like GNU software.  Copies published by
+     the Free Software Foundation raise funds for GNU development."
+   
+INFO-DIR-SECTION Software development
+START-INFO-DIR-ENTRY
+* Gforth: (gforth).             A fast interpreter for the Forth language.
+END-INFO-DIR-ENTRY
+
+
+File: gforth.info,  Node: Objects Glossary,  Prev: Objects Implementation,  Up: Objects
+
+`objects.fs' Glossary
+.....................
+
+`bind'       ... "class" "selector" - ...         objects       ``bind''
+   Execute the method for SELECTOR in CLASS.
+
+`<bind>'       class selector-xt - xt         objects       ``<bind>''
+   XT is the method for the selector SELECTOR-XT in CLASS.
+
+`bind''       "class" "selector" - xt         objects       ``bind'''
+   XT is the method for SELECTOR in CLASS.
+
+`[bind]'       compile-time: "class" "selector" - ; run-time: ... object - ...         objects       ``[bind]''
+   Compile the method for SELECTOR in CLASS.
+
+`class'       parent-class - align offset         objects       ``class''
+   Start a new class definition as a child of PARENT-CLASS. ALIGN
+OFFSET are for use by FIELD etc.
+
+`class->map'       class - map         objects       ``class->map''
+   MAP is the pointer to CLASS's method map; it points to the place in
+the map to which the selector offsets refer (i.e., where OBJECT-MAPs
+point to).
+
+`class-inst-size'       class - addr         objects       ``class-inst-size''
+   Give the size specification for an instance (i.e. an object) of
+CLASS; used as `class-inst-size 2 ( class -- align size )'.
+
+`class-override!'       xt sel-xt class-map -         objects       ``class-override!''
+   XT is the new method for the selector SEL-XT in CLASS-MAP.
+
+`class-previous'       class -         objects       ``class-previous''
+   Drop CLASS's wordlists from the search order. No checking is made
+whether CLASS's wordlists are actually on the search order.
+
+`class>order'       class -         objects       ``class>order''
+   Add CLASS's wordlists to the head of the search-order.
+
+`construct'       ... object -         objects       ``construct''
+   Initialize the data fields of OBJECT. The method for the class
+OBJECT just does nothing: `( object -- )'.
+
+`current''       "selector" - xt         objects       ``current'''
+   XT is the method for SELECTOR in the current class.
+
+`[current]'       compile-time: "selector" - ; run-time: ... object - ...         objects       ``[current]''
+   Compile the method for SELECTOR in the current class.
+
+`current-interface'       - addr         objects       ``current-interface''
+   Variable: contains the class or interface currently being defined.
+
+`dict-new'       ... class - object         objects       ``dict-new''
+   `allot' and initialize an object of class CLASS in the dictionary.
+
+`end-class'       align offset "name" -         objects       ``end-class''
+   NAME execution: `-- class'
+End a class definition. The resulting class is CLASS.
+
+`end-class-noname'       align offset - class         objects       ``end-class-noname''
+   End a class definition. The resulting class is CLASS.
+
+`end-interface'       "name" -         objects       ``end-interface''
+   `name' execution: `-- interface'
+End an interface definition. The resulting interface is INTERFACE.
+
+`end-interface-noname'       - interface         objects       ``end-interface-noname''
+   End an interface definition. The resulting interface is INTERFACE.
+
+`end-methods'       -         objects       ``end-methods''
+   Switch back from defining methods of a class to normal mode
+(currently this just restores the old search order).
+
+`exitm'       -         objects       ``exitm''
+   `exit' from a method; restore old `this'.
+
+`heap-new'       ... class - object         objects       ``heap-new''
+   `allocate' and initialize an object of class CLASS.
+
+`implementation'       interface -         objects       ``implementation''
+   The current class implements INTERFACE. I.e., you can use all
+selectors of the interface in the current class and its descendents.
+
+`init-object'       ... class object -         objects       ``init-object''
+   Initialize a chunk of memory (OBJECT) to an object of class CLASS;
+then performs `construct'.
+
+`inst-value'       align1 offset1 "name" - align2 offset2         objects       ``inst-value''
+   NAME execution: `-- w'
+W is the value of the field NAME in `this' object.
+
+`inst-var'       align1 offset1 align size "name" - align2 offset2         objects       ``inst-var''
+   NAME execution: `-- addr'
+ADDR is the address of the field NAME in `this' object.
+
+`interface'       -         objects       ``interface''
+   Start an interface definition.
+
+`m:'       - xt colon-sys; run-time: object -         objects       ``m:''
+   Start a method definition; OBJECT becomes new `this'.
+
+`:m'       "name" - xt; run-time: object -         objects       ``:m''
+   Start a named method definition; OBJECT becomes new `this'.  Has to
+be ended with `;m'.
+
+`;m'       colon-sys -; run-time: -         objects       ``;m''
+   End a method definition; restore old `this'.
+
+`method'       xt "name" -         objects       ``method''
+   `name' execution: `... object -- ...'
+Create selector NAME and makes XT its method in the current class.
+
+`methods'       class -         objects       ``methods''
+   Makes CLASS the current class. This is intended to be used for
+defining methods to override selectors; you cannot define new fields or
+selectors.
+
+`object'       - class         objects       ``object''
+   the ancestor of all classes.
+
+`overrides'       xt "selector" -         objects       ``overrides''
+   replace default method for SELECTOR in the current class with XT.
+`overrides' must not be used during an interface definition.
+
+`[parent]'       compile-time: "selector" - ; run-time: ... object - ...         objects       ``[parent]''
+   Compile the method for SELECTOR in the parent of the current class.
+
+`print'       object -         objects       ``print''
+   Print the object. The method for the class OBJECT prints the address
+of the object and the address of its class.
+
+`protected'       -         objects       ``protected''
+   Set the compilation wordlist to the current class's wordlist
+
+`public'       -         objects       ``public''
+   Restore the compilation wordlist that was in effect before the last
+`protected' that actually changed the compilation wordlist.
+
+`selector'       "name" -         objects       ``selector''
+   NAME execution: `... object -- ...'
+Create selector NAME for the current class and its descendents; you can
+set a method for the selector in the current class with `overrides'.
+
+`this'       - object         objects       ``this''
+   the receiving object of the current method (aka active object).
+
+`<to-inst>'       w xt -         objects       ``<to-inst>''
+   store W into the field XT in `this' object.
+
+`[to-inst]'       compile-time: "name" - ; run-time: w -         objects       ``[to-inst]''
+   store W into field NAME in `this' object.
+
+`to-this'       object -         objects       ``to-this''
+   Set `this' (used internally, but useful when debugging).
+
+`xt-new'       ... class xt - object         objects       ``xt-new''
+   Make a new object, using `xt ( align size -- addr )' to get memory.
+
+
+File: gforth.info,  Node: OOF,  Next: Mini-OOF,  Prev: Objects,  Up: Object-oriented Forth
+
+The `oof.fs' model
+------------------
+
+   This section describes the `oof.fs' package.
+
+   The package described in this section has been used in bigFORTH
+since 1991, and used for two large applications: a chromatographic
+system used to create new medicaments, and a graphic user interface
+library (MINOS).
+
+   You can find a description (in German) of `oof.fs' in `Object
+oriented bigFORTH' by Bernd Paysan, published in `Vierte Dimension'
+10(2), 1994.
+
+* Menu:
+
+* Properties of the OOF model::
+* Basic OOF Usage::
+* The OOF base class::
+* Class Declaration::
+* Class Implementation::
+
+
+File: gforth.info,  Node: Properties of the OOF model,  Next: Basic OOF Usage,  Prev: OOF,  Up: OOF
+
+Properties of the `oof.fs' model
+................................
+
+   * This model combines object oriented programming with information
+     hiding. It helps you writing large application, where scoping is
+     necessary, because it provides class-oriented scoping.
+
+   * Named objects, object pointers, and object arrays can be created,
+     selector invocation uses the "object selector" syntax. Selector
+     invocation to objects and/or selectors on the stack is a bit less
+     convenient, but possible.
+
+   * Selector invocation and instance variable usage of the active
+     object is straightforward, since both make use of the active
+     object.
+
+   * Late binding is efficient and easy to use.
+
+   * State-smart objects parse selectors. However, extensibility is
+     provided using a (parsing) selector `postpone' and a selector `''.
+
+   * An implementation in ANS Forth is available.
+
+
+
+File: gforth.info,  Node: Basic OOF Usage,  Next: The OOF base class,  Prev: Properties of the OOF model,  Up: OOF
+
+Basic `oof.fs' Usage
+....................
+
+   This section uses the same example as for `objects' (*note Basic
+Objects Usage::).
+
+   You can define a class for graphical objects like this:
+
+     object class graphical \ "object" is the parent class
+       method draw ( x y graphical -- )
+     class;
+
+   This code defines a class `graphical' with an operation `draw'.  We
+can perform the operation `draw' on any `graphical' object, e.g.:
+
+     100 100 t-rex draw
+
+where `t-rex' is an object or object pointer, created with e.g.
+`graphical : t-rex'.
+
+   How do we create a graphical object? With the present definitions,
+we cannot create a useful graphical object. The class `graphical'
+describes graphical objects in general, but not any concrete graphical
+object type (C++ users would call it an _abstract class_); e.g., there
+is no method for the selector `draw' in the class `graphical'.
+
+   For concrete graphical objects, we define child classes of the class
+`graphical', e.g.:
+
+     graphical class circle \ "graphical" is the parent class
+       cell var circle-radius
+     how:
+       : draw ( x y -- )
+         circle-radius @ draw-circle ;
+     
+       : init ( n-radius -- (
+         circle-radius ! ;
+     class;
+
+   Here we define a class `circle' as a child of `graphical', with a
+field `circle-radius'; it defines new methods for the selectors `draw'
+and `init' (`init' is defined in `object', the parent class of
+`graphical').
+
+   Now we can create a circle in the dictionary with:
+
+     50 circle : my-circle
+
+`:' invokes `init', thus initializing the field `circle-radius' with
+50. We can draw this new circle at (100,100) with:
+
+     100 100 my-circle draw
+
+   Note: You can only invoke a selector if the receiving object belongs
+to the class where the selector was defined or one of its descendents;
+e.g., you can invoke `draw' only for objects belonging to `graphical'
+or its descendents (e.g., `circle'). The scoping mechanism will check
+if you try to invoke a selector that is not defined in this class
+hierarchy, so you'll get an error at compilation time.
+
+
+File: gforth.info,  Node: The OOF base class,  Next: Class Declaration,  Prev: Basic OOF Usage,  Up: OOF
+
+The `oof.fs' base class
+.......................
+
+   When you define a class, you have to specify a parent class.  So how
+do you start defining classes? There is one class available from the
+start: `object'. You have to use it as ancestor for all classes. It is
+the only class that has no parent. Classes are also objects, except that
+they don't have instance variables; class manipulation such as
+inheritance or changing definitions of a class is handled through
+selectors of the class `object'.
+
+   `object' provides a number of selectors:
+
+   * `class' for subclassing, `definitions' to add definitions later
+     on, and `class?' to get type informations (is the class a subclass
+     of the class passed on the stack?).
+
+     `class'       "name" -         oof       ``class''
+
+     `definitions'       -         oof       ``definitions''
+
+     `class?'       o - flag         oof       ``class-query''
+
+   * `init' and `dispose' as constructor and destructor of the object.
+     `init' is invocated after the object's memory is allocated, while
+     `dispose' also handles deallocation. Thus if you redefine
+     `dispose', you have to call the parent's dispose with `super
+     dispose', too.
+
+     `init'       ... -         oof       ``init''
+
+     `dispose'       -         oof       ``dispose''
+
+   * `new', `new[]', `:', `ptr', `asptr', and `[]' to create named and
+     unnamed objects and object arrays or object pointers.
+
+     `new'       - o         oof       ``new''
+
+     `new[]'       n - o         oof       ``new-array''
+
+     `:'       "name" -         oof       ``define''
+
+     `ptr'       "name" -         oof       ``ptr''
+
+     `asptr'       o "name" -         oof       ``asptr''
+
+     `[]'       n "name" -         oof       ``array''
+
+   * `::' and `super' for explicit scoping. You should use explicit
+     scoping only for super classes or classes with the same set of
+     instance variables. Explicitly-scoped selectors use early binding.
+
+     `::'       "name" -         oof       ``scope''
+
+     `super'       "name" -         oof       ``super''
+
+   * `self' to get the address of the object
+
+     `self'       - o         oof       ``self''
+
+   * `bind', `bound', `link', and `is' to assign object pointers and
+     instance defers.
+
+     `bind'       o "name" -         oof       ``bind''
+
+     `bound'       class addr "name" -         oof       ``bound''
+
+     `link'       "name" - class addr         oof       ``link''
+
+     `is'       xt "name" -         oof       ``is''
+
+   * `'' to obtain selector tokens, `send' to invocate selectors form
+     the stack, and `postpone' to generate selector invocation code.
+
+     `''       "name" - xt         oof       ``tick''
+
+     `postpone'       "name" -         oof       ``postpone''
+
+   * `with' and `endwith' to select the active object from the stack,
+     and enable its scope. Using `with' and `endwith' also allows you
+     to create code using selector `postpone' without being trapped by
+     the state-smart objects.
+
+     `with'       o -         oof       ``with''
+
+     `endwith'       -         oof       ``endwith''
+
+
+
+File: gforth.info,  Node: Class Declaration,  Next: Class Implementation,  Prev: The OOF base class,  Up: OOF
+
+Class Declaration
+.................
+
+   * Instance variables
+
+     `var'       size -         oof       ``var''
+     Create an instance variable
+
+   * Object pointers
+
+     `ptr'       -         oof       ``ptr''
+     Create an instance pointer
+
+     `asptr'       class -         oof       ``asptr''
+     Create an alias to an instance pointer, cast to another class.
+
+   * Instance defers
+
+     `defer'       -         oof       ``defer''
+     Create an instance defer
+
+   * Method selectors
+
+     `early'       -         oof       ``early''
+     Create a method selector for early binding.
+
+     `method'       -         oof       ``method''
+     Create a method selector.
+
+   * Class-wide variables
+
+     `static'       -         oof       ``static''
+     Create a class-wide cell-sized variable.
+
+   * End declaration
+
+     `how:'       -         oof       ``how-to''
+     End declaration, start implementation
+
+     `class;'       -         oof       ``end-class''
+     End class declaration or implementation
+
+
+
+File: gforth.info,  Node: Class Implementation,  Prev: Class Declaration,  Up: OOF
+
+Class Implementation
+....................
+
+
+File: gforth.info,  Node: Mini-OOF,  Next: Comparison with other object models,  Prev: OOF,  Up: Object-oriented Forth
+
+The `mini-oof.fs' model
+-----------------------
+
+   Gforth's third object oriented Forth package is a 12-liner. It uses a
+mixture of the `objects.fs' and the `oof.fs' syntax, and reduces to the
+bare minimum of features. This is based on a posting of Bernd Paysan in
+comp.lang.forth.
+
+* Menu:
+
+* Basic Mini-OOF Usage::
+* Mini-OOF Example::
+* Mini-OOF Implementation::
+
+
+File: gforth.info,  Node: Basic Mini-OOF Usage,  Next: Mini-OOF Example,  Prev: Mini-OOF,  Up: Mini-OOF
+
+Basic `mini-oof.fs' Usage
+.........................
+
+   There is a base class (`class', which allocates one cell for the
+object pointer) plus seven other words: to define a method, a variable,
+a class; to end a class, to resolve binding, to allocate an object and
+to compile a class method.
+
+`object'       - a-addr         mini-oof       ``object''
+   OBJECT is the base class of all objects.
+
+`method'       m v "name" - m' v         mini-oof       ``method''
+   Define a selector.
+
+`var'       m v size "name" - m v'         mini-oof       ``var''
+   Define a variable with SIZE bytes.
+
+`class'       class - class selectors vars         mini-oof       ``class''
+   Start the definition of a class.
+
+`end-class'       class selectors vars "name" -         mini-oof       ``end-class''
+   End the definition of a class.
+
+`defines'       xt class "name" -         mini-oof       ``defines''
+   Bind XT to the selector NAME in class CLASS.
+
+`new'       class - o         mini-oof       ``new''
+   Create a new incarnation of the class CLASS.
+
+`::'       class "name" -         mini-oof       ``colon-colon''
+   Compile the method for the selector NAME of the class CLASS (not
+immediate!).
+
+
+File: gforth.info,  Node: Mini-OOF Example,  Next: Mini-OOF Implementation,  Prev: Basic Mini-OOF Usage,  Up: Mini-OOF
+
+Mini-OOF Example
+................
+
+   A short example shows how to use this package. This example, in
+slightly extended form, is supplied as `moof-exm.fs'
+
+     object class
+       method init
+       method draw
+     end-class graphical
+
+   This code defines a class `graphical' with an operation `draw'.  We
+can perform the operation `draw' on any `graphical' object, e.g.:
+
+     100 100 t-rex draw
+
+   where `t-rex' is an object or object pointer, created with e.g.
+`graphical new Constant t-rex'.
+
+   For concrete graphical objects, we define child classes of the class
+`graphical', e.g.:
+
+     graphical class
+       cell var circle-radius
+     end-class circle \ "graphical" is the parent class
+     
+     :noname ( x y -- )
+       circle-radius @ draw-circle ; circle defines draw
+     :noname ( r -- )
+       circle-radius ! ; circle defines init
+
+   There is no implicit init method, so we have to define one. The
+creation code of the object now has to call init explicitely.
+
+     circle new Constant my-circle
+     50 my-circle init
+
+   It is also possible to add a function to create named objects with
+automatic call of `init', given that all objects have `init' on the
+same place:
+
+     : new: ( .. o "name" -- )
+         new dup Constant init ;
+     80 circle new: large-circle
+
+   We can draw this new circle at (100,100) with:
+
+     100 100 my-circle draw
+
+
+File: gforth.info,  Node: Mini-OOF Implementation,  Prev: Mini-OOF Example,  Up: Mini-OOF
+
+`mini-oof.fs' Implementation
+............................
+
+   Object-oriented systems with late binding typically use a
+"vtable"-approach: the first variable in each object is a pointer to a
+table, which contains the methods as function pointers. The vtable may
+also contain other information.
+
+   So first, let's declare selectors:
+
+     : method ( m v "name" -- m' v ) Create  over , swap cell+ swap
+       DOES> ( ... o -- ... ) @ over @ + @ execute ;
+
+   During selector declaration, the number of selectors and instance
+variables is on the stack (in address units). `method' creates one
+selector and increments the selector number. To execute a selector, it
+takes the object, fetches the vtable pointer, adds the offset, and
+executes the method xt stored there. Each selector takes the object it
+is invoked with as top of stack parameter; it passes the parameters
+(including the object) unchanged to the appropriate method which should
+consume that object.
+
+   Now, we also have to declare instance variables
+
+     : var ( m v size "name" -- m v' ) Create  over , +
+       DOES> ( o -- addr ) @ + ;
+
+   As before, a word is created with the current offset. Instance
+variables can have different sizes (cells, floats, doubles, chars), so
+all we do is take the size and add it to the offset. If your machine
+has alignment restrictions, put the proper `aligned' or `faligned'
+before the variable, to adjust the variable offset. That's why it is on
+the top of stack.
+
+   We need a starting point (the base object) and some syntactic sugar:
+
+     Create object  1 cells , 2 cells ,
+     : class ( class -- class selectors vars ) dup 2@ ;
+
+   For inheritance, the vtable of the parent object has to be copied
+when a new, derived class is declared. This gives all the methods of
+the parent class, which can be overridden, though.
+
+     : end-class  ( class selectors vars "name" -- )
+       Create  here >r , dup , 2 cells ?DO ['] noop , 1 cells +LOOP
+       cell+ dup cell+ r> rot @ 2 cells /string move ;
+
+   The first line creates the vtable, initialized with `noop's. The
+second line is the inheritance mechanism, it copies the xts from the
+parent vtable.
+
+   We still have no way to define new methods, let's do that now:
+
+     : defines ( xt class "name" -- ) ' >body @ + ! ;
+
+   To allocate a new object, we need a word, too:
+
+     : new ( class -- o )  here over @ allot swap over ! ;
+
+   Sometimes derived classes want to access the method of the parent
+object. There are two ways to achieve this with Mini-OOF: first, you
+could use named words, and second, you could look up the vtable of the
+parent object.
+
+     : :: ( class "name" -- ) ' >body @ + @ compile, ;
+
+   Nothing can be more confusing than a good example, so here is one.
+First let's declare a text object (called `button'), that stores text
+and position:
+
+     object class
+       cell var text
+       cell var len
+       cell var x
+       cell var y
+       method init
+       method draw
+     end-class button
+
+Now, implement the two methods, `draw' and `init':
+
+     :noname ( o -- )
+      >r r@ x @ r@ y @ at-xy  r@ text @ r> len @ type ;
+      button defines draw
+     :noname ( addr u o -- )
+      >r 0 r@ x ! 0 r@ y ! r@ len ! r> text ! ;
+      button defines init
+
+To demonstrate inheritance, we define a class `bold-button', with no
+new data and no new selectors:
+
+     button class
+     end-class bold-button
+     
+     : bold   27 emit ." [1m" ;
+     : normal 27 emit ." [0m" ;
+
+The class `bold-button' has a different draw method to `button', but
+the new method is defined in terms of the draw method for `button':
+
+     :noname bold [ button :: draw ] normal ; bold-button defines draw
+
+Finally, create two objects and apply selectors:
+
+     button new Constant foo
+     s" thin foo" foo init
+     page
+     foo draw
+     bold-button new Constant bar
+     s" fat bar" bar init
+     1 bar y !
+     bar draw
+
+
+File: gforth.info,  Node: Comparison with other object models,  Prev: Mini-OOF,  Up: Object-oriented Forth
+
+Comparison with other object models
+-----------------------------------
+
+   Many object-oriented Forth extensions have been proposed (`A survey
+of object-oriented Forths' (SIGPLAN Notices, April 1996) by Bradford J.
+Rodriguez and W. F. S. Poehlman lists 17). This section discusses the
+relation of the object models described here to two well-known and two
+closely-related (by the use of method maps) models.  Andras Zsoter
+helped us with this section.
+
+   The most popular model currently seems to be the Neon model (see
+`Object-oriented programming in ANS Forth' (Forth Dimensions, March
+1997) by Andrew McKewan) but this model has a number of limitations (1):
+
+   * It uses a `_selector object_' syntax, which makes it unnatural to
+     pass objects on the stack.
+
+   * It requires that the selector parses the input stream (at compile
+     time); this leads to reduced extensibility and to bugs that are
+     hard to find.
+
+   * It allows using every selector on every object; this eliminates the
+     need for interfaces, but makes it harder to create efficient
+     implementations.
+
+   Another well-known publication is `Object-Oriented Forth' (Academic
+Press, London, 1987) by Dick Pountain. However, it is not really about
+object-oriented programming, because it hardly deals with late binding.
+Instead, it focuses on features like information hiding and overloading
+that are characteristic of modular languages like Ada (83).
+
+   In Does late binding have to be slow?
+(http://www.forth.org/oopf.html) (Forth Dimensions 18(1) 1996, pages
+31-35) Andras Zsoter describes a model that makes heavy use of an
+active object (like `this' in `objects.fs'): The active object is not
+only used for accessing all fields, but also specifies the receiving
+object of every selector invocation; you have to change the active
+object explicitly with `{ ... }', whereas in `objects.fs' it changes
+more or less implicitly at `m: ... ;m'. Such a change at the method
+entry point is unnecessary with Zsoter's model, because the receiving
+object is the active object already. On the other hand, the explicit
+change is absolutely necessary in that model, because otherwise no one
+could ever change the active object. An ANS Forth implementation of
+this model is available through `http://www.forth.org/oopf.html'.
+
+   The `oof.fs' model combines information hiding and overloading
+resolution (by keeping names in various word lists) with object-oriented
+programming. It sets the active object implicitly on method entry, but
+also allows explicit changing (with `>o...o>' or with
+`with...endwith'). It uses parsing and state-smart objects and classes
+for resolving overloading and for early binding: the object or class
+parses the selector and determines the method from this. If the
+selector is not parsed by an object or class, it performs a call to the
+selector for the active object (late binding), like Zsoter's model.
+Fields are always accessed through the active object. The big
+disadvantage of this model is the parsing and the state-smartness, which
+reduces extensibility and increases the opportunities for subtle bugs;
+essentially, you are only safe if you never tick or `postpone' an
+object or class (Bernd disagrees, but I (Anton) am not convinced).
+
+   The `mini-oof.fs' model is quite similar to a very stripped-down
+version of the `objects.fs' model, but syntactically it is a mixture of
+the `objects.fs' and `oof.fs' models.
+
+   ---------- Footnotes ----------
+
+   (1) A longer version of this critique can be found in `On
+Standardizing Object-Oriented Forth Extensions' (Forth Dimensions, May
+1997) by Anton Ertl.
+
+
+File: gforth.info,  Node: Programming Tools,  Next: Assembler and Code Words,  Prev: Object-oriented Forth,  Up: Words
+
+Programming Tools
+=================
+
+* Menu:
+
+* Examining::
+* Forgetting words::
+* Debugging::                   Simple and quick.
+* Assertions::                  Making your programs self-checking.
+* Singlestep Debugger::         Executing your program word by word.
+
+
+File: gforth.info,  Node: Examining,  Next: Forgetting words,  Prev: Programming Tools,  Up: Programming Tools
+
+Examining data and code
+-----------------------
+
+   The following words inspect the stack non-destructively:
+
+`.s'       -         tools       ``dot-s''
+   Display the number of items on the data stack, followed by a list of
+the items; TOS is the right-most item.
+
+`f.s'       -         gforth       ``f-dot-s''
+   Display the number of items on the floating-point stack, followed by
+a list of the items; TOS is the right-most item.
+
+   There is a word `.r' but it does not display the return stack!  It
+is used for formatted numeric output (*note Simple numeric output::).
+
+`depth'       - +n         core       ``depth''
+   +N is the number of values that were on the data stack before +N
+itself was placed on the stack.
+
+`fdepth'       - +n         float       ``f-depth''
+   +n is the current number of (floating-point) values on the
+floating-point stack.
+
+`clearstack'       ... -         gforth       ``clear-stack''
+   remove and discard all/any items from the data stack.
+
+   The following words inspect memory.
+
+`?'       a-addr -         tools       ``question''
+   Display the contents of address A-ADDR in the current number base.
+
+`dump'       addr u -         tools       ``dump''
+   Display U lines of memory starting at address ADDR. Each line
+displays the contents of 16 bytes. When Gforth is running under an
+operating system you may get `Invalid memory address' errors if you
+attempt to access arbitrary locations.
+
+   And finally, `see' allows to inspect code:
+
+`see'       "<spaces>name" -         tools       ``see''
+   Locate NAME using the current search order. Display the definition
+of NAME. Since this is achieved by decompiling the definition, the
+formatting is mechanised and some source information (comments,
+interpreted sequences within definitions etc.) is lost.
+
+`xt-see'       xt -         gforth       ``xt-see''
+   Decompile the definition represented by xt.
+
+`simple-see'       "name" -         gforth       ``simple-see''
+   a simple decompiler that's closer to `dump' than `see'.
+
+`simple-see-range'       addr1 addr2 -         gforth       ``simple-see-range''
+
+
+File: gforth.info,  Node: Forgetting words,  Next: Debugging,  Prev: Examining,  Up: Programming Tools
+
+Forgetting words
+----------------
+
+   Forth allows you to forget words (and everything that was alloted in
+the dictonary after them) in a LIFO manner.
+
+`marker'       "<spaces> name" -         core-ext       ``marker''
+   Create a definition, name (called a mark) whose execution semantics
+are to remove itself and everything defined after it.
+
+   The most common use of this feature is during progam development:
+when you change a source file, forget all the words it defined and load
+it again (since you also forget everything defined after the source file
+was loaded, you have to reload that, too).  Note that effects like
+storing to variables and destroyed system words are not undone when you
+forget words.  With a system like Gforth, that is fast enough at
+starting up and compiling, I find it more convenient to exit and restart
+Gforth, as this gives me a clean slate.
+
+   Here's an example of using `marker' at the start of a source file
+that you are debugging; it ensures that you only ever have one copy of
+the file's definitions compiled at any time:
+
+     [IFDEF] my-code
+         my-code
+     [ENDIF]
+     
+     marker my-code
+     init-included-files
+     
+     \ .. definitions start here
+     \ .
+     \ .
+     \ end
+
+
+File: gforth.info,  Node: Debugging,  Next: Assertions,  Prev: Forgetting words,  Up: Programming Tools
+
+Debugging
+---------
+
+   Languages with a slow edit/compile/link/test development loop tend to
+require sophisticated tracing/stepping debuggers to facilate debugging.
+
+   A much better (faster) way in fast-compiling languages is to add
+printing code at well-selected places, let the program run, look at the
+output, see where things went wrong, add more printing code, etc.,
+until the bug is found.
+
+   The simple debugging aids provided in `debugs.fs' are meant to
+support this style of debugging.
+
+   The word `~~' prints debugging information (by default the source
+location and the stack contents). It is easy to insert. If you use Emacs
+it is also easy to remove (`C-x ~' in the Emacs Forth mode to
+query-replace them with nothing). The deferred words `printdebugdata'
+and `.debugline' control the output of `~~'. The default source
+location output format works well with Emacs' compilation mode, so you
+can step through the program at the source level using `C-x `' (the
+advantage over a stepping debugger is that you can step in any
+direction and you know where the crash has happened or where the
+strange data has occurred).
+
+`~~'       compilation  - ; run-time  -         gforth       ``tilde-tilde''
+
+`printdebugdata'       -         gforth       ``print-debug-data''
+
+`.debugline'       nfile nline -         gforth       ``print-debug-line''
+
+   `~~' (and assertions) will usually print the wrong file name if a
+marker is executed in the same file after their occurance.  They will
+print `*somewhere*' as file name if a marker is executed in the same
+file before their occurance.
+
+
+File: gforth.info,  Node: Assertions,  Next: Singlestep Debugger,  Prev: Debugging,  Up: Programming Tools
+
+Assertions
+----------
+
+   It is a good idea to make your programs self-checking, especially if
+you make an assumption that may become invalid during maintenance (for
+example, that a certain field of a data structure is never zero). Gforth
+supports "assertions" for this purpose. They are used like this:
+
+     assert( flag )
+
+   The code between `assert(' and `)' should compute a flag, that
+should be true if everything is alright and false otherwise. It should
+not change anything else on the stack. The overall stack effect of the
+assertion is `( -- )'. E.g.
+
+     assert( 1 1 + 2 = ) \ what we learn in school
+     assert( dup 0<> ) \ assert that the top of stack is not zero
+     assert( false ) \ this code should not be reached
+
+   The need for assertions is different at different times. During
+debugging, we want more checking, in production we sometimes care more
+for speed. Therefore, assertions can be turned off, i.e., the assertion
+becomes a comment. Depending on the importance of an assertion and the
+time it takes to check it, you may want to turn off some assertions and
+keep others turned on. Gforth provides several levels of assertions for
+this purpose:
+
+`assert0('       -         gforth       ``assert-zero''
+   Important assertions that should always be turned on.
+
+`assert1('       -         gforth       ``assert-one''
+   Normal assertions; turned on by default.
+
+`assert2('       -         gforth       ``assert-two''
+   Debugging assertions.
+
+`assert3('       -         gforth       ``assert-three''
+   Slow assertions that you may not want to turn on in normal debugging;
+you would turn them on mainly for thorough checking.
+
+`assert('       -         gforth       ``assert(''
+   Equivalent to `assert1('
+
+`)'       -         gforth       ``close-paren''
+   End an assertion.
+
+   The variable `assert-level' specifies the highest assertions that
+are turned on. I.e., at the default `assert-level' of one, `assert0('
+and `assert1(' assertions perform checking, while `assert2(' and
+`assert3(' assertions are treated as comments.
+
+   The value of `assert-level' is evaluated at compile-time, not at
+run-time. Therefore you cannot turn assertions on or off at run-time;
+you have to set the `assert-level' appropriately before compiling a
+piece of code. You can compile different pieces of code at different
+`assert-level's (e.g., a trusted library at level 1 and newly-written
+code at level 3).
+
+`assert-level'       - a-addr         gforth       ``assert-level''
+   All assertions above this level are turned off.
+
+   If an assertion fails, a message compatible with Emacs' compilation
+mode is produced and the execution is aborted (currently with `ABORT"'.
+If there is interest, we will introduce a special throw code. But if you
+intend to `catch' a specific condition, using `throw' is probably more
+appropriate than an assertion).
+
+   Assertions (and `~~') will usually print the wrong file name if a
+marker is executed in the same file after their occurance.  They will
+print `*somewhere*' as file name if a marker is executed in the same
+file before their occurance.
+
+   Definitions in ANS Forth for these assertion words are provided in
+`compat/assert.fs'.
+
+
+File: gforth.info,  Node: Singlestep Debugger,  Prev: Assertions,  Up: Programming Tools
+
+Singlestep Debugger
+-------------------
+
+   The singlestep debugger does not work in this release.
+
+   When you create a new word there's often the need to check whether it
+behaves correctly or not. You can do this by typing `dbg badword'. A
+debug session might look like this:
+
+     : badword 0 DO i . LOOP ;  ok
+     2 dbg badword
+     : badword
+     Scanning code...
+     
+     Nesting debugger ready!
+     
+     400D4738  8049BC4 0              -> [ 2 ] 00002 00000
+     400D4740  8049F68 DO             -> [ 0 ]
+     400D4744  804A0C8 i              -> [ 1 ] 00000
+     400D4748 400C5E60 .              -> 0 [ 0 ]
+     400D474C  8049D0C LOOP           -> [ 0 ]
+     400D4744  804A0C8 i              -> [ 1 ] 00001
+     400D4748 400C5E60 .              -> 1 [ 0 ]
+     400D474C  8049D0C LOOP           -> [ 0 ]
+     400D4758  804B384 ;              ->  ok
+
+   Each line displayed is one step. You always have to hit return to
+execute the next word that is displayed. If you don't want to execute
+the next word in a whole, you have to type `n' for `nest'. Here is an
+overview what keys are available:
+
+<RET>
+     Next; Execute the next word.
+
+n
+     Nest; Single step through next word.
+
+u
+     Unnest; Stop debugging and execute rest of word. If we got to this
+     word with nest, continue debugging with the calling word.
+
+d
+     Done; Stop debugging and execute rest.
+
+s
+     Stop; Abort immediately.
+
+   Debugging large application with this mechanism is very difficult,
+because you have to nest very deeply into the program before the
+interesting part begins. This takes a lot of time.
+
+   To do it more directly put a `BREAK:' command into your source code.
+When program execution reaches `BREAK:' the single step debugger is
+invoked and you have all the features described above.
+
+   If you have more than one part to debug it is useful to know where
+the program has stopped at the moment. You can do this by the `BREAK"
+string"' command. This behaves like `BREAK:' except that string is
+typed out when the "breakpoint" is reached.
+
+`dbg'       "name" -         gforth       ``dbg''
+
+`break:'       -         gforth       ``break:''
+
+`break"'       'ccc"' -         gforth       ``break"''
+
+
+File: gforth.info,  Node: Assembler and Code Words,  Next: Threading Words,  Prev: Programming Tools,  Up: Words
+
+Assembler and Code Words
+========================
+
+* Menu:
+
+* Code and ;code::
+* Common Assembler::            Assembler Syntax
+* Common Disassembler::
+* 386 Assembler::               Deviations and special cases
+* Alpha Assembler::             Deviations and special cases
+* MIPS assembler::              Deviations and special cases
+* Other assemblers::            How to write them
+
+
+File: gforth.info,  Node: Code and ;code,  Next: Common Assembler,  Prev: Assembler and Code Words,  Up: Assembler and Code Words
+
+`Code' and `;code'
+------------------
+
+   Gforth provides some words for defining primitives (words written in
+machine code), and for defining the machine-code equivalent of
+`DOES>'-based defining words. However, the machine-independent nature
+of Gforth poses a few problems: First of all, Gforth runs on several
+architectures, so it can provide no standard assembler. What's worse is
+that the register allocation not only depends on the processor, but
+also on the `gcc' version and options used.
+
+   The words that Gforth offers encapsulate some system dependences
+(e.g., the header structure), so a system-independent assembler may be
+used in Gforth. If you do not have an assembler, you can compile
+machine code directly with `,' and `c,'(1).
+
+`assembler'       -         tools-ext       ``assembler''
+
+`init-asm'       -         gforth       ``init-asm''
+
+`code'       "name" - colon-sys         tools-ext       ``code''
+
+`end-code'       colon-sys -         gforth       ``end-code''
+
+`;code'       compilation. colon-sys1 - colon-sys2         tools-ext       ``semicolon-code''
+
+`flush-icache'       c-addr u -        gforth       ``flush-icache''
+   Make sure that the instruction cache of the processor (if there is
+one) does not contain stale data at c-addr and u bytes afterwards.
+`END-CODE' performs a `flush-icache' automatically. Caveat:
+`flush-icache' might not work on your installation; this is usually the
+case if direct threading is not supported on your machine (take a look
+at your `machine.h') and your machine has a separate instruction cache.
+In such cases, `flush-icache' does nothing instead of flushing the
+instruction cache.
+
+   If `flush-icache' does not work correctly, `code' words etc. will
+not work (reliably), either.
+
+   The typical usage of these `code' words can be shown most easily by
+analogy to the equivalent high-level defining words:
+
+     : foo                              code foo
+        <high-level Forth words>              <assembler>
+     ;                                  end-code
+     
+     : bar                              : bar
+        <high-level Forth words>           <high-level Forth words>
+        CREATE                             CREATE
+           <high-level Forth words>           <high-level Forth words>
+        DOES>                              ;code
+           <high-level Forth words>           <assembler>
+     ;                                  end-code
+
+   In the assembly code you will want to refer to the inner
+interpreter's registers (e.g., the data stack pointer) and you may want
+to use other registers for temporary storage. Unfortunately, the
+register allocation is installation-dependent.
+
+   In particular, `ip' (Forth instruction pointer) and `rp' (return
+stack pointer) may be in different places in `gforth' and
+`gforth-fast', or different installations.  This means that you cannot
+write a `NEXT' routine that works reliably on both versions or
+different installations; so for doing `NEXT', I recommend jumping to `'
+noop >code-address', which contains nothing but a `NEXT'.
+
+   For general accesses to the inner interpreter's registers, the
+easiest solution is to use explicit register declarations (*note
+Variables in Specified Registers: (gcc.info)Explicit Reg Vars.) for all
+of the inner interpreter's registers: You have to compile Gforth with
+`-DFORCE_REG' (configure option `--enable-force-reg') and the
+appropriate declarations must be present in the `machine.h' file (see
+`mips.h' for an example; you can find a full list of all declarable
+register symbols with `grep register engine.c'). If you give explicit
+registers to all variables that are declared at the beginning of
+`engine()', you should be able to use the other caller-saved registers
+for temporary storage. Alternatively, you can use the `gcc' option
+`-ffixed-REG' (*note Options for Code Generation Conventions:
+(gcc.info)Code Gen Options.) to reserve a register (however, this
+restriction on register allocation may slow Gforth significantly).
+
+   If this solution is not viable (e.g., because `gcc' does not allow
+you to explicitly declare all the registers you need), you have to find
+out by looking at the code where the inner interpreter's registers
+reside and which registers can be used for temporary storage. You can
+get an assembly listing of the engine's code with `make engine.s'.
+
+   In any case, it is good practice to abstract your assembly code from
+the actual register allocation. E.g., if the data stack pointer resides
+in register `$17', create an alias for this register called `sp', and
+use that in your assembly code.
+
+   Another option for implementing normal and defining words efficiently
+is to add the desired functionality to the source of Gforth. For normal
+words you just have to edit `primitives' (*note Automatic
+Generation::). Defining words (equivalent to `;CODE' words, for fast
+defined words) may require changes in `engine.c', `kernel.fs',
+`prims2x.fs', and possibly `cross.fs'.
+
+   ---------- Footnotes ----------
+
+   (1) This isn't portable, because these words emit stuff in data
+space; it works because Gforth has unified code/data spaces. Assembler
+isn't likely to be portable anyway.
+
+
+File: gforth.info,  Node: Common Assembler,  Next: Common Disassembler,  Prev: Code and ;code,  Up: Assembler and Code Words
+
+Common Assembler
+----------------
+
+   The assemblers in Gforth generally use a postfix syntax, i.e., the
+instruction name follows the operands.
+
+   The operands are passed in the usual order (the same that is used in
+the manual of the architecture).  Since they all are Forth words, they
+have to be separated by spaces; you can also use Forth words to compute
+the operands.
+
+   The instruction names usually end with a `,'.  This makes it easier
+to visually separate instructions if you put several of them on one
+line; it also avoids shadowing other Forth words (e.g., `and').
+
+   Registers are usually specified by number; e.g., (decimal) `11'
+specifies registers R11 and F11 on the Alpha architecture (which one,
+depends on the instruction).  The usual names are also available, e.g.,
+`s2' for R11 on Alpha.
+
+   Control flow is specified similar to normal Forth code (*note
+Arbitrary control structures::), with `if,', `ahead,', `then,',
+`begin,', `until,', `again,', `cs-roll', `cs-pick', `else,', `while,',
+and `repeat,'.  The conditions are specified in a way specific to each
+assembler.
+
+   Note that the register assignments of the Gforth engine can change
+between Gforth versions, or even between different compilations of the
+same Gforth version (e.g., if you use a different GCC version).  So if
+you want to refer to Gforth's registers (e.g., the stack pointer or
+TOS), I recommend defining your own words for refering to these
+registers, and using them later on; then you can easily adapt to a
+changed register assignment.  The stability of the register assignment
+is usually better if you build Gforth with `--enable-force-reg'.
+
+   The most common use of these registers is to dispatch to the next
+word (the `next' routine).  A portable way to do this is to jump to `'
+noop >code-address' (of course, this is less efficient than integrating
+the `next' code and scheduling it well).
+
+   Another difference between Gforth version is that the top of stack is
+kept in memory in `gforth' and, on most platforms, in a register in
+`gforth-fast'.
+
+
+File: gforth.info,  Node: Common Disassembler,  Next: 386 Assembler,  Prev: Common Assembler,  Up: Assembler and Code Words
+
+Common Disassembler
+-------------------
+
+   You can disassemble a `code' word with `see' (*note Debugging::).
+You can disassemble a section of memory with
+
+   doc-disasm
+
+   The disassembler generally produces output that can be fed into the
+assembler (i.e., same syntax, etc.).  It also includes additional
+information in comments.  In particular, the address of the instruction
+is given in a comment before the instruction.
+
+   `See' may display more or less than the actual code of the word,
+because the recognition of the end of the code is unreliable.  You can
+use `disasm' if it did not display enough.  It may display more, if the
+code word is not immediately followed by a named word.  If you have
+something else there, you can follow the word with `align latest ,' to
+ensure that the end is recognized.
+

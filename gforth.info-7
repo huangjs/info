@@ -1,0 +1,1103 @@
+This is gforth.info, produced by makeinfo version 4.2 from gforth.texi.
+
+This manual is for Gforth (version 0.6.2, August 25, 2003), a fast and
+portable implementation of the ANS Forth language
+
+   Copyright (C) 1995, 1996, 1997, 1998, 2000, 2003 Free Software
+Foundation, Inc.
+
+     Permission is granted to copy, distribute and/or modify this
+     document under the terms of the GNU Free Documentation License,
+     Version 1.1 or any later version published by the Free Software
+     Foundation; with no Invariant Sections, with the Front-Cover texts
+     being "A GNU Manual," and with the Back-Cover Texts as in (a)
+     below.  A copy of the license is included in the section entitled
+     "GNU Free Documentation License."
+
+     (a) The FSF's Back-Cover Text is: "You have freedom to copy and
+     modify this GNU Manual, like GNU software.  Copies published by
+     the Free Software Foundation raise funds for GNU development."
+   
+INFO-DIR-SECTION Software development
+START-INFO-DIR-ENTRY
+* Gforth: (gforth).             A fast interpreter for the Forth language.
+END-INFO-DIR-ENTRY
+
+
+File: gforth.info,  Node: Blocks,  Next: Other I/O,  Prev: Files,  Up: Words
+
+Blocks
+======
+
+   When you run Gforth on a modern desk-top computer, it runs under the
+control of an operating system which provides certain services.  One of
+these services is FILE SERVICES, which allows Forth source code and
+data to be stored in files and read into Gforth (*note Files::).
+
+   Traditionally, Forth has been an important programming language on
+systems where it has interfaced directly to the underlying hardware with
+no intervening operating system. Forth provides a mechanism, called
+"blocks", for accessing mass storage on such systems.
+
+   A block is a 1024-byte data area, which can be used to hold data or
+Forth source code. No structure is imposed on the contents of the
+block. A block is identified by its number; blocks are numbered
+contiguously from 1 to an implementation-defined maximum.
+
+   A typical system that used blocks but no operating system might use a
+single floppy-disk drive for mass storage, with the disks formatted to
+provide 256-byte sectors. Blocks would be implemented by assigning the
+first four sectors of the disk to block 1, the second four sectors to
+block 2 and so on, up to the limit of the capacity of the disk. The disk
+would not contain any file system information, just the set of blocks.
+
+   On systems that do provide file services, blocks are typically
+implemented by storing a sequence of blocks within a single "blocks
+file".  The size of the blocks file will be an exact multiple of 1024
+bytes, corresponding to the number of blocks it contains. This is the
+mechanism that Gforth uses.
+
+   Only one blocks file can be open at a time. If you use block words
+without having specified a blocks file, Gforth defaults to the blocks
+file `blocks.fb'. Gforth uses the Forth search path when attempting to
+locate a blocks file (*note Source Search Paths::).
+
+   When you read and write blocks under program control, Gforth uses a
+number of "block buffers" as intermediate storage. These buffers are
+not used when you use `load' to interpret the contents of a block.
+
+   The behaviour of the block buffers is analagous to that of a cache.
+Each block buffer has three states:
+
+   * Unassigned
+
+   * Assigned-clean
+
+   * Assigned-dirty
+
+   Initially, all block buffers are unassigned. In order to access a
+block, the block (specified by its block number) must be assigned to a
+block buffer.
+
+   The assignment of a block to a block buffer is performed by `block'
+or `buffer'. Use `block' when you wish to modify the existing contents
+of a block. Use `buffer' when you don't care about the existing
+contents of the block(1).
+
+   Once a block has been assigned to a block buffer using `block' or
+`buffer', that block buffer becomes the current block buffer. Data may
+only be manipulated (read or written) within the current block buffer.
+
+   When the contents of the current block buffer has been modified it is
+necessary, _before calling `block' or `buffer' again_, to either
+abandon the changes (by doing nothing) or mark the block as changed
+(assigned-dirty), using `update'. Using `update' does not change the
+blocks file; it simply changes a block buffer's state to
+assigned-dirty.  The block will be written implicitly when it's buffer
+is needed for another block, or explicitly by `flush' or `save-buffers'.
+
+   word `Flush' writes all assigned-dirty blocks back to the blocks
+file on disk. Leaving Gforth with `bye' also performs a `flush'.
+
+   In Gforth, `block' and `buffer' use a direct-mapped algorithm to
+assign a block buffer to a block. That means that any particular block
+can only be assigned to one specific block buffer, called (for the
+particular operation) the victim buffer. If the victim buffer is
+unassigned or assigned-clean it is allocated to the new block
+immediately. If it is assigned-dirty its current contents are written
+back to the blocks file on disk before it is allocated to the new block.
+
+   Although no structure is imposed on the contents of a block, it is
+traditional to display the contents as 16 lines each of 64 characters.
+A block provides a single, continuous stream of input (for example, it
+acts as a single parse area) - there are no end-of-line characters
+within a block, and no end-of-file character at the end of a block.
+There are two consequences of this:
+
+   * The last character of one line wraps straight into the first
+     character of the following line
+
+   * The word `\' - comment to end of line - requires special
+     treatment; in the context of a block it causes all characters
+     until the end of the current 64-character "line" to be ignored.
+
+   In Gforth, when you use `block' with a non-existent block number,
+the current blocks file will be extended to the appropriate size and the
+block buffer will be initialised with spaces.
+
+   Gforth includes a simple block editor (type `use blocked.fb 0 list'
+for details) but doesn't encourage the use of blocks; the mechanism is
+only provided for backward compatibility - ANS Forth requires blocks to
+be available when files are.
+
+   Common techniques that are used when working with blocks include:
+
+   * A screen editor that allows you to edit blocks without leaving the
+     Forth environment.
+
+   * Shadow screens; where every code block has an associated block
+     containing comments (for example: code in odd block numbers,
+     comments in even block numbers). Typically, the block editor
+     provides a convenient mechanism to toggle between code and
+     comments.
+
+   * Load blocks; a single block (typically block 1) contains a number
+     of `thru' commands which `load' the whole of the application.
+
+   See Frank Sergeant's Pygmy Forth to see just how well blocks can be
+integrated into a Forth programming environment.
+
+`open-blocks'       c-addr u -         gforth       ``open-blocks''
+   Use the file, whose name is given by c-addr u, as the blocks file.
+
+`use'       "file" -         gforth       ``use''
+   Use file as the blocks file.
+
+`block-offset'       - addr         gforth       ``block-offset''
+   User variable containing the number of the first block (default
+since 0.5.0: 0).  Block files created with Gforth versions before 0.5.0
+have the offset 1.  If you use these files you can: `1 offset !'; or
+add 1 to every block number used; or prepend 1024 characters to the
+file.
+
+`get-block-fid'       - wfileid         gforth       ``get-block-fid''
+   Return the file-id of the current blocks file. If no blocks file has
+been opened, use `blocks.fb' as the default blocks file.
+
+`block-position'       u -         block       ``block-position''
+   Position the block file to the start of block u.
+
+`list'       u -         block-ext       ``list''
+   Display block u. In Gforth, the block is displayed as 16 numbered
+lines, each of 64 characters.
+
+`scr'       - a-addr         block-ext       ``s-c-r''
+   `User' variable - a-addr is the address of a cell containing the
+block number of the block most recently processed by `list'.
+
+`block'       u - a-addr         block       ``block''
+   If a block buffer is assigned for block u, return its start address,
+a-addr. Otherwise, assign a block buffer for block u (if the assigned
+block buffer has been `update'd, transfer the contents to mass
+storage), read the block into the block buffer and return its start
+address, a-addr.
+
+`buffer'       u - a-addr         block       ``buffer''
+   If a block buffer is assigned for block u, return its start address,
+a-addr. Otherwise, assign a block buffer for block u (if the assigned
+block buffer has been `update'd, transfer the contents to mass storage)
+and return its start address, a-addr.  The subtle difference between
+`buffer' and `block' mean that you should only use `buffer' if you
+don't care about the previous contents of block u. In Gforth, this
+simply calls `block'.
+
+`empty-buffers'       -         block-ext       ``empty-buffers''
+   Mark all block buffers as unassigned; if any had been marked as
+assigned-dirty (by `update'), the changes to those blocks will be lost.
+
+`empty-buffer'       buffer -         gforth       ``empty-buffer''
+
+`update'       -         block       ``update''
+   Mark the state of the current block buffer as assigned-dirty.
+
+`updated?'       n - f         gforth       ``updated?''
+   Return true if `updated' has been used to mark block n as
+assigned-dirty.
+
+`save-buffers'       -         block       ``save-buffers''
+   Transfer the contents of each `update'd block buffer to mass
+storage, then mark all block buffers as assigned-clean.
+
+`save-buffer'       buffer -         gforth       ``save-buffer''
+
+`flush'       -         block       ``flush''
+   Perform the functions of `save-buffers' then `empty-buffers'.
+
+`load'       i*x n - j*x         block       ``load''
+   Save the current input source specification. Store n in `BLK', set
+`>IN' to 0 and interpret. When the parse area is exhausted, restore the
+input source specification.
+
+`thru'       i*x n1 n2 - j*x         block-ext       ``thru''
+   `load' the blocks n1 through n2 in sequence.
+
+`+load'       i*x n - j*x         gforth       ``+load''
+   Used within a block to load the block specified as the current block
++ n.
+
+`+thru'       i*x n1 n2 - j*x         gforth       ``+thru''
+   Used within a block to load the range of blocks specified as the
+current block + n1 thru the current block + n2.
+
+`-->'       -         gforth       ``chain''
+   If this symbol is encountered whilst loading block n, discard the
+remainder of the block and load block n+1. Used for chaining multiple
+blocks together as a single loadable unit.  Not recommended, because it
+destroys the independence of loading.  Use `thru' (which is standard)
+or `+thru' instead.
+
+`block-included'       a-addr u -         gforth       ``block-included''
+   Use within a block that is to be processed by `load'. Save the
+current blocks file specification, open the blocks file specified by
+a-addr u and `load' block 1 from that file (which may in turn chain or
+load other blocks). Finally, close the blocks file and restore the
+original blocks file.
+
+   ---------- Footnotes ----------
+
+   (1) The ANS Forth definition of `buffer' is intended not to cause
+disk I/O; if the data associated with the particular block is already
+stored in a block buffer due to an earlier `block' command, `buffer'
+will return that block buffer and the existing contents of the block
+will be available. Otherwise, `buffer' will simply assign a new, empty
+block buffer for the block.
+
+
+File: gforth.info,  Node: Other I/O,  Next: Locals,  Prev: Blocks,  Up: Words
+
+Other I/O
+=========
+
+* Menu:
+
+* Simple numeric output::       Predefined formats
+* Formatted numeric output::    Formatted (pictured) output
+* String Formats::              How Forth stores strings in memory
+* Displaying characters and strings::  Other stuff
+* Input::                       Input
+* Pipes::                       How to create your own pipes
+
+
+File: gforth.info,  Node: Simple numeric output,  Next: Formatted numeric output,  Prev: Other I/O,  Up: Other I/O
+
+Simple numeric output
+---------------------
+
+   The simplest output functions are those that display numbers from the
+data or floating-point stacks. Floating-point output is always displayed
+using base 10. Numbers displayed from the data stack use the value
+stored in `base'.
+
+`.'       n -         core       ``dot''
+   Display (the signed single number) N in free-format, followed by a
+space.
+
+`dec.'       n -         gforth       ``dec.''
+   Display n as a signed decimal number, followed by a space.
+
+`hex.'       u -         gforth       ``hex.''
+   Display u as an unsigned hex number, prefixed with a "$" and
+followed by a space.
+
+`u.'       u -         core       ``u-dot''
+   Display (the unsigned single number) U in free-format, followed by a
+space.
+
+`.r'       n1 n2 -         core-ext       ``dot-r''
+   Display N1 right-aligned in a field N2 characters wide. If more than
+N2 characters are needed to display the number, all digits are
+displayed.  If appropriate, N2 must include a character for a leading
+"-".
+
+`u.r'       u n -         core-ext       ``u-dot-r''
+   Display U right-aligned in a field N characters wide. If more than N
+characters are needed to display the number, all digits are displayed.
+
+`d.'       d -         double       ``d-dot''
+   Display (the signed double number) D in free-format. followed by a
+space.
+
+`ud.'       ud -         gforth       ``u-d-dot''
+   Display (the signed double number) UD in free-format, followed by a
+space.
+
+`d.r'       d n -         double       ``d-dot-r''
+   Display D right-aligned in a field N characters wide. If more than N
+characters are needed to display the number, all digits are displayed.
+If appropriate, N must include a character for a leading "-".
+
+`ud.r'       ud n -         gforth       ``u-d-dot-r''
+   Display UD right-aligned in a field N characters wide. If more than
+N characters are needed to display the number, all digits are displayed.
+
+`f.'       r -         float-ext       ``f-dot''
+   Display (the floating-point number) r without exponent, followed by
+a space.
+
+`fe.'       r -         float-ext       ``f-e-dot''
+   Display r using engineering notation (with exponent dividable by 3),
+followed by a space.
+
+`fs.'       r -         float-ext       ``f-s-dot''
+   Display r using scientific notation (with exponent), followed by a
+space.
+
+`f.rdp'       rf +nr +nd +np -         gforth       ``f.rdp''
+   Print float rf formatted.  The total width of the output is nr.  For
+fixed-point notation, the number of digits after the decimal point is
++nd and the minimum number of significant digits is np.
+`Set-precision' has no effect on `f.rdp'.  Fixed-point notation is used
+if the number of siginicant digits would be at least np and if the
+number of digits before the decimal point would fit.  If fixed-point
+notation is not used, exponential notation is used, and if that does not
+fit, asterisks are printed.  We recommend using nr>=7 to avoid the risk
+of numbers not fitting at all.  We recommend nr>=np+5 to avoid cases
+where `f.rdp' switches to exponential notation because fixed-point
+notation would have too few significant digits, yet exponential
+notation offers fewer significant digits.  We recommend nr>=nd+2, if
+you want to have fixed-point notation for some numbers.  We recommend
+np>nr, if you want to have exponential notation for all numbers.
+
+   Examples of printing the number 1234.5678E23 in the different
+floating-point output formats are shown below:
+
+     f. 123456779999999000000000000.
+     fe. 123.456779999999E24
+     fs. 1.23456779999999E26
+
+
+File: gforth.info,  Node: Formatted numeric output,  Next: String Formats,  Prev: Simple numeric output,  Up: Other I/O
+
+Formatted numeric output
+------------------------
+
+   Forth traditionally uses a technique called "pictured numeric
+output" for formatted printing of integers.  In this technique, digits
+are extracted from the number (using the current output radix defined by
+`base'), converted to ASCII codes and appended to a string that is
+built in a scratch-pad area of memory (*note Implementation-defined
+options: core-idef.). Arbitrary characters can be appended to the
+string during the extraction process. The completed string is specified
+by an address and length and can be manipulated (`TYPE'ed, copied,
+modified) under program control.
+
+   All of the integer output words described in the previous section
+(*note Simple numeric output::) are implemented in Gforth using pictured
+numeric output.
+
+   Three important things to remember about pictured numeric output:
+
+   * It always operates on double-precision numbers; to display a
+     single-precision number, convert it first (for ways of doing this
+     *note Double precision::).
+
+   * It always treats the double-precision number as though it were
+     unsigned. The examples below show ways of printing signed numbers.
+
+   * The string is built up from right to left; least significant digit
+     first.
+
+`<#'       -         core       ``less-number-sign''
+   Initialise/clear the pictured numeric output string.
+
+`<<#'       -         gforth       ``less-less-number-sign''
+   Start a hold area that ends with `#>>'. Can be nested in each other
+and in `<#'.  Note: if you do not match up the `<<#'s with `#>>'s, you
+will eventually run out of hold area; you can reset the hold area to
+empty with `<#'.
+
+`#'       ud1 - ud2         core       ``number-sign''
+   Used within `<#' and `#>'. Add the next least-significant digit to
+the pictured numeric output string. This is achieved by dividing UD1 by
+the number in `base' to leave quotient UD2 and remainder N; N is
+converted to the appropriate display code (eg ASCII code) and appended
+to the string. If the number has been fully converted, UD1 will be 0
+and `#' will append a "0" to the string.
+
+`#s'       ud - 0 0         core       ``number-sign-s''
+   Used within `<#' and `#>'. Convert all remaining digits using the
+same algorithm as for `#'. `#s' will convert at least one digit.
+Therefore, if UD is 0, `#s' will append a "0" to the pictured numeric
+output string.
+
+`hold'       char -         core       ``hold''
+   Used within `<#' and `#>'. Append the character CHAR to the pictured
+numeric output string.
+
+`sign'       n -         core       ``sign''
+   Used within `<#' and `#>'. If N (a SINGLE number) is negative,
+append the display code for a minus sign to the pictured numeric output
+string. Since the string is built up "backwards" this is usually used
+immediately prior to `#>', as shown in the examples below.
+
+`#>'       xd - addr u         core       ``number-sign-greater''
+   Complete the pictured numeric output string by discarding XD and
+returning ADDR U; the address and length of the formatted string. A
+Standard program may modify characters within the string.
+
+`#>>'       -         gforth       ``number-sign-greater-greater''
+   Release the hold area started with `<<#'.
+
+`represent'       r c-addr u - n f1 f2        float       ``represent''
+
+`f>str-rdp'       rf +nr +nd +np - c-addr nr         gforth       ``f>str-rdp''
+   Convert rf into a string at c-addr nr.  The conversion rules and the
+meanings of nr +nd np are the same as for `f.rdp'.  The result in in
+the pictured numeric output buffer and will be destroyed by anything
+destroying that buffer.
+
+   doc-f>buf-rdp
+
+Here are some examples of using pictured numeric output:
+
+     : my-u. ( u -- )
+       \ Simplest use of pns.. behaves like Standard u.
+       0              \ convert to unsigned double
+       <<#            \ start conversion
+       #s             \ convert all digits
+       #>             \ complete conversion
+       TYPE SPACE     \ display, with trailing space
+       #>> ;          \ release hold area
+     
+     : cents-only ( u -- )
+       0              \ convert to unsigned double
+       <<#            \ start conversion
+       # #            \ convert two least-significant digits
+       #>             \ complete conversion, discard other digits
+       TYPE SPACE     \ display, with trailing space
+       #>> ;          \ release hold area
+     
+     : dollars-and-cents ( u -- )
+       0              \ convert to unsigned double
+       <<#            \ start conversion
+       # #            \ convert two least-significant digits
+       [char] . hold  \ insert decimal point
+       #s             \ convert remaining digits
+       [char] $ hold  \ append currency symbol
+       #>             \ complete conversion
+       TYPE SPACE     \ display, with trailing space
+       #>> ;          \ release hold area
+     
+     : my-. ( n -- )
+       \ handling negatives.. behaves like Standard .
+       s>d            \ convert to signed double
+       swap over dabs \ leave sign byte followed by unsigned double
+       <<#            \ start conversion
+       #s             \ convert all digits
+       rot sign       \ get at sign byte, append "-" if needed
+       #>             \ complete conversion
+       TYPE SPACE     \ display, with trailing space
+       #>> ;          \ release hold area
+     
+     : account. ( n -- )
+       \ accountants don't like minus signs, they use parentheses
+       \ for negative numbers
+       s>d            \ convert to signed double
+       swap over dabs \ leave sign byte followed by unsigned double
+       <<#            \ start conversion
+       2 pick         \ get copy of sign byte
+       0< IF [char] ) hold THEN \ right-most character of output
+       #s             \ convert all digits
+       rot            \ get at sign byte
+       0< IF [char] ( hold THEN
+       #>             \ complete conversion
+       TYPE SPACE     \ display, with trailing space
+       #>> ;          \ release hold area
+
+   Here are some examples of using these words:
+
+     1 my-u. 1
+     hex -1 my-u. decimal FFFFFFFF
+     1 cents-only 01
+     1234 cents-only 34
+     2 dollars-and-cents $0.02
+     1234 dollars-and-cents $12.34
+     123 my-. 123
+     -123 my. -123
+     123 account. 123
+     -456 account. (456)
+
+
+File: gforth.info,  Node: String Formats,  Next: Displaying characters and strings,  Prev: Formatted numeric output,  Up: Other I/O
+
+String Formats
+--------------
+
+   Forth commonly uses two different methods for representing character
+strings:
+
+   * As a "counted string", represented by a c-addr. The char addressed
+     by c-addr contains a character-count, n, of the string and the
+     string occupies the subsequent n char addresses in memory.
+
+   * As cell pair on the stack; c-addr u, where u is the length of the
+     string in characters, and c-addr is the address of the first byte
+     of the string.
+
+   ANS Forth encourages the use of the second format when representing
+strings.
+
+`count'       c-addr1 - c-addr2 u        core       ``count''
+   c-addr2 is the first character and u the length of the counted
+string at c-addr1.
+
+   For words that move, copy and search for strings see *Note Memory
+Blocks::. For words that display characters and strings see *Note
+Displaying characters and strings::.
+
+
+File: gforth.info,  Node: Displaying characters and strings,  Next: Input,  Prev: String Formats,  Up: Other I/O
+
+Displaying characters and strings
+---------------------------------
+
+   This section starts with a glossary of Forth words and ends with a
+set of examples.
+
+`bl'       - c-char         core       ``b-l''
+   c-char is the character value for a space.
+
+`space'       -         core       ``space''
+   Display one space.
+
+`spaces'       u -         core       ``spaces''
+   Display N spaces.
+
+`emit'       c -         core       ``emit''
+   Display the character associated with character value c.
+
+`toupper'       c1 - c2        gforth       ``toupper''
+   If c1 is a lower-case character (in the current locale), c2 is the
+equivalent upper-case character. All other characters are unchanged.
+
+`."'       compilation 'ccc"' - ; run-time -         core       ``dot-quote''
+   Compilation: Parse a string ccc delimited by a " (double quote). At
+run-time, display the string. Interpretation semantics for this word
+are undefined in ANS Forth. Gforth's interpretation semantics are to
+display the string. This is the simplest way to display a string from
+within a definition; see examples below.
+
+`.('       compilation&interpretation "ccc<paren>" -         core-ext       ``dot-paren''
+   Compilation and interpretation semantics: Parse a string ccc
+delimited by a `)' (right parenthesis). Display the string. This is
+often used to display progress information during compilation; see
+examples below.
+
+`.\"'       compilation 'ccc"' - ; run-time -         gforth       ``dot-backslash-quote''
+
+`type'       c-addr u -         core       ``type''
+   If U>0, display U characters from a string starting with the
+character stored at C-ADDR.
+
+`typewhite'       addr n -         gforth       ``typewhite''
+   Like type, but white space is printed instead of the characters.
+
+`cr'       -         core       ``c-r''
+   Output a newline (of the favourite kind of the host OS).  Note that
+due to the way the Forth command line interpreter inserts newlines, the
+preferred way to use `cr' is at the start of a piece of text; e.g., `cr
+." hello, world"'.
+
+`at-xy'       u1 u2 -         facility       ``at-x-y''
+   Position the cursor so that subsequent text output will take place
+at column U1, row U2 of the display. (column 0, row 0 is the top
+left-hand corner of the display).
+
+`page'       -         facility       ``page''
+   Clear the display and set the cursor to the top left-hand corner.
+
+`S"'       compilation 'ccc"' - ; run-time - c-addr u         core,file       ``s-quote''
+   Compilation: Parse a string ccc delimited by a `"' (double quote).
+At run-time, return the length, u, and the start address, c-addr of the
+string. Interpretation: parse the string as before, and return c-addr,
+u. Gforth `allocate's the string. The resulting memory leak is usually
+not a problem; the exception is if you create strings containing `S"'
+and `evaluate' them; then the leak is not bounded by the size of the
+interpreted files and you may want to `free' the strings.  ANS Forth
+only guarantees one buffer of 80 characters, so in standard programs
+you should assume that the string lives only until the next `s"'.
+
+`s\"'       compilation 'ccc"' - ; run-time - c-addr u         gforth       ``s-backslash-quote''
+   Like `S"', but translates C-like \-escape-sequences into single
+characters.  See `\"-parse' for details.
+
+`C"'       compilation "ccc<quote>" - ; run-time  - c-addr         core-ext       ``c-quote''
+   Compilation: parse a string ccc delimited by a `"' (double quote).
+At run-time, return c-addr which specifies the counted string ccc.
+Interpretation semantics are undefined.
+
+`char'       '<spaces>ccc' - c         core       ``char''
+   Skip leading spaces. Parse the string ccc and return c, the display
+code representing the first character of ccc.
+
+`[Char]'       compilation '<spaces>ccc' - ; run-time - c         core       ``bracket-char''
+   Compilation: skip leading spaces. Parse the string ccc. Run-time:
+return c, the display code representing the first character of ccc.
+Interpretation semantics for this word are undefined.
+
+As an example, consider the following text, stored in a file `test.fs':
+
+     .( text-1)
+     : my-word
+       ." text-2" cr
+       .( text-3)
+     ;
+     
+     ." text-4"
+     
+     : my-char
+       [char] ALPHABET emit
+       char emit
+     ;
+
+   When you load this code into Gforth, the following output is
+generated:
+
+     include test.fs <RET> text-1text-3text-4 ok
+
+   * Messages `text-1' and `text-3' are displayed because `.(' is an
+     immediate word; it behaves in the same way whether it is used
+     inside or outside a colon definition.
+
+   * Message `text-4' is displayed because of Gforth's added
+     interpretation semantics for `."'.
+
+   * Message `text-2' is not displayed, because the text interpreter
+     performs the compilation semantics for `."' within the definition
+     of `my-word'.
+
+   Here are some examples of executing `my-word' and `my-char':
+
+     my-word <RET> text-2
+      ok
+     my-char fred <RET> Af ok
+     my-char jim <RET> Aj ok
+
+   * Message `text-2' is displayed because of the run-time behaviour of
+     `."'.
+
+   * `[char]' compiles the "A" from "ALPHABET" and puts its display code
+     on the stack at run-time. `emit' always displays the character
+     when `my-char' is executed.
+
+   * `char' parses a string at run-time and the second `emit' displays
+     the first character of the string.
+
+   * If you type `see my-char' you can see that `[char]' discarded the
+     text "LPHABET" and only compiled the display code for "A" into the
+     definition of `my-char'.
+
+
+File: gforth.info,  Node: Input,  Next: Pipes,  Prev: Displaying characters and strings,  Up: Other I/O
+
+Input
+-----
+
+   For ways of storing character strings in memory see *Note String
+Formats::.
+
+`key'       - char         core       ``key''
+   Receive (but do not display) one character, CHAR.
+
+`key?'       - flag         facility       ``key-question''
+   Determine whether a character is available. If a character is
+available, FLAG is true; the next call to `key' will yield the
+character. Once `key?' returns true, subsequent calls to `key?' before
+calling `key' or `ekey' will also return true.
+
+`ekey'       - u         facility-ext       ``e-key''
+
+`ekey?'       - flag         unknown       ``ekey?''
+
+`ekey>char'       u - u false | c true         facility-ext       ``e-key-to-char''
+
+`>number'       ud1 c-addr1 u1 - ud2 c-addr2 u2         core       ``to-number''
+   Attempt to convert the character string C-ADDR1 U1 to an unsigned
+number in the current number base. The double UD1 accumulates the
+result of the conversion to form UD2. Conversion continues,
+left-to-right, until the whole string is converted or a character that
+is not convertable in the current number base is encountered (including
++ or -). For each convertable character, UD1 is first multiplied by the
+value in `BASE' and then incremented by the value represented by the
+character. C-ADDR2 is the location of the first unconverted character
+(past the end of the string if the whole string was converted). U2 is
+the number of unconverted characters in the string. Overflow is not
+detected.
+
+`>float'       c-addr u - flag        float       ``to-float''
+   Actual stack effect: ( c_addr u - r t | f ).  Attempt to convert the
+character string c-addr u to internal floating-point representation. If
+the string represents a valid floating-point number r is placed on the
+floating-point stack and flag is true. Otherwise, flag is false. A
+string of blanks is a special case and represents the floating-point
+number 0.
+
+`accept'       c-addr +n1 - +n2         core       ``accept''
+   Get a string of up to N1 characters from the user input device and
+store it at C-ADDR.  N2 is the length of the received string. The user
+indicates the end by pressing <RET>.  Gforth supports all the editing
+functions available on the Forth command line (including history and
+word completion) in `accept'.
+
+`edit-line'       c-addr n1 n2 - n3         gforth       ``edit-line''
+   edit the string with length N2 in the buffer C-ADDR N1, like
+`accept'.
+
+`pad'       - c-addr         core-ext       ``pad''
+   C-ADDR is the address of a transient region that can be used as
+temporary data storage. At least 84 characters of space is available.
+
+`convert'       ud1 c-addr1 - ud2 c-addr2         core-ext       ``convert''
+   OBSOLESCENT: superseded by `>number'.
+
+`expect'       c-addr +n -         core-ext       ``expect''
+   Receive a string of at most +n characters, and store it in memory
+starting at c-addr. The string is displayed. Input terminates when the
+<return> key is pressed or +n characters have been received. The normal
+Gforth line editing capabilites are available. The length of the string
+is stored in `span'; it does not include the <return> character.
+OBSOLESCENT: superceeded by `accept'.
+
+`span'       - c-addr         core-ext       ``span''
+   `Variable' - c-addr is the address of a cell that stores the length
+of the last string received by `expect'. OBSOLESCENT.
+
+
+File: gforth.info,  Node: Pipes,  Prev: Input,  Up: Other I/O
+
+Pipes
+-----
+
+   In addition to using Gforth in pipes created by other processes
+(*note Gforth in pipes::), you can create your own pipe with
+`open-pipe', and read from or write to it.
+
+`open-pipe'       c-addr u wfam - wfileid wior        gforth       ``open-pipe''
+
+`close-pipe'       wfileid - wretval wior        gforth       ``close-pipe''
+
+   If you write to a pipe, Gforth can throw a `broken-pipe-error'; if
+you don't catch this exception, Gforth will catch it and exit, usually
+silently (*note Gforth in pipes::).  Since you probably do not want
+this, you should wrap a `catch' or `try' block around the code from
+`open-pipe' to `close-pipe', so you can deal with the problem yourself,
+and then return to regular processing.
+
+`broken-pipe-error'       - n         gforth       ``broken-pipe-error''
+   the error number for a broken pipe
+
+
+File: gforth.info,  Node: Locals,  Next: Structures,  Prev: Other I/O,  Up: Words
+
+Locals
+======
+
+   Local variables can make Forth programming more enjoyable and Forth
+programs easier to read. Unfortunately, the locals of ANS Forth are
+laden with restrictions. Therefore, we provide not only the ANS Forth
+locals wordset, but also our own, more powerful locals wordset (we
+implemented the ANS Forth locals wordset through our locals wordset).
+
+   The ideas in this section have also been published in M. Anton Ertl,
+`Automatic Scoping of Local Variables
+(http://www.complang.tuwien.ac.at/papers/ertl94l.ps.gz)', EuroForth '94.
+
+* Menu:
+
+* Gforth locals::
+* ANS Forth locals::
+
+
+File: gforth.info,  Node: Gforth locals,  Next: ANS Forth locals,  Prev: Locals,  Up: Locals
+
+Gforth locals
+-------------
+
+   Locals can be defined with
+
+     { local1 local2 ... -- comment }
+   or
+     { local1 local2 ... }
+
+   E.g.,
+     : max { n1 n2 -- n3 }
+      n1 n2 > if
+        n1
+      else
+        n2
+      endif ;
+
+   The similarity of locals definitions with stack comments is
+intended. A locals definition often replaces the stack comment of a
+word. The order of the locals corresponds to the order in a stack
+comment and everything after the `--' is really a comment.
+
+   This similarity has one disadvantage: It is too easy to confuse
+locals declarations with stack comments, causing bugs and making them
+hard to find. However, this problem can be avoided by appropriate coding
+conventions: Do not use both notations in the same program. If you do,
+they should be distinguished using additional means, e.g. by position.
+
+   The name of the local may be preceded by a type specifier, e.g.,
+`F:' for a floating point value:
+
+     : CX* { F: Ar F: Ai F: Br F: Bi -- Cr Ci }
+     \ complex multiplication
+      Ar Br f* Ai Bi f* f-
+      Ar Bi f* Ai Br f* f+ ;
+
+   Gforth currently supports cells (`W:', `W^'), doubles (`D:', `D^'),
+floats (`F:', `F^') and characters (`C:', `C^') in two flavours: a
+value-flavoured local (defined with `W:', `D:' etc.) produces its value
+and can be changed with `TO'. A variable-flavoured local (defined with
+`W^' etc.)  produces its address (which becomes invalid when the
+variable's scope is left). E.g., the standard word `emit' can be
+defined in terms of `type' like this:
+
+     : emit { C^ char* -- }
+         char* 1 type ;
+
+   A local without type specifier is a `W:' local. Both flavours of
+locals are initialized with values from the data or FP stack.
+
+   Currently there is no way to define locals with user-defined data
+structures, but we are working on it.
+
+   Gforth allows defining locals everywhere in a colon definition. This
+poses the following questions:
+
+* Menu:
+
+* Where are locals visible by name?::
+* How long do locals live?::
+* Locals programming style::
+* Locals implementation::
+
+
+File: gforth.info,  Node: Where are locals visible by name?,  Next: How long do locals live?,  Prev: Gforth locals,  Up: Gforth locals
+
+Where are locals visible by name?
+.................................
+
+   Basically, the answer is that locals are visible where you would
+expect it in block-structured languages, and sometimes a little longer.
+If you want to restrict the scope of a local, enclose its definition in
+`SCOPE'...`ENDSCOPE'.
+
+`scope'       compilation  - scope ; run-time  -         gforth       ``scope''
+
+`endscope'       compilation scope - ; run-time  -         gforth       ``endscope''
+
+   These words behave like control structure words, so you can use them
+with `CS-PICK' and `CS-ROLL' to restrict the scope in arbitrary ways.
+
+   If you want a more exact answer to the visibility question, here's
+the basic principle: A local is visible in all places that can only be
+reached through the definition of the local(1). In other words, it is
+not visible in places that can be reached without going through the
+definition of the local. E.g., locals defined in `IF'...`ENDIF' are
+visible until the `ENDIF', locals defined in `BEGIN'...`UNTIL' are
+visible after the `UNTIL' (until, e.g., a subsequent `ENDSCOPE').
+
+   The reasoning behind this solution is: We want to have the locals
+visible as long as it is meaningful. The user can always make the
+visibility shorter by using explicit scoping. In a place that can only
+be reached through the definition of a local, the meaning of a local
+name is clear. In other places it is not: How is the local initialized
+at the control flow path that does not contain the definition? Which
+local is meant, if the same name is defined twice in two independent
+control flow paths?
+
+   This should be enough detail for nearly all users, so you can skip
+the rest of this section. If you really must know all the gory details
+and options, read on.
+
+   In order to implement this rule, the compiler has to know which
+places are unreachable. It knows this automatically after `AHEAD',
+`AGAIN', `EXIT' and `LEAVE'; in other cases (e.g., after most
+`THROW's), you can use the word `UNREACHABLE' to tell the compiler that
+the control flow never reaches that place. If `UNREACHABLE' is not used
+where it could, the only consequence is that the visibility of some
+locals is more limited than the rule above says. If `UNREACHABLE' is
+used where it should not (i.e., if you lie to the compiler), buggy code
+will be produced.
+
+`UNREACHABLE'       -         gforth       ``UNREACHABLE''
+
+   Another problem with this rule is that at `BEGIN', the compiler does
+not know which locals will be visible on the incoming back-edge. All
+problems discussed in the following are due to this ignorance of the
+compiler (we discuss the problems using `BEGIN' loops as examples; the
+discussion also applies to `?DO' and other loops). Perhaps the most
+insidious example is:
+     AHEAD
+     BEGIN
+       x
+     [ 1 CS-ROLL ] THEN
+       { x }
+       ...
+     UNTIL
+
+   This should be legal according to the visibility rule. The use of
+`x' can only be reached through the definition; but that appears
+textually below the use.
+
+   From this example it is clear that the visibility rules cannot be
+fully implemented without major headaches. Our implementation treats
+common cases as advertised and the exceptions are treated in a safe
+way: The compiler makes a reasonable guess about the locals visible
+after a `BEGIN'; if it is too pessimistic, the user will get a spurious
+error about the local not being defined; if the compiler is too
+optimistic, it will notice this later and issue a warning. In the case
+above the compiler would complain about `x' being undefined at its use.
+You can see from the obscure examples in this section that it takes
+quite unusual control structures to get the compiler into trouble, and
+even then it will often do fine.
+
+   If the `BEGIN' is reachable from above, the most optimistic guess is
+that all locals visible before the `BEGIN' will also be visible after
+the `BEGIN'. This guess is valid for all loops that are entered only
+through the `BEGIN', in particular, for normal
+`BEGIN'...`WHILE'...`REPEAT' and `BEGIN'...`UNTIL' loops and it is
+implemented in our compiler. When the branch to the `BEGIN' is finally
+generated by `AGAIN' or `UNTIL', the compiler checks the guess and
+warns the user if it was too optimistic:
+     IF
+       { x }
+     BEGIN
+       \ x ?
+     [ 1 cs-roll ] THEN
+       ...
+     UNTIL
+
+   Here, `x' lives only until the `BEGIN', but the compiler
+optimistically assumes that it lives until the `THEN'. It notices this
+difference when it compiles the `UNTIL' and issues a warning. The user
+can avoid the warning, and make sure that `x' is not used in the wrong
+area by using explicit scoping:
+     IF
+       SCOPE
+       { x }
+       ENDSCOPE
+     BEGIN
+     [ 1 cs-roll ] THEN
+       ...
+     UNTIL
+
+   Since the guess is optimistic, there will be no spurious error
+messages about undefined locals.
+
+   If the `BEGIN' is not reachable from above (e.g., after `AHEAD' or
+`EXIT'), the compiler cannot even make an optimistic guess, as the
+locals visible after the `BEGIN' may be defined later. Therefore, the
+compiler assumes that no locals are visible after the `BEGIN'. However,
+the user can use `ASSUME-LIVE' to make the compiler assume that the
+same locals are visible at the BEGIN as at the point where the top
+control-flow stack item was created.
+
+`ASSUME-LIVE'       orig - orig         gforth       ``ASSUME-LIVE''
+
+E.g.,
+     { x }
+     AHEAD
+     ASSUME-LIVE
+     BEGIN
+       x
+     [ 1 CS-ROLL ] THEN
+       ...
+     UNTIL
+
+   Other cases where the locals are defined before the `BEGIN' can be
+handled by inserting an appropriate `CS-ROLL' before the `ASSUME-LIVE'
+(and changing the control-flow stack manipulation behind the
+`ASSUME-LIVE').
+
+   Cases where locals are defined after the `BEGIN' (but should be
+visible immediately after the `BEGIN') can only be handled by
+rearranging the loop. E.g., the "most insidious" example above can be
+arranged into:
+     BEGIN
+       { x }
+       ... 0=
+     WHILE
+       x
+     REPEAT
+
+   ---------- Footnotes ----------
+
+   (1) In compiler construction terminology, all places dominated by
+the definition of the local.
+
+
+File: gforth.info,  Node: How long do locals live?,  Next: Locals programming style,  Prev: Where are locals visible by name?,  Up: Gforth locals
+
+How long do locals live?
+........................
+
+   The right answer for the lifetime question would be: A local lives at
+least as long as it can be accessed. For a value-flavoured local this
+means: until the end of its visibility. However, a variable-flavoured
+local could be accessed through its address far beyond its visibility
+scope. Ultimately, this would mean that such locals would have to be
+garbage collected. Since this entails un-Forth-like implementation
+complexities, I adopted the same cowardly solution as some other
+languages (e.g., C): The local lives only as long as it is visible;
+afterwards its address is invalid (and programs that access it
+afterwards are erroneous).
+
+
+File: gforth.info,  Node: Locals programming style,  Next: Locals implementation,  Prev: How long do locals live?,  Up: Gforth locals
+
+Locals programming style
+........................
+
+   The freedom to define locals anywhere has the potential to change
+programming styles dramatically. In particular, the need to use the
+return stack for intermediate storage vanishes. Moreover, all stack
+manipulations (except `PICK's and `ROLL's with run-time determined
+arguments) can be eliminated: If the stack items are in the wrong
+order, just write a locals definition for all of them; then write the
+items in the order you want.
+
+   This seems a little far-fetched and eliminating stack manipulations
+is unlikely to become a conscious programming objective. Still, the
+number of stack manipulations will be reduced dramatically if local
+variables are used liberally (e.g., compare `max' (*note Gforth
+locals::) with a traditional implementation of `max').
+
+   This shows one potential benefit of locals: making Forth programs
+more readable. Of course, this benefit will only be realized if the
+programmers continue to honour the principle of factoring instead of
+using the added latitude to make the words longer.
+
+   Using `TO' can and should be avoided.  Without `TO', every
+value-flavoured local has only a single assignment and many advantages
+of functional languages apply to Forth. I.e., programs are easier to
+analyse, to optimize and to read: It is clear from the definition what
+the local stands for, it does not turn into something different later.
+
+   E.g., a definition using `TO' might look like this:
+     : strcmp { addr1 u1 addr2 u2 -- n }
+      u1 u2 min 0
+      ?do
+        addr1 c@ addr2 c@ -
+        ?dup-if
+          unloop exit
+        then
+        addr1 char+ TO addr1
+        addr2 char+ TO addr2
+      loop
+      u1 u2 - ;
+   Here, `TO' is used to update `addr1' and `addr2' at every loop
+iteration. `strcmp' is a typical example of the readability problems of
+using `TO'. When you start reading `strcmp', you think that `addr1'
+refers to the start of the string. Only near the end of the loop you
+realize that it is something else.
+
+   This can be avoided by defining two locals at the start of the loop
+that are initialized with the right value for the current iteration.
+     : strcmp { addr1 u1 addr2 u2 -- n }
+      addr1 addr2
+      u1 u2 min 0
+      ?do { s1 s2 }
+        s1 c@ s2 c@ -
+        ?dup-if
+          unloop exit
+        then
+        s1 char+ s2 char+
+      loop
+      2drop
+      u1 u2 - ;
+   Here it is clear from the start that `s1' has a different value in
+every loop iteration.
+

@@ -1,0 +1,70 @@
+This is vmgen.info, produced by makeinfo version 4.2 from vmgen.texi.
+
+This manual is for Vmgen (version 0.6.2, August 25, 2003), the virtual
+machine interpreter generator
+
+   Copyright (C) 2002, 03,2003 Free Software Foundation, Inc.
+
+     Permission is granted to copy, distribute and/or modify this
+     document under the terms of the GNU Free Documentation License,
+     Version 1.1 or any later version published by the Free Software
+     Foundation; with no Invariant Sections, with the Front-Cover texts
+     being "A GNU Manual," and with the Back-Cover Texts as in (a)
+     below.  A copy of the license is included in the section entitled
+     "GNU Free Documentation License."
+
+     (a) The FSF's Back-Cover Text is: "You have freedom to copy and
+     modify this GNU Manual, like GNU software.  Copies published by
+     the Free Software Foundation raise funds for GNU development."
+   
+INFO-DIR-SECTION Software development
+START-INFO-DIR-ENTRY
+* Vmgen: (vmgen).               Virtual machine interpreter generator
+END-INFO-DIR-ENTRY
+
+
+Indirect:
+vmgen.info-1: 1049
+vmgen.info-2: 50496
+
+Tag Table:
+(Indirect)
+Node: Top1049
+Node: Introduction3830
+Node: Why interpreters?7528
+Node: Concepts8513
+Node: Front end and VM interpreter8847
+Node: Data handling10672
+Node: Dispatch12172
+Node: Invoking Vmgen13808
+Node: Example14632
+Node: Example overview14823
+Node: Using profiling to create superinstructions17562
+Node: Input File Format19287
+Node: Input File Grammar19791
+Node: Eval escapes22302
+Node: Simple instructions24045
+Node: C Code Macros27111
+Node: C Code restrictions29301
+Node: Stack growth direction31709
+Node: Superinstructions32852
+Node: Store Optimization35165
+Node: Register Machines37032
+Node: Error messages38930
+Node: Using the generated code41005
+Node: VM engine41863
+Node: VM instruction table50496
+Node: VM code generation52338
+Node: Peephole optimization55090
+Node: VM disassembler56533
+Node: VM profiler57807
+Node: Hints61447
+Node: Floating point61609
+Node: The future63438
+Node: Changes64551
+Node: Contact66108
+Node: Copying This Manual66567
+Node: GNU Free Documentation License66775
+Node: Index86640
+
+End Tag Table

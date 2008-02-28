@@ -1,0 +1,1161 @@
+This is gforth.info, produced by makeinfo version 4.2 from gforth.texi.
+
+This manual is for Gforth (version 0.6.2, August 25, 2003), a fast and
+portable implementation of the ANS Forth language
+
+   Copyright (C) 1995, 1996, 1997, 1998, 2000, 2003 Free Software
+Foundation, Inc.
+
+     Permission is granted to copy, distribute and/or modify this
+     document under the terms of the GNU Free Documentation License,
+     Version 1.1 or any later version published by the Free Software
+     Foundation; with no Invariant Sections, with the Front-Cover texts
+     being "A GNU Manual," and with the Back-Cover Texts as in (a)
+     below.  A copy of the license is included in the section entitled
+     "GNU Free Documentation License."
+
+     (a) The FSF's Back-Cover Text is: "You have freedom to copy and
+     modify this GNU Manual, like GNU software.  Copies published by
+     the Free Software Foundation raise funds for GNU development."
+   
+INFO-DIR-SECTION Software development
+START-INFO-DIR-ENTRY
+* Gforth: (gforth).             A fast interpreter for the Forth language.
+END-INFO-DIR-ENTRY
+
+
+File: gforth.info,  Node: Locals implementation,  Prev: Locals programming style,  Up: Gforth locals
+
+Locals implementation
+.....................
+
+   Gforth uses an extra locals stack. The most compelling reason for
+this is that the return stack is not float-aligned; using an extra stack
+also eliminates the problems and restrictions of using the return stack
+as locals stack. Like the other stacks, the locals stack grows toward
+lower addresses. A few primitives allow an efficient implementation:
+
+`@local#'       #noffset - w        gforth       ``fetch-local-number''
+
+`f@local#'       #noffset - r        gforth       ``f-fetch-local-number''
+
+`laddr#'       #noffset - c-addr        gforth       ``laddr-number''
+
+`lp+!#'       #noffset -        gforth       ``lp-plus-store-number''
+   used with negative immediate values it allocates memory on the local
+stack, a positive immediate argument drops memory from the local stack
+
+`lp!'       c-addr -        gforth       ``lp-store''
+
+`>l'       w -        gforth       ``to-l''
+
+`f>l'       r -        gforth       ``f-to-l''
+
+   In addition to these primitives, some specializations of these
+primitives for commonly occurring inline arguments are provided for
+efficiency reasons, e.g., `@local0' as specialization of `@local#' for
+the inline argument 0. The following compiling words compile the right
+specialized version, or the general version, as appropriate:
+
+`compile-lp+!'       n -         gforth       ``compile-l-p-plus-store''
+
+   Combinations of conditional branches and `lp+!#' like
+`?branch-lp+!#' (the locals pointer is only changed if the branch is
+taken) are provided for efficiency and correctness in loops.
+
+   A special area in the dictionary space is reserved for keeping the
+local variable names. `{' switches the dictionary pointer to this area
+and `}' switches it back and generates the locals initializing code.
+`W:' etc. are normal defining words. This special area is cleared at
+the start of every colon definition.
+
+   A special feature of Gforth's dictionary is used to implement the
+definition of locals without type specifiers: every word list (aka
+vocabulary) has its own methods for searching etc. (*note Word
+Lists::). For the present purpose we defined a word list with a special
+search method: When it is searched for a word, it actually creates that
+word using `W:'. `{' changes the search order to first search the word
+list containing `}', `W:' etc., and then the word list for defining
+locals without type specifiers.
+
+   The lifetime rules support a stack discipline within a colon
+definition: The lifetime of a local is either nested with other locals
+lifetimes or it does not overlap them.
+
+   At `BEGIN', `IF', and `AHEAD' no code for locals stack pointer
+manipulation is generated. Between control structure words locals
+definitions can push locals onto the locals stack. `AGAIN' is the
+simplest of the other three control flow words. It has to restore the
+locals stack depth of the corresponding `BEGIN' before branching. The
+code looks like this:
+`lp+!#' current-locals-size - dest-locals-size
+`branch' <begin>
+
+   `UNTIL' is a little more complicated: If it branches back, it must
+adjust the stack just like `AGAIN'. But if it falls through, the locals
+stack must not be changed. The compiler generates the following code:
+`?branch-lp+!#' <begin> current-locals-size - dest-locals-size
+   The locals stack pointer is only adjusted if the branch is taken.
+
+   `THEN' can produce somewhat inefficient code:
+`lp+!#' current-locals-size - orig-locals-size
+<orig target>:
+`lp+!#' orig-locals-size - new-locals-size
+   The second `lp+!#' adjusts the locals stack pointer from the level
+at the orig point to the level after the `THEN'. The first `lp+!#'
+adjusts the locals stack pointer from the current level to the level at
+the orig point, so the complete effect is an adjustment from the
+current level to the right level after the `THEN'.
+
+   In a conventional Forth implementation a dest control-flow stack
+entry is just the target address and an orig entry is just the address
+to be patched. Our locals implementation adds a word list to every orig
+or dest item. It is the list of locals visible (or assumed visible) at
+the point described by the entry. Our implementation also adds a tag to
+identify the kind of entry, in particular to differentiate between live
+and dead (reachable and unreachable) orig entries.
+
+   A few unusual operations have to be performed on locals word lists:
+
+`common-list'       list1 list2 - list3         gforth-internal       ``common-list''
+
+`sub-list?'       list1 list2 - f         gforth-internal       ``sub-list?''
+
+`list-size'       list - u         gforth-internal       ``list-size''
+
+   Several features of our locals word list implementation make these
+operations easy to implement: The locals word lists are organised as
+linked lists; the tails of these lists are shared, if the lists contain
+some of the same locals; and the address of a name is greater than the
+address of the names behind it in the list.
+
+   Another important implementation detail is the variable `dead-code'.
+It is used by `BEGIN' and `THEN' to determine if they can be reached
+directly or only through the branch that they resolve. `dead-code' is
+set by `UNREACHABLE', `AHEAD', `EXIT' etc., and cleared at the start of
+a colon definition, by `BEGIN' and usually by `THEN'.
+
+   Counted loops are similar to other loops in most respects, but
+`LEAVE' requires special attention: It performs basically the same
+service as `AHEAD', but it does not create a control-flow stack entry.
+Therefore the information has to be stored elsewhere; traditionally,
+the information was stored in the target fields of the branches created
+by the `LEAVE's, by organizing these fields into a linked list.
+Unfortunately, this clever trick does not provide enough space for
+storing our extended control flow information. Therefore, we introduce
+another stack, the leave stack. It contains the control-flow stack
+entries for all unresolved `LEAVE's.
+
+   Local names are kept until the end of the colon definition, even if
+they are no longer visible in any control-flow path. In a few cases
+this may lead to increased space needs for the locals name area, but
+usually less than reclaiming this space would cost in code size.
+
+
+File: gforth.info,  Node: ANS Forth locals,  Prev: Gforth locals,  Up: Locals
+
+ANS Forth locals
+----------------
+
+   The ANS Forth locals wordset does not define a syntax for locals, but
+words that make it possible to define various syntaxes. One of the
+possible syntaxes is a subset of the syntax we used in the Gforth locals
+wordset, i.e.:
+
+     { local1 local2 ... -- comment }
+
+or
+     { local1 local2 ... }
+
+   The order of the locals corresponds to the order in a stack comment.
+The restrictions are:
+
+   * Locals can only be cell-sized values (no type specifiers are
+     allowed).
+
+   * Locals can be defined only outside control structures.
+
+   * Locals can interfere with explicit usage of the return stack. For
+     the exact (and long) rules, see the standard. If you don't use
+     return stack accessing words in a definition using locals, you
+     will be all right. The purpose of this rule is to make locals
+     implementation on the return stack easier.
+
+   * The whole definition must be in one line.
+
+   Locals defined in ANS Forth behave like `VALUE's (*note Values::).
+I.e., they are initialized from the stack. Using their name produces
+their value. Their value can be changed using `TO'.
+
+   Since the syntax above is supported by Gforth directly, you need not
+do anything to use it. If you want to port a program using this syntax
+to another ANS Forth system, use `compat/anslocal.fs' to implement the
+syntax on the other system.
+
+   Note that a syntax shown in the standard, section A.13 looks
+similar, but is quite different in having the order of locals reversed.
+Beware!
+
+   The ANS Forth locals wordset itself consists of one word:
+
+`(local)'       addr u -         local       ``paren-local-paren''
+
+   The ANS Forth locals extension wordset defines a syntax using
+`locals|', but it is so awful that we strongly recommend not to use it.
+We have implemented this syntax to make porting to Gforth easy, but do
+not document it here. The problem with this syntax is that the locals
+are defined in an order reversed with respect to the standard stack
+comment notation, making programs harder to read, and easier to misread
+and miswrite. The only merit of this syntax is that it is easy to
+implement using the ANS Forth locals wordset.
+
+
+File: gforth.info,  Node: Structures,  Next: Object-oriented Forth,  Prev: Locals,  Up: Words
+
+Structures
+==========
+
+   This section presents the structure package that comes with Gforth. A
+version of the package implemented in ANS Forth is available in
+`compat/struct.fs'. This package was inspired by a posting on
+comp.lang.forth in 1989 (unfortunately I don't remember, by whom;
+possibly John Hayes). A version of this section has been published in
+M. Anton Ertl, Yet Another Forth Structures Package
+(http://www.complang.tuwien.ac.at/forth/objects/structs.html), Forth
+Dimensions 19(3), pages 13-16. Marcel Hendrix provided helpful comments.
+
+* Menu:
+
+* Why explicit structure support?::
+* Structure Usage::
+* Structure Naming Convention::
+* Structure Implementation::
+* Structure Glossary::
+
+
+File: gforth.info,  Node: Why explicit structure support?,  Next: Structure Usage,  Prev: Structures,  Up: Structures
+
+Why explicit structure support?
+-------------------------------
+
+   If we want to use a structure containing several fields, we could
+simply reserve memory for it, and access the fields using address
+arithmetic (*note Address arithmetic::). As an example, consider a
+structure with the following fields
+
+`a'
+     is a float
+
+`b'
+     is a cell
+
+`c'
+     is a float
+
+   Given the (float-aligned) base address of the structure we get the
+address of the field
+
+`a'
+     without doing anything further.
+
+`b'
+     with `float+'
+
+`c'
+     with `float+ cell+ faligned'
+
+   It is easy to see that this can become quite tiring.
+
+   Moreover, it is not very readable, because seeing a `cell+' tells us
+neither which kind of structure is accessed nor what field is accessed;
+we have to somehow infer the kind of structure, and then look up in the
+documentation, which field of that structure corresponds to that offset.
+
+   Finally, this kind of address arithmetic also causes maintenance
+troubles: If you add or delete a field somewhere in the middle of the
+structure, you have to find and change all computations for the fields
+afterwards.
+
+   So, instead of using `cell+' and friends directly, how about storing
+the offsets in constants:
+
+     0 constant a-offset
+     0 float+ constant b-offset
+     0 float+ cell+ faligned c-offset
+
+   Now we can get the address of field `x' with `x-offset +'. This is
+much better in all respects. Of course, you still have to change all
+later offset definitions if you add a field. You can fix this by
+declaring the offsets in the following way:
+
+     0 constant a-offset
+     a-offset float+ constant b-offset
+     b-offset cell+ faligned constant c-offset
+
+   Since we always use the offsets with `+', we could use a defining
+word `cfield' that includes the `+' in the action of the defined word:
+
+     : cfield ( n "name" -- )
+         create ,
+     does> ( name execution: addr1 -- addr2 )
+         @ + ;
+     
+     0 cfield a
+     0 a float+ cfield b
+     0 b cell+ faligned cfield c
+
+   Instead of `x-offset +', we now simply write `x'.
+
+   The structure field words now can be used quite nicely. However,
+their definition is still a bit cumbersome: We have to repeat the name,
+the information about size and alignment is distributed before and
+after the field definitions etc.  The structure package presented here
+addresses these problems.
+
+
+File: gforth.info,  Node: Structure Usage,  Next: Structure Naming Convention,  Prev: Why explicit structure support?,  Up: Structures
+
+Structure Usage
+---------------
+
+   You can define a structure for a (data-less) linked list with:
+     struct
+         cell% field list-next
+     end-struct list%
+
+   With the address of the list node on the stack, you can compute the
+address of the field that contains the address of the next node with
+`list-next'. E.g., you can determine the length of a list with:
+
+     : list-length ( list -- n )
+     \ "list" is a pointer to the first element of a linked list
+     \ "n" is the length of the list
+         0 BEGIN ( list1 n1 )
+             over
+         WHILE ( list1 n1 )
+             1+ swap list-next @ swap
+         REPEAT
+         nip ;
+
+   You can reserve memory for a list node in the dictionary with `list%
+%allot', which leaves the address of the list node on the stack. For
+the equivalent allocation on the heap you can use `list% %alloc' (or,
+for an `allocate'-like stack effect (i.e., with ior), use `list%
+%allocate'). You can get the the size of a list node with `list% %size'
+and its alignment with `list% %alignment'.
+
+   Note that in ANS Forth the body of a `create'd word is `aligned' but
+not necessarily `faligned'; therefore, if you do a:
+
+     create _name_ foo% %allot drop
+
+then the memory alloted for `foo%' is guaranteed to start at the body
+of `_name_' only if `foo%' contains only character, cell and double
+fields.  Therefore, if your structure contains floats, better use
+
+     foo% %allot constant _name_
+
+   You can include a structure `foo%' as a field of another structure,
+like this:
+     struct
+     ...
+         foo% field ...
+     ...
+     end-struct ...
+
+   Instead of starting with an empty structure, you can extend an
+existing structure. E.g., a plain linked list without data, as defined
+above, is hardly useful; You can extend it to a linked list of integers,
+like this:(1)
+
+     list%
+         cell% field intlist-int
+     end-struct intlist%
+
+   `intlist%' is a structure with two fields: `list-next' and
+`intlist-int'.
+
+   You can specify an array type containing _n_ elements of type `foo%'
+like this:
+
+     foo% _n_ *
+
+   You can use this array type in any place where you can use a normal
+type, e.g., when defining a `field', or with `%allot'.
+
+   The first field is at the base address of a structure and the word
+for this field (e.g., `list-next') actually does not change the address
+on the stack. You may be tempted to leave it away in the interest of
+run-time and space efficiency. This is not necessary, because the
+structure package optimizes this case: If you compile a first-field
+words, no code is generated. So, in the interest of readability and
+maintainability you should include the word for the field when accessing
+the field.
+
+   ---------- Footnotes ----------
+
+   (1) This feature is also known as _extended records_. It is the main
+innovation in the Oberon language; in other words, adding this feature
+to Modula-2 led Wirth to create a new language, write a new compiler
+etc.  Adding this feature to Forth just required a few lines of code.
+
+
+File: gforth.info,  Node: Structure Naming Convention,  Next: Structure Implementation,  Prev: Structure Usage,  Up: Structures
+
+Structure Naming Convention
+---------------------------
+
+   The field names that come to (my) mind are often quite generic, and,
+if used, would cause frequent name clashes. E.g., many structures
+probably contain a `counter' field. The structure names that come to
+(my) mind are often also the logical choice for the names of words that
+create such a structure.
+
+   Therefore, I have adopted the following naming conventions:
+
+   * The names of fields are of the form `_struct_-_field_', where
+     `_struct_' is the basic name of the structure, and `_field_' is
+     the basic name of the field. You can think of field words as
+     converting the (address of the) structure into the (address of
+     the) field.
+
+   * The names of structures are of the form `_struct_%', where
+     `_struct_' is the basic name of the structure.
+
+   This naming convention does not work that well for fields of extended
+structures; e.g., the integer list structure has a field `intlist-int',
+but has `list-next', not `intlist-next'.
+
+
+File: gforth.info,  Node: Structure Implementation,  Next: Structure Glossary,  Prev: Structure Naming Convention,  Up: Structures
+
+Structure Implementation
+------------------------
+
+   The central idea in the implementation is to pass the data about the
+structure being built on the stack, not in some global variable.
+Everything else falls into place naturally once this design decision is
+made.
+
+   The type description on the stack is of the form _align size_.
+Keeping the size on the top-of-stack makes dealing with arrays very
+simple.
+
+   `field' is a defining word that uses `Create' and `DOES>'. The body
+of the field contains the offset of the field, and the normal `DOES>'
+action is simply:
+
+     @ +
+
+i.e., add the offset to the address, giving the stack effect addr1 -
+addr2 for a field.
+
+   This simple structure is slightly complicated by the optimization
+for fields with offset 0, which requires a different `DOES>'-part
+(because we cannot rely on there being something on the stack if such a
+field is invoked during compilation). Therefore, we put the different
+`DOES>'-parts in separate words, and decide which one to invoke based
+on the offset. For a zero offset, the field is basically a noop; it is
+immediate, and therefore no code is generated when it is compiled.
+
+
+File: gforth.info,  Node: Structure Glossary,  Prev: Structure Implementation,  Up: Structures
+
+Structure Glossary
+------------------
+
+`%align'       align size -         gforth       ``%align''
+   Align the data space pointer to the alignment ALIGN.
+
+`%alignment'       align size - align         gforth       ``%alignment''
+   The alignment of the structure.
+
+`%alloc'       size align - addr         gforth       ``%alloc''
+   Allocate SIZE address units with alignment ALIGN, giving a data
+block at ADDR; `throw' an ior code if not successful.
+
+`%allocate'       align size - addr ior         gforth       ``%allocate''
+   Allocate SIZE address units with alignment ALIGN, similar to
+`allocate'.
+
+`%allot'       align size - addr         gforth       ``%allot''
+   Allot SIZE address units of data space with alignment ALIGN; the
+resulting block of data is found at ADDR.
+
+`cell%'       - align size         gforth       ``cell%''
+
+`char%'       - align size         gforth       ``char%''
+
+`dfloat%'       - align size         gforth       ``dfloat%''
+
+`double%'       - align size         gforth       ``double%''
+
+`end-struct'       align size "name" -         gforth       ``end-struct''
+   Define a structure/type descriptor NAME with alignment ALIGN and
+size SIZE1 (SIZE rounded up to be a multiple of ALIGN).
+`name' execution: - ALIGN SIZE1
+`field'       align1 offset1 align size "name" -  align2 offset2         gforth       ``field''
+Create a field NAME with offset OFFSET1, and the type given by ALIGN
+SIZE. OFFSET2 is the offset of the next field, and ALIGN2 is the
+alignment of all fields.
+`name' execution: ADDR1 - ADDR2.
+ADDR2=ADDR1+OFFSET1
+
+`float%'       - align size         gforth       ``float%''
+
+`naligned'       addr1 n - addr2         gforth       ``naligned''
+   ADDR2 is the aligned version of ADDR1 with respect to the alignment
+N.
+
+`sfloat%'       - align size         gforth       ``sfloat%''
+
+`%size'       align size - size         gforth       ``%size''
+   The size of the structure.
+
+`struct'       - align size         gforth       ``struct''
+   An empty structure, used to start a structure definition.
+
+
+File: gforth.info,  Node: Object-oriented Forth,  Next: Programming Tools,  Prev: Structures,  Up: Words
+
+Object-oriented Forth
+=====================
+
+   Gforth comes with three packages for object-oriented programming:
+`objects.fs', `oof.fs', and `mini-oof.fs'; none of them is preloaded,
+so you have to `include' them before use. The most important
+differences between these packages (and others) are discussed in *Note
+Comparison with other object models::. All packages are written in ANS
+Forth and can be used with any other ANS Forth.
+
+* Menu:
+
+* Why object-oriented programming?::
+* Object-Oriented Terminology::
+* Objects::
+* OOF::
+* Mini-OOF::
+* Comparison with other object models::
+
+
+File: gforth.info,  Node: Why object-oriented programming?,  Next: Object-Oriented Terminology,  Prev: Object-oriented Forth,  Up: Object-oriented Forth
+
+Why object-oriented programming?
+--------------------------------
+
+   Often we have to deal with several data structures (_objects_), that
+have to be treated similarly in some respects, but differently in
+others. Graphical objects are the textbook example: circles, triangles,
+dinosaurs, icons, and others, and we may want to add more during program
+development. We want to apply some operations to any graphical object,
+e.g., `draw' for displaying it on the screen. However, `draw' has to do
+something different for every kind of object.
+
+   We could implement `draw' as a big `CASE' control structure that
+executes the appropriate code depending on the kind of object to be
+drawn. This would be not be very elegant, and, moreover, we would have
+to change `draw' every time we add a new kind of graphical object (say,
+a spaceship).
+
+   What we would rather do is: When defining spaceships, we would tell
+the system: "Here's how you `draw' a spaceship; you figure out the
+rest".
+
+   This is the problem that all systems solve that (rightfully) call
+themselves object-oriented; the object-oriented packages presented here
+solve this problem (and not much else).
+
+
+File: gforth.info,  Node: Object-Oriented Terminology,  Next: Objects,  Prev: Why object-oriented programming?,  Up: Object-oriented Forth
+
+Object-Oriented Terminology
+---------------------------
+
+   This section is mainly for reference, so you don't have to understand
+all of it right away.  The terminology is mainly Smalltalk-inspired.  In
+short:
+
+_class_
+     a data structure definition with some extras.
+
+_object_
+     an instance of the data structure described by the class
+     definition.
+
+_instance variables_
+     fields of the data structure.
+
+_selector_
+     (or _method selector_) a word (e.g., `draw') that performs an
+     operation on a variety of data structures (classes). A selector
+     describes _what_ operation to perform. In C++ terminology: a
+     (pure) virtual function.
+
+_method_
+     the concrete definition that performs the operation described by
+     the selector for a specific class. A method specifies _how_ the
+     operation is performed for a specific class.
+
+_selector invocation_
+     a call of a selector. One argument of the call (the TOS
+     (top-of-stack)) is used for determining which method is used. In
+     Smalltalk terminology: a message (consisting of the selector and
+     the other arguments) is sent to the object.
+
+_receiving object_
+     the object used for determining the method executed by a selector
+     invocation. In the `objects.fs' model, it is the object that is on
+     the TOS when the selector is invoked. (_Receiving_ comes from the
+     Smalltalk _message_ terminology.)
+
+_child class_
+     a class that has (_inherits_) all properties (instance variables,
+     selectors, methods) from a _parent class_. In Smalltalk
+     terminology: The subclass inherits from the superclass. In C++
+     terminology: The derived class inherits from the base class.
+
+
+File: gforth.info,  Node: Objects,  Next: OOF,  Prev: Object-Oriented Terminology,  Up: Object-oriented Forth
+
+The `objects.fs' model
+----------------------
+
+   This section describes the `objects.fs' package. This material also
+has been published in M. Anton Ertl, `Yet Another Forth Objects Package
+(http://www.complang.tuwien.ac.at/forth/objects/objects.html)', Forth
+Dimensions 19(2), pages 37-43.
+
+   This section assumes that you have read *Note Structures::.
+
+   The techniques on which this model is based have been used to
+implement the parser generator, Gray, and have also been used in Gforth
+for implementing the various flavours of word lists (hashed or not,
+case-sensitive or not, special-purpose word lists for locals etc.).
+
+* Menu:
+
+* Properties of the Objects model::
+* Basic Objects Usage::
+* The Objects base class::
+* Creating objects::
+* Object-Oriented Programming Style::
+* Class Binding::
+* Method conveniences::
+* Classes and Scoping::
+* Dividing classes::
+* Object Interfaces::
+* Objects Implementation::
+* Objects Glossary::
+
+   Marcel Hendrix provided helpful comments on this section.
+
+
+File: gforth.info,  Node: Properties of the Objects model,  Next: Basic Objects Usage,  Prev: Objects,  Up: Objects
+
+Properties of the `objects.fs' model
+....................................
+
+   * It is straightforward to pass objects on the stack. Passing
+     selectors on the stack is a little less convenient, but possible.
+
+   * Objects are just data structures in memory, and are referenced by
+     their address. You can create words for objects with normal
+     defining words like `constant'. Likewise, there is no difference
+     between instance variables that contain objects and those that
+     contain other data.
+
+   * Late binding is efficient and easy to use.
+
+   * It avoids parsing, and thus avoids problems with state-smartness
+     and reduced extensibility; for convenience there are a few parsing
+     words, but they have non-parsing counterparts. There are also a few
+     defining words that parse. This is hard to avoid, because all
+     standard defining words parse (except `:noname'); however, such
+     words are not as bad as many other parsing words, because they are
+     not state-smart.
+
+   * It does not try to incorporate everything. It does a few things
+     and does them well (IMO). In particular, this model was not
+     designed to support information hiding (although it has features
+     that may help); you can use a separate package for achieving this.
+
+   * It is layered; you don't have to learn and use all features to use
+     this model. Only a few features are necessary (*note Basic Objects
+     Usage::, *note The Objects base class::, *note Creating
+     objects::.), the others are optional and independent of each other.
+
+   * An implementation in ANS Forth is available.
+
+
+
+File: gforth.info,  Node: Basic Objects Usage,  Next: The Objects base class,  Prev: Properties of the Objects model,  Up: Objects
+
+Basic `objects.fs' Usage
+........................
+
+   You can define a class for graphical objects like this:
+
+     object class \ "object" is the parent class
+       selector draw ( x y graphical -- )
+     end-class graphical
+
+   This code defines a class `graphical' with an operation `draw'.  We
+can perform the operation `draw' on any `graphical' object, e.g.:
+
+     100 100 t-rex draw
+
+where `t-rex' is a word (say, a constant) that produces a graphical
+object.
+
+   How do we create a graphical object? With the present definitions,
+we cannot create a useful graphical object. The class `graphical'
+describes graphical objects in general, but not any concrete graphical
+object type (C++ users would call it an _abstract class_); e.g., there
+is no method for the selector `draw' in the class `graphical'.
+
+   For concrete graphical objects, we define child classes of the class
+`graphical', e.g.:
+
+     graphical class \ "graphical" is the parent class
+       cell% field circle-radius
+     
+     :noname ( x y circle -- )
+       circle-radius @ draw-circle ;
+     overrides draw
+     
+     :noname ( n-radius circle -- )
+       circle-radius ! ;
+     overrides construct
+     
+     end-class circle
+
+   Here we define a class `circle' as a child of `graphical', with
+field `circle-radius' (which behaves just like a field (*note
+Structures::); it defines (using `overrides') new methods for the
+selectors `draw' and `construct' (`construct' is defined in `object',
+the parent class of `graphical').
+
+   Now we can create a circle on the heap (i.e., `allocate'd memory)
+with:
+
+     50 circle heap-new constant my-circle
+
+`heap-new' invokes `construct', thus initializing the field
+`circle-radius' with 50. We can draw this new circle at (100,100) with:
+
+     100 100 my-circle draw
+
+   Note: You can only invoke a selector if the object on the TOS (the
+receiving object) belongs to the class where the selector was defined
+or one of its descendents; e.g., you can invoke `draw' only for objects
+belonging to `graphical' or its descendents (e.g., `circle').
+Immediately before `end-class', the search order has to be the same as
+immediately after `class'.
+
+
+File: gforth.info,  Node: The Objects base class,  Next: Creating objects,  Prev: Basic Objects Usage,  Up: Objects
+
+The `object.fs' base class
+..........................
+
+   When you define a class, you have to specify a parent class.  So how
+do you start defining classes? There is one class available from the
+start: `object'. It is ancestor for all classes and so is the only
+class that has no parent. It has two selectors: `construct' and `print'.
+
+
+File: gforth.info,  Node: Creating objects,  Next: Object-Oriented Programming Style,  Prev: The Objects base class,  Up: Objects
+
+Creating objects
+................
+
+   You can create and initialize an object of a class on the heap with
+`heap-new' ( ... class - object ) and in the dictionary (allocation
+with `allot') with `dict-new' ( ... class - object ). Both words invoke
+`construct', which consumes the stack items indicated by "..." above.
+
+   If you want to allocate memory for an object yourself, you can get
+its alignment and size with `class-inst-size 2@' ( class - align size
+). Once you have memory for an object, you can initialize it with
+`init-object' ( ... class object - ); `construct' does only a part of
+the necessary work.
+
+
+File: gforth.info,  Node: Object-Oriented Programming Style,  Next: Class Binding,  Prev: Creating objects,  Up: Objects
+
+Object-Oriented Programming Style
+.................................
+
+   This section is not exhaustive.
+
+   In general, it is a good idea to ensure that all methods for the
+same selector have the same stack effect: when you invoke a selector,
+you often have no idea which method will be invoked, so, unless all
+methods have the same stack effect, you will not know the stack effect
+of the selector invocation.
+
+   One exception to this rule is methods for the selector `construct'.
+We know which method is invoked, because we specify the class to be
+constructed at the same place. Actually, I defined `construct' as a
+selector only to give the users a convenient way to specify
+initialization. The way it is used, a mechanism different from selector
+invocation would be more natural (but probably would take more code and
+more space to explain).
+
+
+File: gforth.info,  Node: Class Binding,  Next: Method conveniences,  Prev: Object-Oriented Programming Style,  Up: Objects
+
+Class Binding
+.............
+
+   Normal selector invocations determine the method at run-time
+depending on the class of the receiving object. This run-time selection
+is called late binding.
+
+   Sometimes it's preferable to invoke a different method. For example,
+you might want to use the simple method for `print'ing `object's
+instead of the possibly long-winded `print' method of the receiver
+class. You can achieve this by replacing the invocation of `print' with:
+
+     [bind] object print
+
+in compiled code or:
+
+     bind object print
+
+in interpreted code. Alternatively, you can define the method with a
+name (e.g., `print-object'), and then invoke it through the name. Class
+binding is just a (often more convenient) way to achieve the same
+effect; it avoids name clutter and allows you to invoke methods
+directly without naming them first.
+
+   A frequent use of class binding is this: When we define a method for
+a selector, we often want the method to do what the selector does in
+the parent class, and a little more. There is a special word for this
+purpose: `[parent]'; `[parent] _selector_' is equivalent to `[bind]
+_parent selector_', where `_parent_' is the parent class of the current
+class. E.g., a method definition might look like:
+
+     :noname
+       dup [parent] foo \ do parent's foo on the receiving object
+       ... \ do some more
+     ; overrides foo
+
+   In `Object-oriented programming in ANS Forth' (Forth Dimensions,
+March 1997), Andrew McKewan presents class binding as an optimization
+technique. I recommend not using it for this purpose unless you are in
+an emergency. Late binding is pretty fast with this model anyway, so the
+benefit of using class binding is small; the cost of using class binding
+where it is not appropriate is reduced maintainability.
+
+   While we are at programming style questions: You should bind
+selectors only to ancestor classes of the receiving object. E.g., say,
+you know that the receiving object is of class `foo' or its
+descendents; then you should bind only to `foo' and its ancestors.
+
+
+File: gforth.info,  Node: Method conveniences,  Next: Classes and Scoping,  Prev: Class Binding,  Up: Objects
+
+Method conveniences
+...................
+
+   In a method you usually access the receiving object pretty often.  If
+you define the method as a plain colon definition (e.g., with
+`:noname'), you may have to do a lot of stack gymnastics. To avoid
+this, you can define the method with `m: ... ;m'. E.g., you could
+define the method for `draw'ing a `circle' with
+
+     m: ( x y circle -- )
+       ( x y ) this circle-radius @ draw-circle ;m
+
+   When this method is executed, the receiver object is removed from the
+stack; you can access it with `this' (admittedly, in this example the
+use of `m: ... ;m' offers no advantage). Note that I specify the stack
+effect for the whole method (i.e. including the receiver object), not
+just for the code between `m:' and `;m'. You cannot use `exit' in
+`m:...;m'; instead, use `exitm'.(1)
+
+   You will frequently use sequences of the form `this _field_' (in the
+example above: `this circle-radius'). If you use the field only in this
+way, you can define it with `inst-var' and eliminate the `this' before
+the field name. E.g., the `circle' class above could also be defined
+with:
+
+     graphical class
+       cell% inst-var radius
+     
+     m: ( x y circle -- )
+       radius @ draw-circle ;m
+     overrides draw
+     
+     m: ( n-radius circle -- )
+       radius ! ;m
+     overrides construct
+     
+     end-class circle
+
+   `radius' can only be used in `circle' and its descendent classes and
+inside `m:...;m'.
+
+   You can also define fields with `inst-value', which is to `inst-var'
+what `value' is to `variable'.  You can change the value of such a
+field with `[to-inst]'.  E.g., we could also define the class `circle'
+like this:
+
+     graphical class
+       inst-value radius
+     
+     m: ( x y circle -- )
+       radius draw-circle ;m
+     overrides draw
+     
+     m: ( n-radius circle -- )
+       [to-inst] radius ;m
+     overrides construct
+     
+     end-class circle
+
+   ---------- Footnotes ----------
+
+   (1) Moreover, for any word that calls `catch' and was defined before
+loading `objects.fs', you have to redefine it like I redefined `catch':
+`: catch this >r catch r> to-this ;'
+
+
+File: gforth.info,  Node: Classes and Scoping,  Next: Dividing classes,  Prev: Method conveniences,  Up: Objects
+
+Classes and Scoping
+...................
+
+   Inheritance is frequent, unlike structure extension. This exacerbates
+the problem with the field name convention (*note Structure Naming
+Convention::): One always has to remember in which class the field was
+originally defined; changing a part of the class structure would require
+changes for renaming in otherwise unaffected code.
+
+   To solve this problem, I added a scoping mechanism (which was not in
+my original charter): A field defined with `inst-var' (or `inst-value')
+is visible only in the class where it is defined and in the descendent
+classes of this class.  Using such fields only makes sense in
+`m:'-defined methods in these classes anyway.
+
+   This scoping mechanism allows us to use the unadorned field name,
+because name clashes with unrelated words become much less likely.
+
+   Once we have this mechanism, we can also use it for controlling the
+visibility of other words: All words defined after `protected' are
+visible only in the current class and its descendents. `public'
+restores the compilation (i.e. `current') word list that was in effect
+before. If you have several `protected's without an intervening
+`public' or `set-current', `public' will restore the compilation word
+list in effect before the first of these `protected's.
+
+
+File: gforth.info,  Node: Dividing classes,  Next: Object Interfaces,  Prev: Classes and Scoping,  Up: Objects
+
+Dividing classes
+................
+
+   You may want to do the definition of methods separate from the
+definition of the class, its selectors, fields, and instance variables,
+i.e., separate the implementation from the definition.  You can do this
+in the following way:
+
+     graphical class
+       inst-value radius
+     end-class circle
+     
+     ... \ do some other stuff
+     
+     circle methods \ now we are ready
+     
+     m: ( x y circle -- )
+       radius draw-circle ;m
+     overrides draw
+     
+     m: ( n-radius circle -- )
+       [to-inst] radius ;m
+     overrides construct
+     
+     end-methods
+
+   You can use several `methods'...`end-methods' sections.  The only
+things you can do to the class in these sections are: defining methods,
+and overriding the class's selectors.  You must not define new
+selectors or fields.
+
+   Note that you often have to override a selector before using it.  In
+particular, you usually have to override `construct' with a new method
+before you can invoke `heap-new' and friends.  E.g., you must not
+create a circle before the `overrides construct' sequence in the
+example above.
+
+
+File: gforth.info,  Node: Object Interfaces,  Next: Objects Implementation,  Prev: Dividing classes,  Up: Objects
+
+Object Interfaces
+.................
+
+   In this model you can only call selectors defined in the class of the
+receiving objects or in one of its ancestors. If you call a selector
+with a receiving object that is not in one of these classes, the result
+is undefined; if you are lucky, the program crashes immediately.
+
+   Now consider the case when you want to have a selector (or several)
+available in two classes: You would have to add the selector to a
+common ancestor class, in the worst case to `object'. You may not want
+to do this, e.g., because someone else is responsible for this ancestor
+class.
+
+   The solution for this problem is interfaces. An interface is a
+collection of selectors. If a class implements an interface, the
+selectors become available to the class and its descendents. A class
+can implement an unlimited number of interfaces. For the problem
+discussed above, we would define an interface for the selector(s), and
+both classes would implement the interface.
+
+   As an example, consider an interface `storage' for writing objects
+to disk and getting them back, and a class `foo' that implements it.
+The code would look like this:
+
+     interface
+       selector write ( file object -- )
+       selector read1 ( file object -- )
+     end-interface storage
+     
+     bar class
+       storage implementation
+     
+     ... overrides write
+     ... overrides read1
+     ...
+     end-class foo
+
+(I would add a word `read' ( file - object ) that uses `read1'
+internally, but that's beyond the point illustrated here.)
+
+   Note that you cannot use `protected' in an interface; and of course
+you cannot define fields.
+
+   In the Neon model, all selectors are available for all classes;
+therefore it does not need interfaces. The price you pay in this model
+is slower late binding, and therefore, added complexity to avoid late
+binding.
+
+
+File: gforth.info,  Node: Objects Implementation,  Next: Objects Glossary,  Prev: Object Interfaces,  Up: Objects
+
+`objects.fs' Implementation
+...........................
+
+   An object is a piece of memory, like one of the data structures
+described with `struct...end-struct'. It has a field `object-map' that
+points to the method map for the object's class.
+
+   The _method map_(1) is an array that contains the execution tokens
+(xts) of the methods for the object's class. Each selector contains an
+offset into a method map.
+
+   `selector' is a defining word that uses `CREATE' and `DOES>'. The
+body of the selector contains the offset; the `DOES>' action for a
+class selector is, basically:
+
+     ( object addr ) @ over object-map @ + @ execute
+
+   Since `object-map' is the first field of the object, it does not
+generate any code. As you can see, calling a selector has a small,
+constant cost.
+
+   A class is basically a `struct' combined with a method map. During
+the class definition the alignment and size of the class are passed on
+the stack, just as with `struct's, so `field' can also be used for
+defining class fields. However, passing more items on the stack would be
+inconvenient, so `class' builds a data structure in memory, which is
+accessed through the variable `current-interface'. After its definition
+is complete, the class is represented on the stack by a pointer (e.g.,
+as parameter for a child class definition).
+
+   A new class starts off with the alignment and size of its parent,
+and a copy of the parent's method map. Defining new fields extends the
+size and alignment; likewise, defining new selectors extends the method
+map. `overrides' just stores a new xt in the method map at the offset
+given by the selector.
+
+   Class binding just gets the xt at the offset given by the selector
+from the class's method map and `compile,'s (in the case of `[bind]')
+it.
+
+   I implemented `this' as a `value'. At the start of an `m:...;m'
+method the old `this' is stored to the return stack and restored at the
+end; and the object on the TOS is stored `TO this'. This technique has
+one disadvantage: If the user does not leave the method via `;m', but
+via `throw' or `exit', `this' is not restored (and `exit' may crash).
+To deal with the `throw' problem, I have redefined `catch' to save and
+restore `this'; the same should be done with any word that can catch an
+exception. As for `exit', I simply forbid it (as a replacement, there is
+`exitm').
+
+   `inst-var' is just the same as `field', with a different `DOES>'
+action:
+     @ this +
+   Similar for `inst-value'.
+
+   Each class also has a word list that contains the words defined with
+`inst-var' and `inst-value', and its protected words. It also has a
+pointer to its parent. `class' pushes the word lists of the class and
+all its ancestors onto the search order stack, and `end-class' drops
+them.
+
+   An interface is like a class without fields, parent and protected
+words; i.e., it just has a method map. If a class implements an
+interface, its method map contains a pointer to the method map of the
+interface. The positive offsets in the map are reserved for class
+methods, therefore interface map pointers have negative offsets.
+Interfaces have offsets that are unique throughout the system, unlike
+class selectors, whose offsets are only unique for the classes where
+the selector is available (invokable).
+
+   This structure means that interface selectors have to perform one
+indirection more than class selectors to find their method. Their body
+contains the interface map pointer offset in the class method map, and
+the method offset in the interface method map. The `does>' action for
+an interface selector is, basically:
+
+     ( object selector-body )
+     2dup selector-interface @ ( object selector-body object interface-offset )
+     swap object-map @ + @ ( object selector-body map )
+     swap selector-offset @ + @ execute
+
+   where `object-map' and `selector-offset' are first fields and
+generate no code.
+
+   As a concrete example, consider the following code:
+
+     interface
+       selector if1sel1
+       selector if1sel2
+     end-interface if1
+     
+     object class
+       if1 implementation
+       selector cl1sel1
+       cell% inst-var cl1iv1
+     
+     ' m1 overrides construct
+     ' m2 overrides if1sel1
+     ' m3 overrides if1sel2
+     ' m4 overrides cl1sel2
+     end-class cl1
+     
+     create obj1 object dict-new drop
+     create obj2 cl1    dict-new drop
+
+   The data structure created by this code (including the data structure
+for `object') is shown in the figure (objects-implementation.eps),
+assuming a cell size of 4.
+
+   ---------- Footnotes ----------
+
+   (1) This is Self terminology; in C++ terminology: virtual function
+table.
+

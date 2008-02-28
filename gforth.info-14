@@ -1,0 +1,758 @@
+This is gforth.info, produced by makeinfo version 4.2 from gforth.texi.
+
+This manual is for Gforth (version 0.6.2, August 25, 2003), a fast and
+portable implementation of the ANS Forth language
+
+   Copyright (C) 1995, 1996, 1997, 1998, 2000, 2003 Free Software
+Foundation, Inc.
+
+     Permission is granted to copy, distribute and/or modify this
+     document under the terms of the GNU Free Documentation License,
+     Version 1.1 or any later version published by the Free Software
+     Foundation; with no Invariant Sections, with the Front-Cover texts
+     being "A GNU Manual," and with the Back-Cover Texts as in (a)
+     below.  A copy of the license is included in the section entitled
+     "GNU Free Documentation License."
+
+     (a) The FSF's Back-Cover Text is: "You have freedom to copy and
+     modify this GNU Manual, like GNU software.  Copies published by
+     the Free Software Foundation raise funds for GNU development."
+   
+INFO-DIR-SECTION Software development
+START-INFO-DIR-ENTRY
+* Gforth: (gforth).             A fast interpreter for the Forth language.
+END-INFO-DIR-ENTRY
+
+
+File: gforth.info,  Node: Word Index,  Next: Concept Index,  Prev: Licenses,  Up: Top
+
+Word Index
+**********
+
+   This index is a list of Forth words that have "glossary" entries
+within this manual. Each word is listed with its stack effect and
+wordset.
+
+* Menu:
+
+* !  W A-ADDR -    core:                 Memory Access.
+* #  UD1 - UD2     core:                 Formatted numeric output.
+* #!  -     gforth:                      Running Image Files.
+* #>  XD - ADDR U     core:              Formatted numeric output.
+* #>>  -     gforth:                     Formatted numeric output.
+* #s  UD - 0 0     core:                 Formatted numeric output.
+* #tib     unknown:                      The Text Interpreter.
+* $?  - N     gforth:                    Passing Commands to the OS.
+* %align  ALIGN SIZE -     gforth:       Structure Glossary.
+* %alignment  ALIGN SIZE - ALIGN     gforth: Structure Glossary.
+* %alloc  SIZE ALIGN - ADDR     gforth:  Structure Glossary.
+* %allocate  ALIGN SIZE - ADDR IOR     gforth: Structure Glossary.
+* %allot  ALIGN SIZE - ADDR     gforth:  Structure Glossary.
+* %size  ALIGN SIZE - SIZE     gforth:   Structure Glossary.
+* '  "NAME" - XT     core:               Execution token.
+* '  "NAME" - XT     oof:                The OOF base class.
+* 'cold  -     gforth:                   Modifying the Startup Sequence.
+* (  COMPILATION 'CCC<CLOSE-PAREN>' - ; RUN-TIME -     core,file: Comments.
+* (local)  ADDR U -     local:           ANS Forth locals.
+* )  -     gforth:                       Assertions.
+* *  N1 N2 - N    core:                  Single precision.
+* */  N1 N2 N3 - N4     core:            Mixed precision.
+* */mod  N1 N2 N3 - N4 N5     core:      Mixed precision.
+* +  N1 N2 - N    core:                  Single precision.
+* +!  N A-ADDR -    core:                Memory Access.
+* +DO  COMPILATION - DO-SYS ; RUN-TIME N1 N2 - | LOOP-SYS     gforth: Arbitrary control structures.
+* +load  I*X N - J*X     gforth:         Blocks.
+* +LOOP  COMPILATION DO-SYS - ; RUN-TIME LOOP-SYS1 N - | LOOP-SYS2     core: Arbitrary control structures.
+* +thru  I*X N1 N2 - J*X     gforth:     Blocks.
+* ,  W -     core:                       Dictionary allocation.
+* -  N1 N2 - N    core:                  Single precision.
+* -->  -     gforth:                     Blocks.
+* -DO  COMPILATION - DO-SYS ; RUN-TIME N1 N2 - | LOOP-SYS     gforth: Arbitrary control structures.
+* -LOOP  COMPILATION DO-SYS - ; RUN-TIME LOOP-SYS1 U - | LOOP-SYS2     gforth: Arbitrary control structures.
+* -rot  W1 W2 W3 - W3 W1 W2    gforth:   Data stack.
+* -trailing  C_ADDR U1 - C_ADDR U2     string: Memory Blocks.
+* .  N -     core:                       Simple numeric output.
+* ."  COMPILATION 'CCC"' - ; RUN-TIME -     core: Displaying characters and strings.
+* .(  COMPILATION&INTERPRETATION "CCC<PAREN>" -     core-ext: Displaying characters and strings.
+* .\"  COMPILATION 'CCC"' - ; RUN-TIME -     gforth: Displaying characters and strings.
+* .debugline  NFILE NLINE -     gforth:  Debugging.
+* .id  NT -     unknown:                 Name token.
+* .name  NT -     unknown:               Name token.
+* .path  PATH-ADDR -     gforth:         General Search Paths.
+* .r  N1 N2 -     core-ext:              Simple numeric output.
+* .s  -     tools:                       Examining.
+* /  N1 N2 - N    core:                  Single precision.
+* /does-handler  - N     gforth:         Threading Words.
+* /mod  N1 N2 - N3 N4    core:           Single precision.
+* /string  C-ADDR1 U1 N - C-ADDR2 U2    string: Memory Blocks.
+* 0<  N - F    core:                     Numeric comparison.
+* 0<=  N - F    gforth:                  Numeric comparison.
+* 0<>  N - F    core-ext:                Numeric comparison.
+* 0=  N - F    core:                     Numeric comparison.
+* 0>  N - F    core-ext:                 Numeric comparison.
+* 0>=  N - F    gforth:                  Numeric comparison.
+* 1+  N1 - N2    core:                   Single precision.
+* 1-  N1 - N2    core:                   Single precision.
+* 1/f  R1 - R2     gforth:               Floating Point.
+* 2!  W1 W2 A-ADDR -    core:            Memory Access.
+* 2*  N1 - N2    core:                   Bitwise operations.
+* 2,  W1 W2 -     gforth:                Dictionary allocation.
+* 2/  N1 - N2    core:                   Bitwise operations.
+* 2>r  D - R:D    core-ext:              Return stack.
+* 2@  A-ADDR - W1 W2    core:            Memory Access.
+* 2Constant  W1 W2 "NAME" -     double:  Constants.
+* 2drop  W1 W2 -    core:                Data stack.
+* 2dup  W1 W2 - W1 W2 W1 W2    core:     Data stack.
+* 2Literal  COMPILATION W1 W2 - ; RUN-TIME  - W1 W2     double: Literals.
+* 2nip  W1 W2 W3 W4 - W3 W4    gforth:   Data stack.
+* 2over  W1 W2 W3 W4 - W1 W2 W3 W4 W1 W2    core: Data stack.
+* 2r>  R:D - D    core-ext:              Return stack.
+* 2r@  R:D - R:D D    core-ext:          Return stack.
+* 2rdrop  R:D -    gforth:               Return stack.
+* 2rot  W1 W2 W3 W4 W5 W6 - W3 W4 W5 W6 W1 W2    double-ext: Data stack.
+* 2swap  W1 W2 W3 W4 - W3 W4 W1 W2    core: Data stack.
+* 2tuck  W1 W2 W3 W4 - W3 W4 W1 W2 W3 W4    gforth: Data stack.
+* 2Variable  "NAME" -     double:        Variables.
+* :  "NAME" -     oof:                   The OOF base class.
+* :  "NAME" - COLON-SYS     core:        Colon Definitions.
+* ::  "NAME" -     oof:                  The OOF base class.
+* ::  CLASS "NAME" -     mini-oof:       Basic Mini-OOF Usage.
+* :m  "NAME" - XT; RUN-TIME: OBJECT -     objects: Objects Glossary.
+* :noname  - XT COLON-SYS     core-ext:  Anonymous Definitions.
+* ;  COMPILATION COLON-SYS - ; RUN-TIME NEST-SYS     core: Colon Definitions.
+* ;code  COMPILATION. COLON-SYS1 - COLON-SYS2     tools-ext: Code and ;code.
+* ;m  COLON-SYS -; RUN-TIME: -     objects: Objects Glossary.
+* ;s  R:W -    gforth:                   Calls and returns.
+* <  N1 N2 - F    core:                  Numeric comparison.
+* <#  -     core:                        Formatted numeric output.
+* <<#  -     gforth:                     Formatted numeric output.
+* <=  N1 N2 - F    gforth:               Numeric comparison.
+* <>  N1 N2 - F    core-ext:             Numeric comparison.
+* <bind>  CLASS SELECTOR-XT - XT     objects: Objects Glossary.
+* <compilation  COMPILATION. ORIG COLON-SYS -     gforth: Combined words.
+* <interpretation  COMPILATION. ORIG COLON-SYS -     gforth: Combined words.
+* <IS>  "NAME" XT -     gforth:          Deferred words.
+* <to-inst>  W XT -     objects:         Objects Glossary.
+* =  N1 N2 - F    core:                  Numeric comparison.
+* >  N1 N2 - F    core:                  Numeric comparison.
+* >=  N1 N2 - F    gforth:               Numeric comparison.
+* >body  XT - A_ADDR     core:           CREATE..DOES> details.
+* >code-address  XT - C_ADDR     gforth: Threading Words.
+* >definer  XT - DEFINER     unknown:    Threading Words.
+* >does-code  XT - A_ADDR     gforth:    Threading Words.
+* >float  C-ADDR U - FLAG    float:      Input.
+* >in     unknown:                       The Text Interpreter.
+* >l  W -    gforth:                     Locals implementation.
+* >name  XT - NT|0     gforth:           Name token.
+* >number  UD1 C-ADDR1 U1 - UD2 C-ADDR2 U2     core: Input.
+* >order  WID -     gforth:              Word Lists.
+* >r  W - R:W    core:                   Return stack.
+* ?  A-ADDR -     tools:                 Examining.
+* ?DO  COMPILATION - DO-SYS ; RUN-TIME W1 W2 - | LOOP-SYS     core-ext: Arbitrary control structures.
+* ?dup  W - W    core:                   Data stack.
+* ?DUP-0=-IF  COMPILATION - ORIG ; RUN-TIME N - N|     gforth: Arbitrary control structures.
+* ?DUP-IF  COMPILATION - ORIG ; RUN-TIME N - N|     gforth: Arbitrary control structures.
+* ?LEAVE  COMPILATION - ; RUN-TIME F | F LOOP-SYS -     gforth: Arbitrary control structures.
+* @  A-ADDR - W    core:                 Memory Access.
+* @local#  #NOFFSET - W    gforth:       Locals implementation.
+* [  -     core:                         Literals.
+* [']  COMPILATION. "NAME" - ; RUN-TIME. - XT     core: Execution token.
+* [+LOOP]  N -     gforth:               Interpreter Directives.
+* [?DO]  N-LIMIT N-INDEX -     gforth:   Interpreter Directives.
+* []  N "NAME" -     oof:                The OOF base class.
+* [AGAIN]  -     gforth:                 Interpreter Directives.
+* [BEGIN]  -     gforth:                 Interpreter Directives.
+* [bind]  COMPILE-TIME: "CLASS" "SELECTOR" - ; RUN-TIME: ... OBJECT - ...     objects: Objects Glossary.
+* [Char]  COMPILATION '<SPACES>CCC' - ; RUN-TIME - C     core: Displaying characters and strings.
+* [COMP']  COMPILATION "NAME" - ; RUN-TIME - W XT     gforth: Compilation token.
+* [compile]  COMPILATION "NAME" - ; RUN-TIME ? - ?     core-ext: Macros.
+* [current]  COMPILE-TIME: "SELECTOR" - ; RUN-TIME: ... OBJECT - ...     objects: Objects Glossary.
+* [DO]  N-LIMIT N-INDEX -     gforth:    Interpreter Directives.
+* [ELSE]  -     tools-ext:               Interpreter Directives.
+* [ENDIF]  -     gforth:                 Interpreter Directives.
+* [FOR]  N -     gforth:                 Interpreter Directives.
+* [IF]  FLAG -     tools-ext:            Interpreter Directives.
+* [IFDEF]  "<SPACES>NAME" -     gforth:  Interpreter Directives.
+* [IFUNDEF]  "<SPACES>NAME" -     gforth: Interpreter Directives.
+* [IS]  COMPILATION "NAME" - ; RUN-TIME XT -     gforth: Deferred words.
+* [LOOP]  -     gforth:                  Interpreter Directives.
+* [NEXT]  N -     gforth:                Interpreter Directives.
+* [parent]  COMPILE-TIME: "SELECTOR" - ; RUN-TIME: ... OBJECT - ...     objects: Objects Glossary.
+* [REPEAT]  -     gforth:                Interpreter Directives.
+* [THEN]  -     tools-ext:               Interpreter Directives.
+* [to-inst]  COMPILE-TIME: "NAME" - ; RUN-TIME: W -     objects: Objects Glossary.
+* [UNTIL]  FLAG -     gforth:            Interpreter Directives.
+* [WHILE]  FLAG -     gforth:            Interpreter Directives.
+* \  COMPILATION 'CCC<NEWLINE>' - ; RUN-TIME -     core-ext,block-ext: Comments.
+* \"-parse  "STRING"<"> - C-ADDR U     unknown: The Input Stream.
+* \G  COMPILATION 'CCC<NEWLINE>' - ; RUN-TIME -     gforth: Comments.
+* ]  -     core:                         Literals.
+* ]L  COMPILATION: N - ; RUN-TIME: - N     gforth: Literals.
+* abort  ?? - ??     core,exception-ext: Exception Handling.
+* ABORT"  COMPILATION 'CCC"' - ; RUN-TIME F -     core,exception-ext: Exception Handling.
+* abs  N - U    core:                    Single precision.
+* accept  C-ADDR +N1 - +N2     core:     Input.
+* ADDRESS-UNIT-BITS  - N     environment: Address arithmetic.
+* AGAIN  COMPILATION DEST - ; RUN-TIME -     core-ext: Arbitrary control structures.
+* AHEAD  COMPILATION - ORIG ; RUN-TIME -     tools-ext: Arbitrary control structures.
+* Alias  XT "NAME" -     gforth:         Aliases.
+* align  -     core:                     Dictionary allocation.
+* aligned  C-ADDR - A-ADDR    core:      Address arithmetic.
+* allocate  U - A-ADDR WIOR    memory:   Heap Allocation.
+* allot  N -     core:                   Dictionary allocation.
+* also  -     search-ext:                Word Lists.
+* also-path  C-ADDR LEN PATH-ADDR -     gforth: General Search Paths.
+* and  W1 W2 - W    core:                Bitwise operations.
+* arg  N - ADDR COUNT     gforth:        Modifying the Startup Sequence.
+* argc  - ADDR     gforth:               Modifying the Startup Sequence.
+* argv  - ADDR     gforth:               Modifying the Startup Sequence.
+* asptr  CLASS -     oof:                Class Declaration.
+* asptr  O "NAME" -     oof:             The OOF base class.
+* assembler  -     tools-ext:            Code and ;code.
+* assert(  -     gforth:                 Assertions.
+* assert-level  - A-ADDR     gforth:     Assertions.
+* assert0(  -     gforth:                Assertions.
+* assert1(  -     gforth:                Assertions.
+* assert2(  -     gforth:                Assertions.
+* assert3(  -     gforth:                Assertions.
+* ASSUME-LIVE  ORIG - ORIG     gforth:   Where are locals visible by name?.
+* at-xy  U1 U2 -     facility:           Displaying characters and strings.
+* base  - A-ADDR     core:               Number Conversion.
+* BEGIN  COMPILATION - DEST ; RUN-TIME -     core: Arbitrary control structures.
+* bin  FAM1 - FAM2     file:             General files.
+* bind  ... "CLASS" "SELECTOR" - ...     objects: Objects Glossary.
+* bind  O "NAME" -     oof:              The OOF base class.
+* bind'  "CLASS" "SELECTOR" - XT     objects: Objects Glossary.
+* bl  - C-CHAR     core:                 Displaying characters and strings.
+* blank  C-ADDR U -     string:          Memory Blocks.
+* blk     unknown:                       Input Sources.
+* block  U - A-ADDR     block:           Blocks.
+* block-included  A-ADDR U -     gforth: Blocks.
+* block-offset  - ADDR     gforth:       Blocks.
+* block-position  U -     block:         Blocks.
+* bound  CLASS ADDR "NAME" -     oof:    The OOF base class.
+* bounds  ADDR U - ADDR+U ADDR     gforth: Memory Blocks.
+* break"  'CCC"' -     gforth:           Singlestep Debugger.
+* break:  -     gforth:                  Singlestep Debugger.
+* broken-pipe-error  - N     gforth:     Pipes.
+* buffer  U - A-ADDR     block:          Blocks.
+* bye  -     tools-ext:                  Leaving Gforth.
+* c!  C C-ADDR -    core:                Memory Access.
+* C"  COMPILATION "CCC<QUOTE>" - ; RUN-TIME  - C-ADDR     core-ext: Displaying characters and strings.
+* c,  C -     core:                      Dictionary allocation.
+* c@  C-ADDR - C    core:                Memory Access.
+* case  COMPILATION  - CASE-SYS ; RUN-TIME  -     core-ext: Arbitrary control structures.
+* catch  ... XT - ... N     exception:   Exception Handling.
+* cell  - U     gforth:                  Address arithmetic.
+* cell%  - ALIGN SIZE     gforth:        Structure Glossary.
+* cell+  A-ADDR1 - A-ADDR2    core:      Address arithmetic.
+* cells  N1 - N2    core:                Address arithmetic.
+* cfalign  -     gforth:                 Dictionary allocation.
+* cfaligned  ADDR1 - ADDR2     gforth:   Address arithmetic.
+* char  '<SPACES>CCC' - C     core:      Displaying characters and strings.
+* char%  - ALIGN SIZE     gforth:        Structure Glossary.
+* char+  C-ADDR1 - C-ADDR2    core:      Address arithmetic.
+* chars  N1 - N2     core:               Address arithmetic.
+* class  "NAME" -     oof:               The OOF base class.
+* class  CLASS - CLASS SELECTORS VARS     mini-oof: Basic Mini-OOF Usage.
+* class  PARENT-CLASS - ALIGN OFFSET     objects: Objects Glossary.
+* class->map  CLASS - MAP     objects:   Objects Glossary.
+* class-inst-size  CLASS - ADDR     objects: Objects Glossary.
+* class-override!  XT SEL-XT CLASS-MAP -     objects: Objects Glossary.
+* class-previous  CLASS -     objects:   Objects Glossary.
+* class;  -     oof:                     Class Declaration.
+* class>order  CLASS -     objects:      Objects Glossary.
+* class?  O - FLAG     oof:              The OOF base class.
+* clear-path  PATH-ADDR -     gforth:    General Search Paths.
+* clearstack  ... -     gforth:          Examining.
+* close-file  WFILEID - WIOR    file:    General files.
+* close-pipe  WFILEID - WRETVAL WIOR    gforth: Pipes.
+* cmove  C-FROM C-TO U -    string:      Memory Blocks.
+* cmove>  C-FROM C-TO U -    string:     Memory Blocks.
+* code  "NAME" - COLON-SYS     tools-ext: Code and ;code.
+* code-address!  C_ADDR XT -     gforth: Threading Words.
+* common-list  LIST1 LIST2 - LIST3     gforth-internal: Locals implementation.
+* COMP'  "NAME" - W XT     gforth:       Compilation token.
+* compare  C-ADDR1 U1 C-ADDR2 U2 - N    string: Memory Blocks.
+* compilation>  COMPILATION. - ORIG COLON-SYS     gforth: Combined words.
+* compile,  XT -     core-ext:           Macros.
+* compile-lp+!  N -     gforth:          Locals implementation.
+* compile-only  -     gforth:            Interpretation and Compilation Semantics.
+* Constant  W "NAME" -     core:         Constants.
+* construct  ... OBJECT -     objects:   Objects Glossary.
+* context  - ADDR     gforth:            Word Lists.
+* convert  UD1 C-ADDR1 - UD2 C-ADDR2     core-ext: Input.
+* count  C-ADDR1 - C-ADDR2 U    core:    String Formats.
+* cputime  - DUSER DSYSTEM    gforth:    Keeping track of Time.
+* cr  -     core:                        Displaying characters and strings.
+* Create  "NAME" -     core:             CREATE.
+* create-file  C-ADDR U WFAM - WFILEID WIOR    file: General files.
+* create-interpret/compile  "NAME" -     gforth: Combined words.
+* CS-PICK  ... U - ... DESTU     tools-ext: Arbitrary control structures.
+* CS-ROLL  DESTU/ORIGU .. DEST0/ORIG0 U - .. DEST0/ORIG0 DESTU/ORIGU     tools-ext: Arbitrary control structures.
+* current  - ADDR     gforth:            Word Lists.
+* current'  "SELECTOR" - XT     objects: Objects Glossary.
+* current-interface  - ADDR     objects: Objects Glossary.
+* d+  D1 D2 - D    double:               Double precision.
+* d-  D1 D2 - D    double:               Double precision.
+* d.  D -     double:                    Simple numeric output.
+* d.r  D N -     double:                 Simple numeric output.
+* d0<  D - F    double:                  Numeric comparison.
+* d0<=  D - F    gforth:                 Numeric comparison.
+* d0<>  D - F    gforth:                 Numeric comparison.
+* d0=  D - F    double:                  Numeric comparison.
+* d0>  D - F    gforth:                  Numeric comparison.
+* d0>=  D - F    gforth:                 Numeric comparison.
+* d2*  D1 - D2    double:                Bitwise operations.
+* d2/  D1 - D2    double:                Bitwise operations.
+* d<  D1 D2 - F    double:               Numeric comparison.
+* d<=  D1 D2 - F    gforth:              Numeric comparison.
+* d<>  D1 D2 - F    gforth:              Numeric comparison.
+* d=  D1 D2 - F    double:               Numeric comparison.
+* d>  D1 D2 - F    gforth:               Numeric comparison.
+* d>=  D1 D2 - F    gforth:              Numeric comparison.
+* d>f  D - R    float:                   Floating Point.
+* d>s  D - N     double:                 Double precision.
+* dabs  D - UD     double:               Double precision.
+* dbg  "NAME" -     gforth:              Singlestep Debugger.
+* dec.  N -     gforth:                  Simple numeric output.
+* decimal  -     core:                   Number Conversion.
+* Defer  "NAME" -     gforth:            Deferred words.
+* defer  -     oof:                      Class Declaration.
+* defers  COMPILATION "NAME" - ; RUN-TIME ... - ...     gforth: Deferred words.
+* definer!  DEFINER XT -     unknown:    Threading Words.
+* defines  XT CLASS "NAME" -     mini-oof: Basic Mini-OOF Usage.
+* definitions  -     oof:                The OOF base class.
+* definitions  -     search:             Word Lists.
+* delete-file  C-ADDR U - WIOR    file:  General files.
+* depth  - +N     core:                  Examining.
+* df!  R DF-ADDR -    float-ext:         Memory Access.
+* df@  DF-ADDR - R    float-ext:         Memory Access.
+* dfalign  -     float-ext:              Dictionary allocation.
+* dfaligned  C-ADDR - DF-ADDR    float-ext: Address arithmetic.
+* dfloat%  - ALIGN SIZE     gforth:      Structure Glossary.
+* dfloat+  DF-ADDR1 - DF-ADDR2     float-ext: Address arithmetic.
+* dfloats  N1 - N2    float-ext:         Address arithmetic.
+* dict-new  ... CLASS - OBJECT     objects: Objects Glossary.
+* dispose  -     oof:                    The OOF base class.
+* dmax  D1 D2 - D     double:            Double precision.
+* dmin  D1 D2 - D     double:            Double precision.
+* dnegate  D1 - D2    double:            Double precision.
+* DO  COMPILATION - DO-SYS ; RUN-TIME W1 W2 - LOOP-SYS     core: Arbitrary control structures.
+* docol:  - ADDR     gforth:             Threading Words.
+* docon:  - ADDR     gforth:             Threading Words.
+* dodefer:  - ADDR     gforth:           Threading Words.
+* does-code!  A_ADDR XT -     gforth:    Threading Words.
+* does-handler!  A_ADDR -     gforth:    Threading Words.
+* DOES>  COMPILATION COLON-SYS1 - COLON-SYS2 ; RUN-TIME NEST-SYS -     core: CREATE..DOES> details.
+* dofield:  - ADDR     gforth:           Threading Words.
+* DONE  COMPILATION ORIG - ; RUN-TIME -     gforth: Arbitrary control structures.
+* double%  - ALIGN SIZE     gforth:      Structure Glossary.
+* douser:  - ADDR     gforth:            Threading Words.
+* dovar:  - ADDR     gforth:             Threading Words.
+* dpl  - A-ADDR     gforth:              Number Conversion.
+* drop  W -    core:                     Data stack.
+* du<  UD1 UD2 - F    double-ext:        Numeric comparison.
+* du<=  UD1 UD2 - F    gforth:           Numeric comparison.
+* du>  UD1 UD2 - F    gforth:            Numeric comparison.
+* du>=  UD1 UD2 - F    gforth:           Numeric comparison.
+* dump  ADDR U -     tools:              Examining.
+* dup  W - W W    core:                  Data stack.
+* early  -     oof:                      Class Declaration.
+* edit-line  C-ADDR N1 N2 - N3     gforth: Input.
+* ekey  - U     facility-ext:            Input.
+* ekey>char  U - U FALSE | C TRUE     facility-ext: Input.
+* ekey?  - FLAG     unknown:             Input.
+* ELSE  COMPILATION ORIG1 - ORIG2 ; RUN-TIME F -     core: Arbitrary control structures.
+* emit  C -     core:                    Displaying characters and strings.
+* emit-file  C WFILEID - WIOR    gforth: General files.
+* empty-buffer  BUFFER -     gforth:     Blocks.
+* empty-buffers  -     block-ext:        Blocks.
+* end-class  ALIGN OFFSET "NAME" -     objects: Objects Glossary.
+* end-class  CLASS SELECTORS VARS "NAME" -     mini-oof: Basic Mini-OOF Usage.
+* end-class-noname  ALIGN OFFSET - CLASS     objects: Objects Glossary.
+* end-code  COLON-SYS -     gforth:      Code and ;code.
+* end-interface  "NAME" -     objects:   Objects Glossary.
+* end-interface-noname  - INTERFACE     objects: Objects Glossary.
+* end-methods  -     objects:            Objects Glossary.
+* end-struct  ALIGN SIZE "NAME" -     gforth: Structure Glossary.
+* endcase  COMPILATION CASE-SYS - ; RUN-TIME X -     core-ext: Arbitrary control structures.
+* ENDIF  COMPILATION ORIG - ; RUN-TIME -     gforth: Arbitrary control structures.
+* endof  COMPILATION CASE-SYS1 OF-SYS - CASE-SYS2 ; RUN-TIME  -     core-ext: Arbitrary control structures.
+* endscope  COMPILATION SCOPE - ; RUN-TIME  -     gforth: Where are locals visible by name?.
+* endtry  COMPILATION  ORIG - ; RUN-TIME  -     gforth: Exception Handling.
+* endwith  -     oof:                    The OOF base class.
+* environment-wordlist  - WID     gforth: Environmental Queries.
+* environment?  C-ADDR U - FALSE / ... TRUE     core: Environmental Queries.
+* erase  ADDR U -     core-ext:          Memory Blocks.
+* evaluate  ... ADDR U - ...     core,block: Input Sources.
+* exception  ADDR U - N     gforth:      Exception Handling.
+* execute  XT -    core:                 Execution token.
+* execute-parsing  ... ADDR U XT - ...     unknown: The Input Stream.
+* execute-parsing-file  I*X FILEID XT - J*X     unknown: The Input Stream.
+* EXIT  COMPILATION - ; RUN-TIME NEST-SYS -     core: Calls and returns.
+* exitm  -     objects:                  Objects Glossary.
+* expect  C-ADDR +N -     core-ext:      Input.
+* f!  R F-ADDR -    float:               Memory Access.
+* f*  R1 R2 - R3    float:               Floating Point.
+* f**  R1 R2 - R3    float-ext:          Floating Point.
+* f+  R1 R2 - R3    float:               Floating Point.
+* f,  F -     gforth:                    Dictionary allocation.
+* f-  R1 R2 - R3    float:               Floating Point.
+* f.  R -     float-ext:                 Simple numeric output.
+* f.rdp  RF +NR +ND +NP -     gforth:    Simple numeric output.
+* f.s  -     gforth:                     Examining.
+* f/  R1 R2 - R3    float:               Floating Point.
+* f0<  R - F    float:                   Floating Point.
+* f0<=  R - F    gforth:                 Floating Point.
+* f0<>  R - F    gforth:                 Floating Point.
+* f0=  R - F    float:                   Floating Point.
+* f0>  R - F    gforth:                  Floating Point.
+* f0>=  R - F    gforth:                 Floating Point.
+* f2*  R1 - R2     gforth:               Floating Point.
+* f2/  R1 - R2     gforth:               Floating Point.
+* f<  R1 R2 - F    float:                Floating Point.
+* f<=  R1 R2 - F    gforth:              Floating Point.
+* f<>  R1 R2 - F    gforth:              Floating Point.
+* f=  R1 R2 - F    gforth:               Floating Point.
+* f>  R1 R2 - F    gforth:               Floating Point.
+* f>=  R1 R2 - F    gforth:              Floating Point.
+* f>d  R - D    float:                   Floating Point.
+* f>l  R -    gforth:                    Locals implementation.
+* f>str-rdp  RF +NR +ND +NP - C-ADDR NR     gforth: Formatted numeric output.
+* f@  F-ADDR - R    float:               Memory Access.
+* f@local#  #NOFFSET - R    gforth:      Locals implementation.
+* fabs  R1 - R2    float-ext:            Floating Point.
+* facos  R1 - R2    float-ext:           Floating Point.
+* facosh  R1 - R2    float-ext:          Floating Point.
+* falign  -     float:                   Dictionary allocation.
+* faligned  C-ADDR - F-ADDR    float:    Address arithmetic.
+* falog  R1 - R2    float-ext:           Floating Point.
+* false  - F     core-ext:               Boolean Flags.
+* fasin  R1 - R2    float-ext:           Floating Point.
+* fasinh  R1 - R2    float-ext:          Floating Point.
+* fatan  R1 - R2    float-ext:           Floating Point.
+* fatan2  R1 R2 - R3    float-ext:       Floating Point.
+* fatanh  R1 - R2    float-ext:          Floating Point.
+* fconstant  R "NAME" -     float:       Constants.
+* fcos  R1 - R2    float-ext:            Floating Point.
+* fcosh  R1 - R2    float-ext:           Floating Point.
+* fdepth  - +N     float:                Examining.
+* fdrop  R -    float:                   Floating point stack.
+* fdup  R - R R    float:                Floating point stack.
+* fe.  R -     float-ext:                Simple numeric output.
+* fexp  R1 - R2    float-ext:            Floating Point.
+* fexpm1  R1 - R2    float-ext:          Floating Point.
+* field  ALIGN1 OFFSET1 ALIGN SIZE "NAME" -  ALIGN2 OFFSET2     gforth: Structure Glossary.
+* file-position  WFILEID - UD WIOR    file: General files.
+* file-size  WFILEID - UD WIOR    file:  General files.
+* file-status  C-ADDR U - WFAM WIOR    file-ext: General files.
+* fill  C-ADDR U C -    core:            Memory Blocks.
+* find  C-ADDR - XT +-1 | C-ADDR 0     core,search: Word Lists.
+* find-name  C-ADDR U - NT | 0     gforth: Name token.
+* FLiteral  COMPILATION R - ; RUN-TIME - R     float: Literals.
+* fln  R1 - R2    float-ext:             Floating Point.
+* flnp1  R1 - R2    float-ext:           Floating Point.
+* float  - U     gforth:                 Address arithmetic.
+* float%  - ALIGN SIZE     gforth:       Structure Glossary.
+* float+  F-ADDR1 - F-ADDR2    float:    Address arithmetic.
+* floating-stack  - N     environment:   Floating point stack.
+* floats  N1 - N2    float:              Address arithmetic.
+* flog  R1 - R2    float-ext:            Floating Point.
+* floor  R1 - R2    float:               Floating Point.
+* FLOORED  - F     environment:          Single precision.
+* flush  -     block:                    Blocks.
+* flush-file  WFILEID - WIOR    file-ext: General files.
+* flush-icache  C-ADDR U -    gforth:    Code and ;code.
+* fm/mod  D1 N1 - N2 N3    core:         Mixed precision.
+* fmax  R1 R2 - R3    float:             Floating Point.
+* fmin  R1 R2 - R3    float:             Floating Point.
+* fnegate  R1 - R2    float:             Floating Point.
+* fnip  R1 R2 - R2    gforth:            Floating point stack.
+* FOR  COMPILATION - DO-SYS ; RUN-TIME U - LOOP-SYS     gforth: Arbitrary control structures.
+* Forth  -     search-ext:               Word Lists.
+* forth-wordlist  - WID     search:      Word Lists.
+* fover  R1 R2 - R1 R2 R1    float:      Floating point stack.
+* fp!  F-ADDR -    gforth:               Stack pointer manipulation.
+* fp0  - A-ADDR     gforth:              Stack pointer manipulation.
+* fp@  - F-ADDR    gforth:               Stack pointer manipulation.
+* fpath  - PATH-ADDR     gforth:         Source Search Paths.
+* fpick  U - R    gforth:                Floating point stack.
+* free  A-ADDR - WIOR    memory:         Heap Allocation.
+* frot  R1 R2 R3 - R2 R3 R1    float:    Floating point stack.
+* fround  R1 - R2    gforth:             Floating Point.
+* fs.  R -     float-ext:                Simple numeric output.
+* fsin  R1 - R2    float-ext:            Floating Point.
+* fsincos  R1 - R2 R3    float-ext:      Floating Point.
+* fsinh  R1 - R2    float-ext:           Floating Point.
+* fsqrt  R1 - R2    float-ext:           Floating Point.
+* fswap  R1 R2 - R2 R1    float:         Floating point stack.
+* ftan  R1 - R2    float-ext:            Floating Point.
+* ftanh  R1 - R2    float-ext:           Floating Point.
+* ftuck  R1 R2 - R2 R1 R2    gforth:     Floating point stack.
+* fvariable  "NAME" -     float:         Variables.
+* f~  R1 R2 R3 - FLAG     float-ext:     Floating Point.
+* f~abs  R1 R2 R3 - FLAG     gforth:     Floating Point.
+* f~rel  R1 R2 R3 - FLAG     gforth:     Floating Point.
+* get-block-fid  - WFILEID     gforth:   Blocks.
+* get-current  - WID     search:         Word Lists.
+* get-order  - WIDN .. WID1 N     search: Word Lists.
+* getenv  C-ADDR1 U1 - C-ADDR2 U2    gforth: Passing Commands to the OS.
+* gforth  - C-ADDR U     gforth-environment: Environmental Queries.
+* heap-new  ... CLASS - OBJECT     objects: Objects Glossary.
+* here  - ADDR     core:                 Dictionary allocation.
+* hex  -     core-ext:                   Number Conversion.
+* hex.  U -     gforth:                  Simple numeric output.
+* hold  CHAR -     core:                 Formatted numeric output.
+* how:  -     oof:                       Class Declaration.
+* i  R:N - R:N N    core:                Counted Loops.
+* id.  NT -     gforth:                  Name token.
+* IF  COMPILATION - ORIG ; RUN-TIME F -     core: Arbitrary control structures.
+* immediate  -     core:                 Interpretation and Compilation Semantics.
+* implementation  INTERFACE -     objects: Objects Glossary.
+* include  ... "FILE" - ...     gforth:  Forth source files.
+* include-file  I*X WFILEID - J*X     unknown: Forth source files.
+* included  I*X C-ADDR U - J*X     file: Forth source files.
+* included?  C-ADDR U - F     gforth:    Forth source files.
+* init  ... -     oof:                   The OOF base class.
+* init-asm  -     gforth:                Code and ;code.
+* init-object  ... CLASS OBJECT -     objects: Objects Glossary.
+* inst-value  ALIGN1 OFFSET1 "NAME" - ALIGN2 OFFSET2     objects: Objects Glossary.
+* inst-var  ALIGN1 OFFSET1 ALIGN SIZE "NAME" - ALIGN2 OFFSET2     objects: Objects Glossary.
+* interface  -     objects:              Objects Glossary.
+* interpret/compile:  INTERP-XT COMP-XT "NAME" -     gforth: Combined words.
+* interpretation>  COMPILATION. - ORIG COLON-SYS     gforth: Combined words.
+* invert  W1 - W2    core:               Bitwise operations.
+* IS  XT "NAME" -     gforth:            Deferred words.
+* is  XT "NAME" -     oof:               The OOF base class.
+* j  R:N R:D1 - N R:N R:D1    core:      Counted Loops.
+* k  R:N R:D1 R:D2 - N R:N R:D1 R:D2    gforth: Counted Loops.
+* key  - CHAR     core:                  Input.
+* key?  - FLAG     facility:             Input.
+* laddr#  #NOFFSET - C-ADDR    gforth:   Locals implementation.
+* latest  - NT     gforth:               Name token.
+* latestxt  - XT     gforth:             Anonymous Definitions.
+* LEAVE  COMPILATION - ; RUN-TIME LOOP-SYS -     core: Arbitrary control structures.
+* link  "NAME" - CLASS ADDR     oof:     The OOF base class.
+* list  U -     block-ext:               Blocks.
+* list-size  LIST - U     gforth-internal: Locals implementation.
+* Literal  COMPILATION N - ; RUN-TIME - N     core: Literals.
+* load  I*X N - J*X     block:           Blocks.
+* LOOP  COMPILATION DO-SYS - ; RUN-TIME LOOP-SYS1 - | LOOP-SYS2     core: Arbitrary control structures.
+* lp!  C-ADDR -    gforth <1>:           Locals implementation.
+* lp!  C-ADDR -    gforth:               Stack pointer manipulation.
+* lp+!#  #NOFFSET -    gforth:           Locals implementation.
+* lp0  - A-ADDR     gforth:              Stack pointer manipulation.
+* lp@  - ADDR     gforth:                Stack pointer manipulation.
+* lshift  U1 N - U2    core:             Bitwise operations.
+* m*  N1 N2 - D    core:                 Mixed precision.
+* m*/  D1 N2 U3 - DQUOT     double:      Mixed precision.
+* m+  D1 N - D2    double:               Mixed precision.
+* m:  - XT COLON-SYS; RUN-TIME: OBJECT -     objects: Objects Glossary.
+* marker  "<SPACES> NAME" -     core-ext: Forgetting words.
+* max  N1 N2 - N    core:                Single precision.
+* maxalign  -     gforth:                Dictionary allocation.
+* maxaligned  ADDR1 - ADDR2     gforth:  Address arithmetic.
+* method  -     oof:                     Class Declaration.
+* method  M V "NAME" - M' V     mini-oof: Basic Mini-OOF Usage.
+* method  XT "NAME" -     objects:       Objects Glossary.
+* methods  CLASS -     objects:          Objects Glossary.
+* min  N1 N2 - N    core:                Single precision.
+* mod  N1 N2 - N    core:                Single precision.
+* move  C-FROM C-TO UCOUNT -    core:    Memory Blocks.
+* ms  N -    facility-ext:               Keeping track of Time.
+* naligned  ADDR1 N - ADDR2     gforth:  Structure Glossary.
+* name  - C-ADDR U     gforth-obsolete:  The Input Stream.
+* name>comp  NT - W XT     gforth:       Name token.
+* name>int  NT - XT     gforth:          Name token.
+* name>string  NT - ADDR COUNT     gforth: Name token.
+* name?int  NT - XT     gforth:          Name token.
+* needs  ... "NAME" - ...     gforth:    Forth source files.
+* negate  N1 - N2    core:               Single precision.
+* new  - O     oof:                      The OOF base class.
+* new  CLASS - O     mini-oof:           Basic Mini-OOF Usage.
+* new[]  N - O     oof:                  The OOF base class.
+* NEXT  COMPILATION DO-SYS - ; RUN-TIME LOOP-SYS1 - | LOOP-SYS2     gforth: Arbitrary control structures.
+* nextname  C-ADDR U -     gforth:       Supplying names.
+* nip  W1 W2 - W2    core-ext:           Data stack.
+* noname  -     gforth:                  Anonymous Definitions.
+* object  - A-ADDR     mini-oof:         Basic Mini-OOF Usage.
+* object  - CLASS     objects:           Objects Glossary.
+* of  COMPILATION  - OF-SYS ; RUN-TIME X1 X2 - |X1     core-ext: Arbitrary control structures.
+* off  A-ADDR -     gforth:              Boolean Flags.
+* on  A-ADDR -     gforth:               Boolean Flags.
+* Only  -     search-ext:                Word Lists.
+* open-blocks  C-ADDR U -     gforth:    Blocks.
+* open-file  C-ADDR U WFAM - WFILEID WIOR    file: General files.
+* open-path-file  ADDR1 U1 PATH-ADDR - WFILEID ADDR2 U2 0 | IOR     gforth: General Search Paths.
+* open-pipe  C-ADDR U WFAM - WFILEID WIOR    gforth: Pipes.
+* or  W1 W2 - W    core:                 Bitwise operations.
+* order  -     search-ext:               Word Lists.
+* os-class  - C-ADDR U     gforth-environment: Environmental Queries.
+* over  W1 W2 - W1 W2 W1    core:        Data stack.
+* overrides  XT "SELECTOR" -     objects: Objects Glossary.
+* pad  - C-ADDR     core-ext:            Input.
+* page  -     facility:                  Displaying characters and strings.
+* parse  CHAR "CCC<CHAR>" - C-ADDR U     core-ext: The Input Stream.
+* parse-word  "NAME" - C-ADDR U     gforth: The Input Stream.
+* path+  PATH-ADDR  "DIR" -     gforth:  General Search Paths.
+* path-allot  UMAX -     unknown:        General Search Paths.
+* path=  PATH-ADDR "DIR1|DIR2|DIR3"     gforth: General Search Paths.
+* perform  A-ADDR -    gforth:           Execution token.
+* pi  - R     gforth:                    Floating Point.
+* pick  U - W    core-ext:               Data stack.
+* postpone  "NAME" -     core:           Macros.
+* postpone  "NAME" -     oof:            The OOF base class.
+* postpone,  W XT -     gforth:          Compilation token.
+* precision  - U     float-ext:          Floating Point.
+* previous  -     search-ext:            Word Lists.
+* print  OBJECT -     objects:           Objects Glossary.
+* printdebugdata  -     gforth:          Debugging.
+* protected  -     objects:              Objects Glossary.
+* ptr  "NAME" -     oof:                 The OOF base class.
+* ptr  -     oof:                        Class Declaration.
+* public  -     objects:                 Objects Glossary.
+* query  -     core-ext:                 Input Sources.
+* quit  ?? - ??     core:                Miscellaneous Words.
+* r/o  - FAM     file:                   General files.
+* r/w  - FAM     file:                   General files.
+* r>  R:W - W    core:                   Return stack.
+* r@  - W ; R: W - W     core:           Return stack.
+* rdrop  R:W -    gforth:                Return stack.
+* read-file  C-ADDR U1 WFILEID - U2 WIOR    file: General files.
+* read-line  C_ADDR U1 WFILEID - U2 FLAG WIOR     unknown: General files.
+* recover  COMPILATION  ORIG1 - ORIG2 ; RUN-TIME  -     gforth: Exception Handling.
+* recurse  COMPILATION - ; RUN-TIME ?? - ??     core: Calls and returns.
+* recursive  COMPILATION - ; RUN-TIME -     gforth: Calls and returns.
+* refill  - FLAG     core-ext,block-ext,file-ext: The Input Stream.
+* rename-file  C-ADDR1 U1 C-ADDR2 U2 - WIOR    file-ext: General files.
+* REPEAT  COMPILATION ORIG DEST - ; RUN-TIME -     core: Arbitrary control structures.
+* reposition-file  UD WFILEID - WIOR    file: General files.
+* represent  R C-ADDR U - N F1 F2    float: Formatted numeric output.
+* require  ... "FILE" - ...     gforth:  Forth source files.
+* required  I*X ADDR U - J*X     gforth: Forth source files.
+* resize  A-ADDR1 U - A-ADDR2 WIOR    memory: Heap Allocation.
+* resize-file  UD WFILEID - WIOR    file: General files.
+* restore-input  X1 .. XN N - FLAG     core-ext: Input Sources.
+* restrict  -     gforth:                Interpretation and Compilation Semantics.
+* roll  X0 X1 .. XN N - X1 .. XN X0     core-ext: Data stack.
+* Root  -     gforth:                    Word Lists.
+* rot  W1 W2 W3 - W2 W3 W1    core:      Data stack.
+* rp!  A-ADDR -    gforth:               Stack pointer manipulation.
+* rp0  - A-ADDR     gforth:              Stack pointer manipulation.
+* rp@  - A-ADDR    gforth:               Stack pointer manipulation.
+* rshift  U1 N - U2    core:             Bitwise operations.
+* S"  COMPILATION 'CCC"' - ; RUN-TIME - C-ADDR U     core,file: Displaying characters and strings.
+* s>d  N - D     core:                   Double precision.
+* s\"  COMPILATION 'CCC"' - ; RUN-TIME - C-ADDR U     gforth: Displaying characters and strings.
+* save-buffer  BUFFER -     gforth:      Blocks.
+* save-buffers  -     block:             Blocks.
+* save-input  - X1 .. XN N     core-ext: Input Sources.
+* savesystem  "NAME" -     gforth:       Non-Relocatable Image Files.
+* scope  COMPILATION  - SCOPE ; RUN-TIME  -     gforth: Where are locals visible by name?.
+* scr  - A-ADDR     block-ext:           Blocks.
+* seal  -     gforth:                    Word Lists.
+* search  C-ADDR1 U1 C-ADDR2 U2 - C-ADDR3 U3 FLAG     string: Memory Blocks.
+* search-wordlist  C-ADDR COUNT WID - 0 | XT +-1     search: Word Lists.
+* see  "<SPACES>NAME" -     tools:       Examining.
+* selector  "NAME" -     objects:        Objects Glossary.
+* self  - O     oof:                     The OOF base class.
+* set-current  WID -     search:         Word Lists.
+* set-order  WIDN .. WID1 N -     search: Word Lists.
+* set-precision  U -     float-ext:      Floating Point.
+* sf!  R SF-ADDR -    float-ext:         Memory Access.
+* sf@  SF-ADDR - R    float-ext:         Memory Access.
+* sfalign  -     float-ext:              Dictionary allocation.
+* sfaligned  C-ADDR - SF-ADDR    float-ext: Address arithmetic.
+* sfloat%  - ALIGN SIZE     gforth:      Structure Glossary.
+* sfloat+  SF-ADDR1 - SF-ADDR2     float-ext: Address arithmetic.
+* sfloats  N1 - N2    float-ext:         Address arithmetic.
+* sh  "..." -     gforth:                Passing Commands to the OS.
+* sign  N -     core:                    Formatted numeric output.
+* simple-see  "NAME" -     gforth:       Examining.
+* simple-see-range  ADDR1 ADDR2 -     gforth: Examining.
+* SLiteral  COMPILATION C-ADDR1 U ; RUN-TIME - C-ADDR2 U     string: Literals.
+* slurp-fid     unknown:                 General files.
+* slurp-file  C-ADDR1 U1 - C-ADDR2 U2     unknown: General files.
+* sm/rem  D1 N1 - N2 N3    core:         Mixed precision.
+* source  - ADDR U     core-ext,file:    The Text Interpreter.
+* source-id  - 0 | -1 | FILEID     core-ext,file: Input Sources.
+* sourcefilename  - C-ADDR U     gforth: Forth source files.
+* sourceline#  - U     gforth:           Forth source files.
+* sp!  A-ADDR -    gforth:               Stack pointer manipulation.
+* sp0  - A-ADDR     gforth:              Stack pointer manipulation.
+* sp@  - A-ADDR    gforth:               Stack pointer manipulation.
+* space  -     core:                     Displaying characters and strings.
+* spaces  U -     core:                  Displaying characters and strings.
+* span  - C-ADDR     core-ext:           Input.
+* static  -     oof:                     Class Declaration.
+* stderr  - WFILEID    gforth:           General files.
+* stdin  - WFILEID    gforth:            General files.
+* stdout  - WFILEID    gforth:           General files.
+* str<  C-ADDR1 U1 C-ADDR2 U2 - F     gforth: Memory Blocks.
+* str=  C-ADDR1 U1 C-ADDR2 U2 - F     gforth: Memory Blocks.
+* string-prefix?  C-ADDR1 U1 C-ADDR2 U2 - F     gforth: Memory Blocks.
+* struct  - ALIGN SIZE     gforth:       Structure Glossary.
+* sub-list?  LIST1 LIST2 - F     gforth-internal: Locals implementation.
+* super  "NAME" -     oof:               The OOF base class.
+* swap  W1 W2 - W2 W1    core:           Data stack.
+* system  C-ADDR U -     gforth:         Passing Commands to the OS.
+* table  - WID     gforth:               Word Lists.
+* THEN  COMPILATION ORIG - ; RUN-TIME -     core: Arbitrary control structures.
+* this  - OBJECT     objects:            Objects Glossary.
+* threading-method  - N    gforth:       Threading Words.
+* throw  Y1 .. YM NERROR - Y1 .. YM / Z1 .. ZN ERROR     exception: Exception Handling.
+* thru  I*X N1 N2 - J*X     block-ext:   Blocks.
+* tib     unknown:                       The Text Interpreter.
+* time&date  - NSEC NMIN NHOUR NDAY NMONTH NYEAR    facility-ext: Keeping track of Time.
+* TO  W "NAME" -     core-ext:           Values.
+* to-this  OBJECT -     objects:         Objects Glossary.
+* toupper  C1 - C2    gforth:            Displaying characters and strings.
+* true  - F     core-ext:                Boolean Flags.
+* try  COMPILATION  - ORIG ; RUN-TIME  -     gforth: Exception Handling.
+* tuck  W1 W2 - W2 W1 W2    core-ext:    Data stack.
+* type  C-ADDR U -     core:             Displaying characters and strings.
+* typewhite  ADDR N -     gforth:        Displaying characters and strings.
+* U+DO  COMPILATION - DO-SYS ; RUN-TIME U1 U2 - | LOOP-SYS     gforth: Arbitrary control structures.
+* U-DO  COMPILATION - DO-SYS ; RUN-TIME U1 U2 - | LOOP-SYS     gforth: Arbitrary control structures.
+* u.  U -     core:                      Simple numeric output.
+* u.r  U N -     core-ext:               Simple numeric output.
+* u<  U1 U2 - F    core:                 Numeric comparison.
+* u<=  U1 U2 - F    gforth:              Numeric comparison.
+* u>  U1 U2 - F    core-ext:             Numeric comparison.
+* u>=  U1 U2 - F    gforth:              Numeric comparison.
+* ud.  UD -     gforth:                  Simple numeric output.
+* ud.r  UD N -     gforth:               Simple numeric output.
+* um*  U1 U2 - UD    core:               Mixed precision.
+* um/mod  UD U1 - U2 U3    core:         Mixed precision.
+* unloop  R:W1 R:W2 -    core:           Arbitrary control structures.
+* UNREACHABLE  -     gforth:             Where are locals visible by name?.
+* UNTIL  COMPILATION DEST - ; RUN-TIME F -     core: Arbitrary control structures.
+* unused  - U     core-ext:              Dictionary allocation.
+* update  -     block:                   Blocks.
+* updated?  N - F     gforth:            Blocks.
+* use  "FILE" -     gforth:              Blocks.
+* User  "NAME" -     gforth:             Variables.
+* utime  - DTIME    gforth:              Keeping track of Time.
+* Value  W "NAME" -     core-ext:        Values.
+* var  M V SIZE "NAME" - M V'     mini-oof: Basic Mini-OOF Usage.
+* var  SIZE -     oof:                   Class Declaration.
+* Variable  "NAME" -     core:           Variables.
+* vlist  -     gforth:                   Word Lists.
+* Vocabulary  "NAME" -     gforth:       Word Lists.
+* vocs  -     gforth:                    Word Lists.
+* w/o  - FAM     file:                   General files.
+* What's  INTERPRETATION "NAME" - XT; COMPILATION "NAME" - ; RUN-TIME - XT     gforth: Deferred words.
+* WHILE  COMPILATION DEST - ORIG DEST ; RUN-TIME F -     core: Arbitrary control structures.
+* with  O -     oof:                     The OOF base class.
+* within  U1 U2 U3 - F    core-ext:      Numeric comparison.
+* word  CHAR "<CHARS>CCC<CHAR>- C-ADDR     core: The Input Stream.
+* wordlist  - WID     search:            Word Lists.
+* words  -     tools:                    Word Lists.
+* write-file  C-ADDR U1 WFILEID - WIOR    file: General files.
+* write-line  C-ADDR U FILEID - IOR     file: General files.
+* xor  W1 W2 - W    core:                Bitwise operations.
+* xt-new  ... CLASS XT - OBJECT     objects: Objects Glossary.
+* xt-see  XT -     gforth:               Examining.
+* ~~  COMPILATION  - ; RUN-TIME  -     gforth: Debugging.
+

@@ -1,0 +1,1180 @@
+This is gforth.info, produced by makeinfo version 4.2 from gforth.texi.
+
+This manual is for Gforth (version 0.6.2, August 25, 2003), a fast and
+portable implementation of the ANS Forth language
+
+   Copyright (C) 1995, 1996, 1997, 1998, 2000, 2003 Free Software
+Foundation, Inc.
+
+     Permission is granted to copy, distribute and/or modify this
+     document under the terms of the GNU Free Documentation License,
+     Version 1.1 or any later version published by the Free Software
+     Foundation; with no Invariant Sections, with the Front-Cover texts
+     being "A GNU Manual," and with the Back-Cover Texts as in (a)
+     below.  A copy of the license is included in the section entitled
+     "GNU Free Documentation License."
+
+     (a) The FSF's Back-Cover Text is: "You have freedom to copy and
+     modify this GNU Manual, like GNU software.  Copies published by
+     the Free Software Foundation raise funds for GNU development."
+   
+INFO-DIR-SECTION Software development
+START-INFO-DIR-ENTRY
+* Gforth: (gforth).             A fast interpreter for the Forth language.
+END-INFO-DIR-ENTRY
+
+
+File: gforth.info,  Node: The Text Interpreter,  Next: The Input Stream,  Prev: Compiling words,  Up: Words
+
+The Text Interpreter
+====================
+
+   The text interpreter(1) is an endless loop that processes input from
+the current input device. It is also called the outer interpreter, in
+contrast to the inner interpreter (*note Engine::) which executes the
+compiled Forth code on interpretive implementations.
+
+   The text interpreter operates in one of two states: "interpret
+state" and "compile state". The current state is defined by the
+aptly-named variable `state'.
+
+   This section starts by describing how the text interpreter behaves
+when it is in interpret state, processing input from the user input
+device - the keyboard. This is the mode that a Forth system is in after
+it starts up.
+
+   The text interpreter works from an area of memory called the "input
+buffer"(2), which stores your keyboard input when you press the <RET>
+key. Starting at the beginning of the input buffer, it skips leading
+spaces (called "delimiters") then parses a string (a sequence of
+non-space characters) until it reaches either a space character or the
+end of the buffer. Having parsed a string, it makes two attempts to
+process it:
+
+   * It looks for the string in a "dictionary" of definitions. If the
+     string is found, the string names a "definition" (also known as a
+     "word") and the dictionary search returns information that allows
+     the text interpreter to perform the word's "interpretation
+     semantics". In most cases, this simply means that the word will be
+     executed.
+
+   * If the string is not found in the dictionary, the text interpreter
+     attempts to treat it as a number, using the rules described in
+     *Note Number Conversion::. If the string represents a legal number
+     in the current radix, the number is pushed onto a parameter stack
+     (the data stack for integers, the floating-point stack for
+     floating-point numbers).
+
+   If both attempts fail, or if the word is found in the dictionary but
+has no interpretation semantics(3) the text interpreter discards the
+remainder of the input buffer, issues an error message and waits for
+more input. If one of the attempts succeeds, the text interpreter
+repeats the parsing process until the whole of the input buffer has been
+processed, at which point it prints the status message "` ok'" and
+waits for more input.
+
+   The text interpreter keeps track of its position in the input buffer
+by updating a variable called `>IN' (pronounced "to-in"). The value of
+`>IN' starts out as 0, indicating an offset of 0 from the start of the
+input buffer. The region from offset `>IN @' to the end of the input
+buffer is called the "parse area"(4).  This example shows how `>IN'
+changes as the text interpreter parses the input buffer:
+
+     : remaining >IN @ SOURCE 2 PICK - -ROT + SWAP
+       CR ." ->" TYPE ." <-" ; IMMEDIATE
+     
+     1 2 3 remaining + remaining .
+     
+     : foo 1 2 3 remaining SWAP remaining ;
+
+The result is:
+
+     ->+ remaining .<-
+     ->.<-5  ok
+     
+     ->SWAP remaining ;-<
+     ->;<-  ok
+
+   The value of `>IN' can also be modified by a word in the input
+buffer that is executed by the text interpreter.  This means that a word
+can "trick" the text interpreter into either skipping a section of the
+input buffer(5) or into parsing a section twice. For example:
+
+     : lat ." <<foo>>" ;
+     : flat ." <<bar>>" >IN DUP @ 3 - SWAP ! ;
+
+When `flat' is executed, this output is produced(6):
+
+     <<bar>><<foo>>
+
+   This technique can be used to work around some of the
+interoperability problems of parsing words.  Of course, it's better to
+avoid parsing words where possible.
+
+Two important notes about the behaviour of the text interpreter:
+
+   * It processes each input string to completion before parsing
+     additional characters from the input buffer.
+
+   * It treats the input buffer as a read-only region (and so must your
+     code).
+
+When the text interpreter is in compile state, its behaviour changes in
+these ways:
+
+   * If a parsed string is found in the dictionary, the text
+     interpreter will perform the word's "compilation semantics". In
+     most cases, this simply means that the execution semantics of the
+     word will be appended to the current definition.
+
+   * When a number is encountered, it is compiled into the current
+     definition (as a literal) rather than being pushed onto a
+     parameter stack.
+
+   * If an error occurs, `state' is modified to put the text interpreter
+     back into interpret state.
+
+   * Each time a line is entered from the keyboard, Gforth prints "`
+     compiled'" rather than " `ok'".
+
+   When the text interpreter is using an input device other than the
+keyboard, its behaviour changes in these ways:
+
+   * When the parse area is empty, the text interpreter attempts to
+     refill the input buffer from the input source. When the input
+     source is exhausted, the input source is set back to the previous
+     input source.
+
+   * It doesn't print out "` ok'" or "` compiled'" messages each time
+     the parse area is emptied.
+
+   * If an error occurs, the input source is set back to the user input
+     device.
+
+   You can read about this in more detail in *Note Input Sources::.
+
+`>in'              unknown       ``>in''
+   `input-var' variable - a-addr is the address of a cell containing
+the char offset from the start of the input buffer to the start of the
+parse area.
+
+`source'       - addr u         core-ext,file       ``source''
+   Return address addr and length u of the current input buffer
+
+`tib'              unknown       ``tib''
+
+`#tib'              unknown       ``#tib''
+   `input-var' variable - a-addr is the address of a cell containing
+the number of characters in the terminal input buffer. OBSOLESCENT:
+`source' superceeds the function of this word.
+
+* Menu:
+
+* Input Sources::
+* Number Conversion::
+* Interpret/Compile states::
+* Interpreter Directives::
+
+   ---------- Footnotes ----------
+
+   (1) This is an expanded version of the material in *Note Introducing
+the Text Interpreter::.
+
+   (2) When the text interpreter is processing input from the keyboard,
+this area of memory is called the "terminal input buffer" (TIB) and is
+addressed by the (obsolescent) words `TIB' and `#TIB'.
+
+   (3) This happens if the word was defined as `COMPILE-ONLY'.
+
+   (4) In other words, the text interpreter processes the contents of
+the input buffer by parsing strings from the parse area until the parse
+area is empty.
+
+   (5) This is how parsing words work.
+
+   (6) Exercise for the reader: what would happen if the `3' were
+replaced with `4'?
+
+
+File: gforth.info,  Node: Input Sources,  Next: Number Conversion,  Prev: The Text Interpreter,  Up: The Text Interpreter
+
+Input Sources
+-------------
+
+   By default, the text interpreter processes input from the user input
+device (the keyboard) when Forth starts up. The text interpreter can
+process input from any of these sources:
+
+   * The user input device - the keyboard.
+
+   * A file, using the words described in *Note Forth source files::.
+
+   * A block, using the words described in *Note Blocks::.
+
+   * A text string, using `evaluate'.
+
+   A program can identify the current input device from the values of
+`source-id' and `blk'.
+
+`source-id'       - 0 | -1 | fileid         core-ext,file       ``source-i-d''
+   Return 0 (the input source is the user input device), -1 (the input
+source is a string being processed by `evaluate') or a fileid (the
+input source is the file specified by fileid).
+
+`blk'              unknown       ``blk''
+   `input-var' variable - This cell contains the current block number
+
+`save-input'       - x1 .. xn n         core-ext       ``save-input''
+   The n entries xn - x1 describe the current state of the input source
+specification, in some platform-dependent way that can be used by
+`restore-input'.
+
+`restore-input'       x1 .. xn n - flag         core-ext       ``restore-input''
+   Attempt to restore the input source specification to the state
+described by the n entries xn - x1. flag is true if the restore fails.
+In Gforth with the new input code, it fails only with a flag that can
+be used to throw again; it is also possible to save and restore between
+different active input streams. Note that closing the input streams
+must happen in the reverse order as they have been opened, but in
+between everything is allowed.
+
+`evaluate'       ... addr u - ...         core,block       ``evaluate''
+   Save the current input source specification. Store `-1' in
+`source-id' and `0' in `blk'. Set `>IN' to `0' and make the string
+c-addr u the input source and input buffer. Interpret. When the parse
+area is empty, restore the input source specification.
+
+`query'       -         core-ext       ``query''
+   Make the user input device the input source. Receive input into the
+Terminal Input Buffer. Set `>IN' to zero. OBSOLESCENT: superceeded by
+`accept'.
+
+
+File: gforth.info,  Node: Number Conversion,  Next: Interpret/Compile states,  Prev: Input Sources,  Up: The Text Interpreter
+
+Number Conversion
+-----------------
+
+   This section describes the rules that the text interpreter uses when
+it tries to convert a string into a number.
+
+   Let <digit> represent any character that is a legal digit in the
+current number base(1).
+
+   Let <decimal digit> represent any character in the range 0-9.
+
+   Let {a b} represent the optional presence of any of the characters
+in the braces (a or b or neither).
+
+   Let * represent any number of instances of the previous character
+(including none).
+
+   Let any other character represent itself.
+
+Now, the conversion rules are:
+
+   * A string of the form <digit><digit>* is treated as a
+     single-precision (cell-sized) positive integer. Examples are 0 123
+     6784532 32343212343456 42
+
+   * A string of the form -<digit><digit>* is treated as a
+     single-precision (cell-sized) negative integer, and is represented
+     using 2's-complement arithmetic. Examples are -45 -5681 -0
+
+   * A string of the form <digit><digit>*.<digit>* is treated as a
+     double-precision (double-cell-sized) positive integer. Examples
+     are 3465. 3.465 34.65 (all three of these represent the same
+     number).
+
+   * A string of the form -<digit><digit>*.<digit>* is treated as a
+     double-precision (double-cell-sized) negative integer, and is
+     represented using 2's-complement arithmetic. Examples are -3465.
+     -3.465 -34.65 (all three of these represent the same number).
+
+   * A string of the form {+ -}<decimal digit>{.}<decimal digit>*{e
+     E}{+ -}<decimal digit><decimal digit>* is treated as a
+     floating-point number. Examples are 1e 1e0 1.e 1.e0 +1e+0 (which
+     all represent the same number) +12.E-4
+
+   By default, the number base used for integer number conversion is
+given by the contents of the variable `base'.  Note that a lot of
+confusion can result from unexpected values of `base'.  If you change
+`base' anywhere, make sure to save the old value and restore it
+afterwards.  In general I recommend keeping `base' decimal, and using
+the prefixes described below for the popular non-decimal bases.
+
+`dpl'       - a-addr         gforth       ``dpl''
+   `User' variable - a-addr is the address of a cell that stores the
+position of the decimal point in the most recent numeric conversion.
+Initialised to -1. After the conversion of a number containing no
+decimal point, ` dpl' is -1. After the conversion of `2.' it holds 0.
+After the conversion of 234123.9 it contains 1, and so forth.
+
+`base'       - a-addr         core       ``base''
+   `User' variable - a-addr is the address of a cell that stores the
+number base used by default for number conversion during input and
+output.
+
+`hex'       -         core-ext       ``hex''
+   Set `base' to &16 (hexadecimal).
+
+`decimal'       -         core       ``decimal''
+   Set `base' to &10 (decimal).
+
+   Gforth allows you to override the value of `base' by using a
+prefix(2) before the first digit of an (integer) number. Four prefixes
+are supported:
+
+   * `&' - decimal
+
+   * `%' - binary
+
+   * `$' - hexadecimal
+
+   * `'' - base `max-char+1'
+
+   Here are some examples, with the equivalent decimal number shown
+after in braces:
+
+   -$41 (-65), %1001101 (205), %1001.0001 (145 - a double-precision
+number), 'AB (16706; ascii A is 65, ascii B is 66, number is 65*256 +
+66), 'ab (24930; ascii a is 97, ascii B is 98, number is 97*256 + 98),
+&905 (905), $abc (2478), $ABC (2478).
+
+Number conversion has a number of traps for the unwary:
+
+   * You cannot determine the current number base using the code
+     sequence `base @ .' - the number base is always 10 in the current
+     number base. Instead, use something like `base @ dec.'
+
+   * If the number base is set to a value greater than 14 (for example,
+     hexadecimal), the number 123E4 is ambiguous; the conversion rules
+     allow it to be intepreted as either a single-precision integer or a
+     floating-point number (Gforth treats it as an integer). The
+     ambiguity can be resolved by explicitly stating the sign of the
+     mantissa and/or exponent: 123E+4 or +123E4 - if the number base is
+     decimal, no ambiguity arises; either representation will be
+     treated as a floating-point number.
+
+   * There is a word `bin' but it does not set the number base!  It is
+     used to specify file types.
+
+   * ANS Forth requires the `.' of a double-precision number to be the
+     final character in the string.  Gforth allows the `.' to be
+     anywhere after the first digit.
+
+   * The number conversion process does not check for overflow.
+
+   * In an ANS Forth program `base' is required to be decimal when
+     converting floating-point numbers.  In Gforth, number conversion to
+     floating-point numbers always uses base &10, irrespective of the
+     value of `base'.
+
+   You can read numbers into your programs with the words described in
+*Note Input::.
+
+   ---------- Footnotes ----------
+
+   (1) For example, 0-9 when the number base is decimal or 0-9, A-F
+when the number base is hexadecimal.
+
+   (2) Some Forth implementations provide a similar scheme by
+implementing `$' etc. as parsing words that process the subsequent
+number in the input stream and push it onto the stack. For example, see
+`Number Conversion and Literals', by Wil Baden; Forth Dimensions 20(3)
+pages 26-27. In such implementations, unlike in Gforth, a space is
+required between the prefix and the number.
+
+
+File: gforth.info,  Node: Interpret/Compile states,  Next: Interpreter Directives,  Prev: Number Conversion,  Up: The Text Interpreter
+
+Interpret/Compile states
+------------------------
+
+   A standard program is not permitted to change `state' explicitly.
+However, it can change `state' implicitly, using the words `[' and `]'.
+When `[' is executed it switches `state' to interpret state, and
+therefore the text interpreter starts interpreting. When `]' is
+executed it switches `state' to compile state and therefore the text
+interpreter starts compiling. The most common usage for these words is
+for switching into interpret state and back from within a colon
+definition; this technique can be used to compile a literal (for an
+example, *note Literals::) or for conditional compilation (for an
+example, *note Interpreter Directives::).
+
+
+File: gforth.info,  Node: Interpreter Directives,  Prev: Interpret/Compile states,  Up: The Text Interpreter
+
+Interpreter Directives
+----------------------
+
+   These words are usually used in interpret state; typically to control
+which parts of a source file are processed by the text interpreter.
+There are only a few ANS Forth Standard words, but Gforth supplements
+these with a rich set of immediate control structure words to
+compensate for the fact that the non-immediate versions can only be
+used in compile state (*note Control Structures::). Typical usages:
+
+     FALSE Constant HAVE-ASSEMBLER
+     .
+     .
+     HAVE-ASSEMBLER [IF]
+     : ASSEMBLER-FEATURE
+       ...
+     ;
+     [ENDIF]
+     .
+     .
+     : SEE
+       ... \ general-purpose SEE code
+       [ HAVE-ASSEMBLER [IF] ]
+       ... \ assembler-specific SEE code
+       [ [ENDIF] ]
+     ;
+
+`[IF]'       flag -         tools-ext       ``bracket-if''
+   If flag is `TRUE' do nothing (and therefore execute subsequent words
+as normal). If flag is `FALSE', parse and discard words from the parse
+area (refilling it if necessary using `REFILL') including nested
+instances of `[IF]'..  `[ELSE]'.. `[THEN]' and `[IF]'.. `[THEN]' until
+the balancing `[ELSE]' or `[THEN]' has been parsed and discarded.
+Immediate word.
+
+`[ELSE]'       -         tools-ext       ``bracket-else''
+   Parse and discard words from the parse area (refilling it if
+necessary using `REFILL') including nested instances of `[IF]'..
+`[ELSE]'.. `[THEN]' and `[IF]'.. `[THEN]' until the balancing `[THEN]'
+has been parsed and discarded.  `[ELSE]' only gets executed if the
+balancing `[IF]' was `TRUE'; if it was `FALSE', `[IF]' would have
+parsed and discarded the `[ELSE]', leaving the subsequent words to be
+executed as normal.  Immediate word.
+
+`[THEN]'       -         tools-ext       ``bracket-then''
+   Do nothing; used as a marker for other words to parse and discard up
+to. Immediate word.
+
+`[ENDIF]'       -         gforth       ``bracket-end-if''
+   Do nothing; synonym for `[THEN]'
+
+`[IFDEF]'       "<spaces>name" -         gforth       ``bracket-if-def''
+   If name is found in the current search-order, behave like `[IF]'
+with a `TRUE' flag, otherwise behave like `[IF]' with a `FALSE' flag.
+Immediate word.
+
+`[IFUNDEF]'       "<spaces>name" -         gforth       ``bracket-if-un-def''
+   If name is not found in the current search-order, behave like `[IF]'
+with a `TRUE' flag, otherwise behave like `[IF]' with a `FALSE' flag.
+Immediate word.
+
+`[?DO]'       n-limit n-index -         gforth       ``bracket-question-do''
+
+`[DO]'       n-limit n-index -         gforth       ``bracket-do''
+
+`[FOR]'       n -         gforth       ``bracket-for''
+
+`[LOOP]'       -         gforth       ``bracket-loop''
+
+`[+LOOP]'       n -         gforth       ``bracket-question-plus-loop''
+
+`[NEXT]'       n -         gforth       ``bracket-next''
+
+`[BEGIN]'       -         gforth       ``bracket-begin''
+
+`[UNTIL]'       flag -         gforth       ``bracket-until''
+
+`[AGAIN]'       -         gforth       ``bracket-again''
+
+`[WHILE]'       flag -         gforth       ``bracket-while''
+
+`[REPEAT]'       -         gforth       ``bracket-repeat''
+
+
+File: gforth.info,  Node: The Input Stream,  Next: Word Lists,  Prev: The Text Interpreter,  Up: Words
+
+The Input Stream
+================
+
+   The text interpreter reads from the input stream, which can come from
+several sources (*note Input Sources::).  Some words, in particular
+defining words, but also words like `'', read parameters from the input
+stream instead of from the stack.
+
+   Such words are called parsing words, because they parse the input
+stream.  Parsing words are hard to use in other words, because it is
+hard to pass program-generated parameters through the input stream.
+They also usually have an unintuitive combination of interpretation and
+compilation semantics when implemented naively, leading to various
+approaches that try to produce a more intuitive behaviour (*note
+Combined words::).
+
+   It should be obvious by now that parsing words are a bad idea.  If
+you want to implement a parsing word for convenience, also provide a
+factor of the word that does not parse, but takes the parameters on the
+stack.  To implement the parsing word on top if it, you can use the
+following words:
+
+`parse'       char "ccc<char>" - c-addr u         core-ext       ``parse''
+   Parse ccc, delimited by char, in the parse area. c-addr u specifies
+the parsed string within the parse area. If the parse area was empty, u
+is 0.
+
+`parse-word'       "name" - c-addr u         gforth       ``parse-word''
+   Get the next word from the input buffer
+
+`name'       - c-addr u         gforth-obsolete       ``name''
+   old name for `parse-word'
+
+`word'       char "<chars>ccc<char>- c-addr         core       ``word''
+   Skip leading delimiters. Parse ccc, delimited by char, in the parse
+area. c-addr is the address of a transient region containing the parsed
+string in counted-string format. If the parse area was empty or
+contained no characters other than delimiters, the resulting string has
+zero length. A program may replace characters within the counted
+string. OBSOLESCENT: the counted string has a trailing space that is
+not included in its length.
+
+`\"-parse'       "string"<"> - c-addr u         unknown       ``\"-parse''
+   parses string, translating `\'-escapes to characters (as in C).  The
+resulting string resides at `here char+'.  The supported `\-escapes'
+are: `\a' BEL (alert), `\b' BS, `\e' ESC (not in C99), `\f' FF, `\n'
+newline, `\r' CR, `\t' HT, `\v' VT, `\"' ", `\'[0-7]+ octal numerical
+character value, `\x'[0-9a-f]+ hex numerical character value; a `\'
+before any other character represents that character (only ', \, ? in
+C99).
+
+`refill'       - flag         core-ext,block-ext,file-ext       ``refill''
+   Attempt to fill the input buffer from the input source.  When the
+input source is the user input device, attempt to receive input into
+the terminal input device. If successful, make the result the input
+buffer, set `>IN' to 0 and return true; otherwise return false. When
+the input source is a block, add 1 to the value of `BLK' to make the
+next block the input source and current input buffer, and set `>IN' to
+0; return true if the new value of `BLK' is a valid block number, false
+otherwise. When the input source is a text file, attempt to read the
+next line from the file. If successful, make the result the current
+input buffer, set `>IN' to 0 and return true; otherwise, return false.
+A successful result includes receipt of a line containing 0 characters.
+
+   Conversely, if you have the bad luck (or lack of foresight) to have
+to deal with parsing words without having such factors, how do you pass
+a string that is not in the input stream to it?
+
+`execute-parsing'       ... addr u xt - ...         unknown       ``execute-parsing''
+   Make addr u the current input source, execute xt `( ... -- ... )',
+then restore the previous input source.
+
+   If you want to run a parsing word on a file, the following word
+should help:
+
+`execute-parsing-file'       i*x fileid xt - j*x         unknown       ``execute-parsing-file''
+   Make fileid the current input source, execute xt `( i*x -- j*x )',
+then restore the previous input source.
+
+
+File: gforth.info,  Node: Word Lists,  Next: Environmental Queries,  Prev: The Input Stream,  Up: Words
+
+Word Lists
+==========
+
+   A wordlist is a list of named words; you can add new words and look
+up words by name (and you can remove words in a restricted way with
+markers).  Every named (and `reveal'ed) word is in one wordlist.
+
+   The text interpreter searches the wordlists present in the search
+order (a stack of wordlists), from the top to the bottom.  Within each
+wordlist, the search starts conceptually at the newest word; i.e., if
+two words in a wordlist have the same name, the newer word is found.
+
+   New words are added to the "compilation wordlist" (aka current
+wordlist).
+
+   A word list is identified by a cell-sized word list identifier (wid)
+in much the same way as a file is identified by a file handle. The
+numerical value of the wid has no (portable) meaning, and might change
+from session to session.
+
+   The ANS Forth "Search order" word set is intended to provide a set of
+low-level tools that allow various different schemes to be implemented.
+Gforth also provides `vocabulary', a traditional Forth word.
+`compat/vocabulary.fs' provides an implementation in ANS Forth.
+
+`forth-wordlist'       - wid         search       ``forth-wordlist''
+   `Constant' - wid identifies the word list that includes all of the
+standard words provided by Gforth. When Gforth is invoked, this word
+list is the compilation word list and is at the top of the search order.
+
+`definitions'       -         search       ``definitions''
+   Set the compilation word list to be the same as the word list that
+is currently at the top of the search order.
+
+`get-current'       - wid         search       ``get-current''
+   wid is the identifier of the current compilation word list.
+
+`set-current'       wid -         search       ``set-current''
+   Set the compilation word list to the word list identified by wid.
+
+`get-order'       - widn .. wid1 n         search       ``get-order''
+   Copy the search order to the data stack. The current search order
+has n entries, of which wid1 represents the wordlist that is searched
+first (the word list at the top of the search order) and widn
+represents the wordlist that is searched last.
+
+`set-order'       widn .. wid1 n -         search       ``set-order''
+   If N=0, empty the search order.  If N=-1, set the search order to
+the implementation-defined minimum search order (for Gforth, this is
+the word list `Root'). Otherwise, replace the existing search order
+with the N wid entries such that WID1 represents the word list that
+will be searched first and WIDN represents the word list that will be
+searched last.
+
+`wordlist'       - wid         search       ``wordlist''
+   Create a new, empty word list represented by wid.
+
+`table'       - wid         gforth       ``table''
+   Create a case-sensitive wordlist.
+
+`>order'       wid -         gforth       ``to-order''
+   Push WID on the search order.
+
+`previous'       -         search-ext       ``previous''
+   Drop the wordlist at the top of the search order.
+
+`also'       -         search-ext       ``also''
+   Like `DUP' for the search order. Usually used before a vocabulary
+(e.g., `also Forth'); the combined effect is to push the wordlist
+represented by the vocabulary on the search order.
+
+`Forth'       -         search-ext       ``Forth''
+   Replace the wid at the top of the search order with the wid
+associated with the word list `forth-wordlist'.
+
+`Only'       -         search-ext       ``Only''
+   Set the search order to the implementation-defined minimum search
+order (for Gforth, this is the word list `Root').
+
+`order'       -         search-ext       ``order''
+   Print the search order and the compilation word list.  The word
+lists are printed in the order in which they are searched (which is
+reversed with respect to the conventional way of displaying stacks).
+The compilation word list is displayed last.
+
+`find'       c-addr - xt +-1 | c-addr 0         core,search       ``find''
+   Search all word lists in the current search order for the definition
+named by the counted string at c-addr.  If the definition is not found,
+return 0. If the definition is found return 1 (if the definition has
+non-default compilation semantics) or -1 (if the definition has default
+compilation semantics).  The xt returned in interpret state represents
+the interpretation semantics.  The xt returned in compile state
+represented either the compilation semantics (for non-default
+compilation semantics) or the run-time semantics that the compilation
+semantics would `compile,' (for default compilation semantics).  The
+ANS Forth standard does not specify clearly what the returned xt
+represents (and also talks about immediacy instead of non-default
+compilation semantics), so this word is questionable in portable
+programs.  If non-portability is ok, `find-name' and friends are better
+(*note Name token::).
+
+`search-wordlist'       c-addr count wid - 0 | xt +-1         search       ``search-wordlist''
+   Search the word list identified by wid for the definition named by
+the string at c-addr count.  If the definition is not found, return 0.
+If the definition is found return 1 (if the definition is immediate) or
+-1 (if the definition is not immediate) together with the xt.  In
+Gforth, the xt returned represents the interpretation semantics.  ANS
+Forth does not specify clearly what xt represents.
+
+`words'       -         tools       ``words''
+   Display a list of all of the definitions in the word list at the top
+of the search order.
+
+`vlist'       -         gforth       ``vlist''
+   Old (pre-Forth-83) name for `WORDS'.
+
+`Root'       -         gforth       ``Root''
+   Add the root wordlist to the search order stack.  This vocabulary
+makes up the minimum search order and contains only a search-order
+words.
+
+`Vocabulary'       "name" -         gforth       ``Vocabulary''
+   Create a definition "name" and associate a new word list with it.
+The run-time effect of "name" is to replace the wid at the top of the
+search order with the wid associated with the new word list.
+
+`seal'       -         gforth       ``seal''
+   Remove all word lists from the search order stack other than the word
+list that is currently on the top of the search order stack.
+
+`vocs'       -         gforth       ``vocs''
+   List vocabularies and wordlists defined in the system.
+
+`current'       - addr         gforth       ``current''
+   `Variable' - holds the wid of the compilation word list.
+
+`context'       - addr         gforth       ``context''
+   `context' `@' is the wid of the word list at the top of the search
+order.
+
+* Menu:
+
+* Vocabularies::
+* Why use word lists?::
+* Word list example::
+
+
+File: gforth.info,  Node: Vocabularies,  Next: Why use word lists?,  Prev: Word Lists,  Up: Word Lists
+
+Vocabularies
+------------
+
+   Here is an example of creating and using a new wordlist using ANS
+Forth words:
+
+     wordlist constant my-new-words-wordlist
+     : my-new-words get-order nip my-new-words-wordlist swap set-order ;
+     
+     \ add it to the search order
+     also my-new-words
+     
+     \ alternatively, add it to the search order and make it
+     \ the compilation word list
+     also my-new-words definitions
+     \ type "order" to see the problem
+
+   The problem with this example is that `order' has no way to
+associate the name `my-new-words' with the wid of the word list (in
+Gforth, `order' and `vocs' will display `???'  for a wid that has no
+associated name). There is no Standard way of associating a name with a
+wid.
+
+   In Gforth, this example can be re-coded using `vocabulary', which
+associates a name with a wid:
+
+     vocabulary my-new-words
+     
+     \ add it to the search order
+     also my-new-words
+     
+     \ alternatively, add it to the search order and make it
+     \ the compilation word list
+     my-new-words definitions
+     \ type "order" to see that the problem is solved
+
+
+File: gforth.info,  Node: Why use word lists?,  Next: Word list example,  Prev: Vocabularies,  Up: Word Lists
+
+Why use word lists?
+-------------------
+
+   Here are some reasons why people use wordlists:
+
+   * To prevent a set of words from being used outside the context in
+     which they are valid. Two classic examples of this are an
+     integrated editor (all of the edit commands are defined in a
+     separate word list; the search order is set to the editor word
+     list when the editor is invoked; the old search order is restored
+     when the editor is terminated) and an integrated assembler (the
+     op-codes for the machine are defined in a separate word list which
+     is used when a `CODE' word is defined).
+
+   * To organize the words of an application or library into a
+     user-visible set (in `forth-wordlist' or some other common
+     wordlist) and a set of helper words used just for the
+     implementation (hidden in a separate wordlist).  This keeps
+     `words'' output smaller, separates implementation and interface,
+     and reduces the chance of name conflicts within the common
+     wordlist.
+
+   * To prevent a name-space clash between multiple definitions with
+     the same name. For example, when building a cross-compiler you
+     might have a word `IF' that generates conditional code for your
+     target system. By placing this definition in a different word list
+     you can control whether the host system's `IF' or the target
+     system's `IF' get used in any particular context by controlling
+     the order of the word lists on the search order stack.
+
+
+   The downsides of using wordlists are:
+
+   * Debugging becomes more cumbersome.
+
+   * Name conflicts worked around with wordlists are still there, and
+     you have to arrange the search order carefully to get the desired
+     results; if you forget to do that, you get hard-to-find errors (as
+     in any case where you read the code differently from the compiler;
+     `see' can help seeing which of several possible words the name
+     resolves to in such cases).  `See' displays just the name of the
+     words, not what wordlist they belong to, so it might be
+     misleading.  Using unique names is a better approach to avoid name
+     conflicts.
+
+   * You have to explicitly undo any changes to the search order.  In
+     many cases it would be more convenient if this happened
+     implicitly.  Gforth currently does not provide such a feature, but
+     it may do so in the future.
+
+
+File: gforth.info,  Node: Word list example,  Prev: Why use word lists?,  Up: Word Lists
+
+Word list example
+-----------------
+
+   The following example is from the garbage collector
+(http://www.complang.tuwien.ac.at/forth/garbage-collection.zip) and
+uses wordlists to separate public words from helper words:
+
+     get-current ( wid )
+     vocabulary garbage-collector also garbage-collector definitions
+     ... \ define helper words
+     ( wid ) set-current \ restore original (i.e., public) compilation wordlist
+     ... \ define the public (i.e., API) words
+         \ they can refer to the helper words
+     previous \ restore original search order (helper words become invisible)
+
+
+File: gforth.info,  Node: Environmental Queries,  Next: Files,  Prev: Word Lists,  Up: Words
+
+Environmental Queries
+=====================
+
+   ANS Forth introduced the idea of "environmental queries" as a way
+for a program running on a system to determine certain characteristics
+of the system.  The Standard specifies a number of strings that might
+be recognised by a system.
+
+   The Standard requires that the header space used for environmental
+queries be distinct from the header space used for definitions.
+
+   Typically, environmental queries are supported by creating a set of
+definitions in a word list that is only used during environmental
+queries; that is what Gforth does. There is no Standard way of adding
+definitions to the set of recognised environmental queries, but any
+implementation that supports the loading of optional word sets must have
+some mechanism for doing this (after loading the word set, the
+associated environmental query string must return `true'). In Gforth,
+the word list used to honour environmental queries can be manipulated
+just like any other word list.
+
+`environment?'       c-addr u - false / ... true         core       ``environment-query''
+   c-addr, u specify a counted string. If the string is not recognised,
+return a `false' flag. Otherwise return a `true' flag and some
+(string-specific) information about the queried string.
+
+`environment-wordlist'       - wid         gforth       ``environment-wordlist''
+   wid identifies the word list that is searched by environmental
+queries.
+
+`gforth'       - c-addr u         gforth-environment       ``gforth''
+   Counted string representing a version string for this version of
+Gforth (for versions>0.3.0).  The version strings of the various
+versions are guaranteed to be ordered lexicographically.
+
+`os-class'       - c-addr u         gforth-environment       ``os-class''
+   Counted string representing a description of the host operating
+system.
+
+   Note that, whilst the documentation for (e.g.) `gforth' shows it
+returning two items on the stack, querying it using `environment?' will
+return an additional item; the `true' flag that shows that the string
+was recognised.
+
+   Here are some examples of using environmental queries:
+
+     s" address-unit-bits" environment? 0=
+     [IF]
+          cr .( environmental attribute address-units-bits unknown... ) cr
+     [ELSE]
+          drop \ ensure balanced stack effect
+     [THEN]
+     
+     \ this might occur in the prelude of a standard program that uses THROW
+     s" exception" environment? [IF]
+        0= [IF]
+           : throw abort" exception thrown" ;
+        [THEN]
+     [ELSE] \ we don't know, so make sure
+        : throw abort" exception thrown" ;
+     [THEN]
+     
+     s" gforth" environment? [IF] .( Gforth version ) TYPE
+                             [ELSE] .( Not Gforth..) [THEN]
+     
+     \ a program using v*
+     s" gforth" environment? [IF]
+       s" 0.5.0" compare 0< [IF] \ v* is a primitive since 0.5.0
+        : v* ( f_addr1 nstride1 f_addr2 nstride2 ucount -- r )
+          >r swap 2swap swap 0e r> 0 ?DO
+            dup f over + 2swap dup f f* f+ over + 2swap
+          LOOP
+          2drop 2drop ;
+       [THEN]
+     [ELSE] \
+       : v* ( f_addr1 nstride1 f_addr2 nstride2 ucount -- r )
+       ...
+     [THEN]
+
+   Here is an example of adding a definition to the environment word
+list:
+
+     get-current environment-wordlist set-current
+     true constant block
+     true constant block-ext
+     set-current
+
+   You can see what definitions are in the environment word list like
+this:
+
+     environment-wordlist >order words previous
+
+
+File: gforth.info,  Node: Files,  Next: Blocks,  Prev: Environmental Queries,  Up: Words
+
+Files
+=====
+
+   Gforth provides facilities for accessing files that are stored in the
+host operating system's file-system. Files that are processed by Gforth
+can be divided into two categories:
+
+   * Files that are processed by the Text Interpreter ("Forth source
+     files").
+
+   * Files that are processed by some other program ("general files").
+
+* Menu:
+
+* Forth source files::
+* General files::
+* Search Paths::
+
+
+File: gforth.info,  Node: Forth source files,  Next: General files,  Prev: Files,  Up: Files
+
+Forth source files
+------------------
+
+   The simplest way to interpret the contents of a file is to use one of
+these two formats:
+
+     include mysource.fs
+     s" mysource.fs" included
+
+   You usually want to include a file only if it is not included already
+(by, say, another source file). In that case, you can use one of these
+three formats:
+
+     require mysource.fs
+     needs mysource.fs
+     s" mysource.fs" required
+
+   It is good practice to write your source files such that
+interpreting them does not change the stack. Source files designed in
+this way can be used with `required' and friends without complications.
+For example:
+
+     1024 require foo.fs drop
+
+   Here you want to pass the argument 1024 (e.g., a buffer size) to
+`foo.fs'.  Interpreting `foo.fs' has the stack effect ( n - n ), which
+allows its use with `require'.  Of course with such parameters to
+required files, you have to ensure that the first `require' fits for
+all uses (i.e., `require' it early in the master load file).
+
+`include-file'       i*x wfileid - j*x         unknown       ``include-file''
+   Interpret (process using the text interpreter) the contents of the
+file WFILEID.
+
+`included'       i*x c-addr u - j*x         file       ``included''
+   `include-file' the file whose name is given by the string C-ADDR U.
+
+`included?'       c-addr u - f         gforth       ``included?''
+   True only if the file C-ADDR U is in the list of earlier included
+files. If the file has been loaded, it may have been specified as, say,
+`foo.fs' and found somewhere on the Forth search path. To return `true'
+from `included?', you must specify the exact path to the file, even if
+that is `./foo.fs'
+
+`include'       ... "file" - ...         gforth       ``include''
+   `include-file' the file FILE.
+
+`required'       i*x addr u - j*x         gforth       ``required''
+   `include-file' the file with the name given by ADDR U, if it is not
+`included' (or `required') already. Currently this works by comparing
+the name of the file (with path) against the names of earlier included
+files.
+
+`require'       ... "file" - ...         gforth       ``require''
+   `include-file' FILE only if it is not included already.
+
+`needs'       ... "name" - ...         gforth       ``needs''
+   An alias for `require'; exists on other systems (e.g., Win32Forth).
+
+`sourcefilename'       - c-addr u         gforth       ``sourcefilename''
+   The name of the source file which is currently the input source.
+The result is valid only while the file is being loaded.  If the
+current input source is no (stream) file, the result is undefined.  In
+Gforth, the result is valid during the whole seesion (but not across
+`savesystem' etc.).
+
+`sourceline#'       - u         gforth       ``sourceline-number''
+   The line number of the line that is currently being interpreted from
+a (stream) file. The first line has the number 1. If the current input
+source is not a (stream) file, the result is undefined.
+
+   A definition in ANS Forth for `required' is provided in
+`compat/required.fs'.
+
+
+File: gforth.info,  Node: General files,  Next: Search Paths,  Prev: Forth source files,  Up: Files
+
+General files
+-------------
+
+   Files are opened/created by name and type. The following file access
+methods (FAMs) are recognised:
+
+`r/o'       - fam         file       ``r-o''
+
+`r/w'       - fam         file       ``r-w''
+
+`w/o'       - fam         file       ``w-o''
+
+`bin'       fam1 - fam2         file       ``bin''
+
+   When a file is opened/created, it returns a file identifier, wfileid
+that is used for all other file commands. All file commands also return
+a status value, wior, that is 0 for a successful operation and an
+implementation-defined non-zero value in the case of an error.
+
+`open-file'       c-addr u wfam - wfileid wior        file       ``open-file''
+
+`create-file'       c-addr u wfam - wfileid wior        file       ``create-file''
+
+`close-file'       wfileid - wior        file       ``close-file''
+
+`delete-file'       c-addr u - wior        file       ``delete-file''
+
+`rename-file'       c-addr1 u1 c-addr2 u2 - wior        file-ext       ``rename-file''
+   Rename file c_addr1 u1 to new name c_addr2 u2
+
+`read-file'       c-addr u1 wfileid - u2 wior        file       ``read-file''
+
+`read-line'       c_addr u1 wfileid - u2 flag wior         unknown       ``read-line''
+
+`write-file'       c-addr u1 wfileid - wior        file       ``write-file''
+
+`write-line'       c-addr u fileid - ior         file       ``write-line''
+
+`emit-file'       c wfileid - wior        gforth       ``emit-file''
+
+`flush-file'       wfileid - wior        file-ext       ``flush-file''
+
+`file-status'       c-addr u - wfam wior        file-ext       ``file-status''
+
+`file-position'       wfileid - ud wior        file       ``file-position''
+
+`reposition-file'       ud wfileid - wior        file       ``reposition-file''
+
+`file-size'       wfileid - ud wior        file       ``file-size''
+
+`resize-file'       ud wfileid - wior        file       ``resize-file''
+
+`slurp-file'       c-addr1 u1 - c-addr2 u2         unknown       ``slurp-file''
+   C-ADDR1 U1 is the filename, C-ADDR2 U2 is the file's contents
+
+`slurp-fid'              unknown       ``slurp-fid''
+
+`stdin'       - wfileid        gforth       ``stdin''
+
+`stdout'       - wfileid        gforth       ``stdout''
+
+`stderr'       - wfileid        gforth       ``stderr''
+
+
+File: gforth.info,  Node: Search Paths,  Prev: General files,  Up: Files
+
+Search Paths
+------------
+
+   If you specify an absolute filename (i.e., a filename starting with
+`/' or `~', or with `:' in the second position (as in `C:...')) for
+`included' and friends, that file is included just as you would expect.
+
+   If the filename starts with `./', this refers to the directory that
+the present file was `included' from.  This allows files to include
+other files relative to their own position (irrespective of the current
+working directory or the absolute position).  This feature is essential
+for libraries consisting of several files, where a file may include
+other files from the library.  It corresponds to `#include "..."' in C.
+If the current input source is not a file, `.' refers to the directory
+of the innermost file being included, or, if there is no file being
+included, to the current working directory.
+
+   For relative filenames (not starting with `./'), Gforth uses a
+search path similar to Forth's search order (*note Word Lists::). It
+tries to find the given filename in the directories present in the path,
+and includes the first one it finds. There are separate search paths for
+Forth source files and general files.  If the search path contains the
+directory `.', this refers to the directory of the current file, or the
+working directory, as if the file had been specified with `./'.
+
+   Use `~+' to refer to the current working directory (as in the
+`bash').
+
+* Menu:
+
+* Source Search Paths::
+* General Search Paths::
+
+
+File: gforth.info,  Node: Source Search Paths,  Next: General Search Paths,  Prev: Search Paths,  Up: Search Paths
+
+Source Search Paths
+...................
+
+   The search path is initialized when you start Gforth (*note Invoking
+Gforth::). You can display it and change it using `fpath' in
+combination with the general path handling words.
+
+`fpath'       - path-addr         gforth       ``fpath''
+
+Here is an example of using `fpath' and `require':
+
+     fpath path= /usr/lib/forth/|./
+     require timer.fs
+
+
+File: gforth.info,  Node: General Search Paths,  Prev: Source Search Paths,  Up: Search Paths
+
+General Search Paths
+....................
+
+   Your application may need to search files in several directories,
+like `included' does. To facilitate this, Gforth allows you to define
+and use your own search paths, by providing generic equivalents of the
+Forth search path words:
+
+`open-path-file'       addr1 u1 path-addr - wfileid addr2 u2 0 | ior         gforth       ``open-path-file''
+   Look in path PATH-ADDR for the file specified by ADDR1 U1.  If
+found, the resulting path and and (read-only) open file descriptor are
+returned. If the file is not found, IOR is non-zero.
+
+`path-allot'       umax -         unknown       ``path-allot''
+   `Allot' a path with umax characters capacity, initially empty.
+
+`clear-path'       path-addr -         gforth       ``clear-path''
+   Set the path path-addr to empty.
+
+`also-path'       c-addr len path-addr -         gforth       ``also-path''
+   add the directory c-addr len to path-addr.
+
+`.path'       path-addr -         gforth       ``.path''
+   Display the contents of the search path PATH-ADDR.
+
+`path+'       path-addr  "dir" -         gforth       ``path+''
+   Add the directory DIR to the search path PATH-ADDR.
+
+`path='       path-addr "dir1|dir2|dir3"         gforth       ``path=''
+   Make a complete new search path; the path separator is |.
+
+   Here's an example of creating an empty search path:
+     create mypath 500 path-allot \ maximum length 500 chars (is checked)
+

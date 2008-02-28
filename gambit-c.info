@@ -1,0 +1,174 @@
+This is gambit-c.info, produced by makeinfo version 4.7 from
+gambit-c.txi.
+
+START-INFO-DIR-ENTRY
+* Gambit-C: (gambit-c).		A portable implementation of Scheme.
+* gsi: (gambit-c) interpreter.	Gambit interpreter.
+* gsc: (gambit-c) compiler.	Gambit compiler.
+END-INFO-DIR-ENTRY
+
+   This file documents Gambit-C, a portable implementation of Scheme.
+
+   Copyright (C) 1994-2006 Marc Feeley.
+
+   Permission is granted to make and distribute verbatim copies of this
+manual provided the copyright notice and this permission notice are
+preserved on all copies.
+
+   Permission is granted to copy and distribute modified versions of
+this manual under the conditions for verbatim copying, provided that
+the entire resulting derived work is distributed under the terms of a
+permission notice identical to this one.
+
+   Permission is granted to copy and distribute translations of this
+manual into another language, under the above conditions for modified
+versions, except that this permission notice may be stated in a
+translation approved by the copyright holder.
+
+
+Indirect:
+gambit-c.info-1: 1053
+gambit-c.info-2: 299888
+gambit-c.info-3: 514787
+
+Tag Table:
+(Indirect)
+Node: Top1053
+Node: The Gambit-C system2523
+Node: Accessing the system files3679
+Node: GSI7456
+Node: GSI interactive mode8477
+Node: GSI batch mode10882
+Node: GSI customization13424
+Node: GSI exit status14822
+Node: Scheme scripts16655
+Node: Scripts under UNIX and Mac OS X20447
+Node: Scripts under Microsoft Windows22264
+Node: Compiling scripts23435
+Node: GSC24436
+Node: GSC interactive mode25219
+Node: GSC customization25662
+Node: GSC batch mode25920
+Node: Link files34016
+Node: Building an executable program37392
+Node: Building a loadable library39788
+Node: Building a shared-library44230
+Node: Other compilation options45797
+Node: Procedures specific to compiler47430
+Node: Runtime options53032
+Node: Debugging58316
+Node: Debugging model58778
+Node: Debugging commands62117
+Node: Procedures related to debugging71045
+Node: Console line-editing82595
+Node: Emacs interface84938
+Node: GUIDE88356
+Node: Scheme extensions88551
+Node: Extensions to standard procedures88979
+Node: Extensions to standard special forms89535
+Node: Miscellaneous extensions97847
+Node: Undocumented extensions111426
+Node: Modules115625
+Node: Characters and strings115760
+Node: Extensions to character procedures116595
+Node: Extensions to string procedures117935
+Node: Numbers118828
+Node: Extensions to numeric procedures119454
+Node: IEEE floating point arithmetic120088
+Node: Integer square root and nth root120965
+Node: Bitwise-operations on exact integers121675
+Node: Fixnum specific operations129835
+Node: Flonum specific operations132442
+Node: Pseudo random numbers133721
+Node: Homogeneous vectors139945
+Node: Hashing and weak references148681
+Node: Hashing148963
+Node: Weak references154631
+Node: Wills156025
+Node: Tables159335
+Node: Records173289
+Node: Threads175098
+Node: Introduction175947
+Node: Thread objects176746
+Node: Mutex objects178687
+Node: Condition variable objects180095
+Node: Fairness180884
+Node: Memory coherency185274
+Node: Timeouts186007
+Node: Primordial thread186937
+Node: Procedures187464
+Node: Dynamic environment218529
+Node: Exceptions227925
+Node: Exception-handling229070
+Node: Exception objects related to memory management235785
+Node: Exception objects related to the host environment237479
+Node: Exception objects related to threads242218
+Node: Exception objects related to C-interface250446
+Node: Exception objects related to the reader257135
+Node: Exception objects related to evaluation and compilation261050
+Node: Exception objects related to type checking266994
+Node: Exception objects related to procedure call273106
+Node: Other exception objects280094
+Node: Host environment281535
+Node: Handling of file names283052
+Node: Filesystem operations291252
+Node: Shell command execution296612
+Node: Process termination297190
+Node: Command line arguments297741
+Node: Environment variables298638
+Node: Measuring time299888
+Node: File information304109
+Node: Group information310280
+Node: User information312190
+Node: Host information314684
+Node: Service information316946
+Node: Protocol information319198
+Node: Network information321485
+Node: I/O and ports323701
+Node: Unidirectional and bidirectional ports324601
+Node: Port classes325714
+Node: Port settings328032
+Node: Object-ports329455
+Node: Object-port settings329730
+Node: Object-port operations331006
+Node: Character-ports338901
+Node: Character-port settings339185
+Node: Character-port operations340412
+Node: Byte-ports346847
+Node: Byte-port settings347111
+Node: Byte-port operations354744
+Node: Device-ports358480
+Node: Filesystem devices358787
+Node: Process devices365302
+Node: Network devices368878
+Node: Directory-ports376493
+Node: Vector-ports379514
+Node: String-ports385923
+Node: U8vector-ports387377
+Node: Parameter objects related to I/O388330
+Node: Lexical syntax and readtables388886
+Node: Readtables389742
+Node: Boolean syntax404944
+Node: Character syntax405252
+Node: String syntax406319
+Node: Symbol syntax408074
+Node: Keyword syntax408659
+Node: Box syntax409398
+Node: Number syntax409745
+Node: Homogeneous vector syntax410139
+Node: Special #! syntax411430
+Node: Multiline comment syntax411845
+Node: Scheme infix syntax extension412158
+Node: C-interface426573
+Node: mapping of types428045
+Node: c-declare446047
+Node: c-initialize447575
+Node: c-lambda448505
+Node: c-define453107
+Node: c-define-type455669
+Node: continuations471468
+Node: System limitations473207
+Node: Copyright and license473968
+Node: General index514787
+
+End Tag Table

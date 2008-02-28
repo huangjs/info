@@ -1,0 +1,249 @@
+This is the file .../info/dir, which contains the
+topmost node of the Info hierarchy, called (dir)Top.
+The first time you invoke Info you start off looking at this node.
+
+File: dir,	Node: Top	This is the top of the INFO tree
+
+  This (the Directory node) gives a menu of major topics.
+  Typing "q" exits, "?" lists all Info commands, "d" returns here,
+  "h" gives a primer for first-timers,
+  "mEmacs<Return>" visits the Emacs manual, etc.
+
+  In Emacs, you can click mouse button 2 on a menu item or cross reference
+  to select it.
+
+* Menu:
+
+Emacs
+* AUCTeX: (auctex).			A sophisticated TeX environment for
+					Emacs.
+* Imaxima: (imaxima).			Image support for the computer algebra
+					system Maxima. Interactive math minor
+					mode.
+* Muse: (muse). 			Authoring and publishing environment
+					for Emacs.
+* preview-latex: (preview-latex).	Preview LaTeX fragments in Emacs
+* ESS: (ess).				Emacs Speaks Statistics (S/S+/R, SAS,
+					BUGS, Stata, XLisp-Stat).
+* Semantic: (semantic). 		Infrastructure for parser based text
+					analysis.
+* Semantic Application Writer's guide: (semantic-appdev).
+					Application Development with Semantic.
+					_Infrastructure for parser based text
+					analysis in Emacs_
+* Semantic bovine parser development: (bovine).
+					Parser development with the bovine
+					parser generator _Infrastructure for
+					parser based text analysis in Emacs_
+* Semantic Grammar Framework: (grammar-fw).
+					Grammar Development with Semantic.
+* Semantic Language Writer's guide: (semantic-langdev).
+					Language Support Development with
+					Semantic. _Infrastructure for parser
+					based text analysis in Emacs_
+* SLIME: (slime).			Superior Lisp Interaction Mode for
+					Emacs.
+* Speedbar: (speedbar). 		File/Tag summarizing utility.
+
+Software development
+* asdf: (asdf). 			Another system definition facility
+* Autoconf: (autoconf). 		Create source code configuration
+					scripts.
+* Gforth: (gforth).			A fast interpreter for the Forth
+					language.
+* sbcl: (sbcl). 			The Steel Bank Common Lisp compiler
+* sbcl-internals: (sbcl internals).	SBCL internal documentation
+* Vmgen: (vmgen).			Virtual machine interpreter generator
+
+GNU programming tools
+* automake: (automake). 		Making Makefile.in's
+* Libtool: (libtool).			Generic shared library support script.
+
+C++ libraries
+* autosprintf: (autosprintf).		Support for printf format strings in
+					C++.
+
+Utilities
+* Bash: (bash). 			The GNU Bourne-Again SHell.
+
+Programming
+* Cpp: (cpp).				The GNU C preprocessor.
+* Cpplib: (cppinternals).		Cpplib internals.
+* cvsclient: (cvsclient).		The CVS client/server protocol.
+* gcc: (gcc).				The GNU Compiler Collection.
+* gccinstall: (gccinstall).		Installing the GNU Compiler
+					Collection.
+* gccint: (gccint).			Internals of the GNU Compiler
+					Collection.
+* gfortran: (gfortran). 		The GNU Fortran 95 Compiler.
+* NASM: (nasm). 			The Netwide Assembler for x86.
+
+GNU Packages
+* CVS: (cvs).				Concurrent Versions System
+* Make: (make). 			Remake files automatically.
+
+The Algorithmic Language Scheme
+* data-rep: (data-rep). 		Data Representation in Guile -- how to
+					use Guile objects in your C code.
+* GOOPS: (goops).			The GOOPS reference manual.
+* Guile Reference: (guile).		The Guile reference manual.
+* Guile Tutorial: (guile-tut).		The Guile tutorial.
+* R5RS: (r5rs). 			The Revised(5) Report on Scheme.
+
+Individual utilities
+* cmp: (diff)Invoking cmp.		Compare 2 files byte by byte.
+* diff: (diff)Invoking diff.		Compare 2 files line by line.
+* diff3: (diff)Invoking diff3.		Compare 3 files line by line.
+* patch: (diff)Invoking patch.		Apply a patch to a file.
+* sdiff: (diff)Invoking sdiff.		Merge 2 files side-by-side.
+
+GNU Emacs Lisp
+* ECB: (ecb).				Emacs Code Browser
+
+Lisp Programming
+* ecl: (ecl).				Embeddable Common Lisp (ECL) User's
+					Manual
+* ecldev: (ecldev).			Embeddable Common Lisp (ECL)
+					Developer's Manual
+
+Programming & development tools
+* GDBM: (gdbm). 			The GNU database manager.
+
+GNU Gettext Utilities
+* gettext: (gettext).			GNU gettext utilities.
+* autopoint: (gettext)autopoint Invocation.
+					Copy gettext infrastructure.
+* envsubst: (gettext)envsubst Invocation.
+					Expand environment variables.
+* gettextize: (gettext)gettextize Invocation.
+					Prepare a package for gettext.
+* msgattrib: (gettext)msgattrib Invocation.
+					Select part of a PO file.
+* msgcat: (gettext)msgcat Invocation.	Combine several PO files.
+* msgcmp: (gettext)msgcmp Invocation.	Compare a PO file and template.
+* msgcomm: (gettext)msgcomm Invocation. Match two PO files.
+* msgconv: (gettext)msgconv Invocation. Convert PO file to encoding.
+* msgen: (gettext)msgen Invocation.	Create an English PO file.
+* msgexec: (gettext)msgexec Invocation. Process a PO file.
+* msgfilter: (gettext)msgfilter Invocation.
+					Pipe a PO file through a filter.
+* msgfmt: (gettext)msgfmt Invocation.	Make MO files out of PO files.
+* msggrep: (gettext)msggrep Invocation. Select part of a PO file.
+* msginit: (gettext)msginit Invocation. Create a fresh PO file.
+* msgmerge: (gettext)msgmerge Invocation.
+					Update a PO file from template.
+* msgunfmt: (gettext)msgunfmt Invocation.
+					Uncompile MO file into PO file.
+* msguniq: (gettext)msguniq Invocation. Unify duplicates for PO file.
+* ngettext: (gettext)ngettext Invocation.
+					Translate a message with plural.
+* xgettext: (gettext)xgettext Invocation.
+					Extract strings into a PO file.
+* ISO639: (gettext)Language Codes.	ISO 639 language codes.
+* ISO3166: (gettext)Country Codes.	ISO 3166 country codes.
+
+Library of useful routines for 'C' programing
+* GLIB: (glib). 			Useful routines for 'C' programming
+
+GNU libraries
+* gmp: (gmp).				GNU Multiple Precision Arithmetic
+					Library.
+* mpfr: (mpfr). 			Multiple Precision Floating-Point
+					Reliable Library.
+
+Math
+* GNUPLOT: (gnuplot).			An Interactive Plotting Program
+
+Programming Tools
+* Gperf: (gperf).			Perfect Hash Function Generator.
+
+GnuPG
+* gpg: (gpg).				GnuPG encryption and signing tool.
+* gpgv: (gpgv). 			GnuPG signature verification tool.
+
+Scientific software
+* gsl-ref: (gsl-ref).			GNU Scientific Library - Reference
+
+Libraries
+* History: (history).			The GNU history library API.
+* Readline: (readline). 		The GNU readline library API.
+* RLuserman: (rluserman).		The GNU readline library User's
+					Manual.
+
+Texinfo documentation system
+* Web2c: (web2c).			TeX, Metafont, and companion programs.
+* bibtex: (web2c)bibtex invocation.	Maintaining bibliographies.
+* dmp: (web2c)dmp invocation.		Troff->MPX (MetaPost pictures).
+* dvicopy: (web2c)dvicopy invocation.	Virtual font expansion
+* dvitomp: (web2c)dvitomp invocation.	DVI to MPX (MetaPost pictures).
+* dvitype: (web2c)dvitype invocation.	DVI to human-readable text.
+* gftodvi: (web2c)gftodvi invocation.	Generic font proofsheets.
+* gftopk: (web2c)gftopk invocation.	Generic to packed fonts.
+* gftype: (web2c)gftype invocation.	GF to human-readable text.
+* makempx: (web2c)makempx invocation.	MetaPost label typesetting.
+* mf: (web2c)mf invocation.		Creating typeface families.
+* mft: (web2c)mft invocation.		Prettyprinting Metafont source.
+* mltex: (web2c)MLTeX.			Multi-lingual TeX.
+* mpost: (web2c)mpost invocation.	Creating technical diagrams.
+* mpto: (web2c)mpto invocation. 	MetaPost label extraction.
+* newer: (web2c)newer invocation.	Compare modification times.
+* patgen: (web2c)patgen invocation.	Creating hyphenation patterns.
+* pktogf: (web2c)pktogf invocation.	Packed to generic fonts.
+* pktype: (web2c)pktype invocation.	PK to human-readable text.
+* pltotf: (web2c)pltotf invocation.	Property list to TFM.
+* pooltype: (web2c)pooltype invocation. Display WEB pool files.
+* tangle: (web2c)tangle invocation.	WEB to Pascal.
+* tex: (web2c)tex invocation.		Typesetting.
+* tftopl: (web2c)tftopl invocation.	TFM -> property list.
+* vftovp: (web2c)vftovp invocation.	Virtual font -> virtual pl.
+* vptovf: (web2c)vptovf invocation.	Virtual pl -> virtual font.
+* weave: (web2c)weave invocation.	WEB to TeX.
+* Info: (info). 			How to use the documentation browsing
+					system.
+* info standalone: (info-stnd). 	Read Info documents without Emacs.
+* infokey: (info-stnd)Invoking infokey. Compile Info customizations.
+* LaTeX2e: (latex).			LaTeXe help 1.6.
+* Texi2HTML: (texi2html).		Texinfo to HTML Converter.
+
+Programming Languages
+* librep: (librep).			A flexible Lisp environment
+
+Editors
+* nano: (nano). 			Small and friendly text editor.
+
+General Commands
+* Screen: (screen).			Full-screen window manager.
+
+GNU organization
+* Standards: (standards).		GNU coding standards.
+
+Archiving
+* Tar: (tar).				Making tape (or disk) archives.
+
+Network Applications
+* Wget: (wget). 			The non-interactive network
+					downloader.
+
+TeX
+* DVI-to-Postscript: (dvips).		Translating TeX DVI files to
+					PostScript.
+* afm2tfm: (dvips)Invoking afm2tfm.	Making Type 1 fonts available to TeX.
+* dvips: (dvips)Invoking Dvips. 	DVI-to-PostScript translator.
+* AUCTeX: (auctex).			A sophisticated TeX environment for
+					Emacs.
+* preview-latex: (preview-latex).	Preview LaTeX fragments in Emacs
+* cogre: (cogre).			Graphs & UML for Emacs
+* dc: (dc).				Arbritrary precision RPN "Desktop
+					Calculator".
+* ede: (ede).				Objects for Emacs
+* eieio: (eieio).			Objects for Emacs
+* Gambit-C: (gambit-c). 		A portable implementation of Scheme.
+* gsi: (gambit-c) interpreter.		Gambit interpreter.
+* gsc: (gambit-c) compiler.		Gambit compiler.
+* Gzip: (gzip). 			The the GNU `gzip' command for
+					compressing files.
+* Latex2rtf: (latex2rtf).		LaTeX2RTF , a converter that
+					translates LaTeX to RTF.
+* m4: (m4).				A powerful macro processor.
+* Octave: (octave).			Interactive language for numerical
+					computations.

@@ -1,0 +1,1037 @@
+This is gforth.info, produced by makeinfo version 4.2 from gforth.texi.
+
+This manual is for Gforth (version 0.6.2, August 25, 2003), a fast and
+portable implementation of the ANS Forth language
+
+   Copyright (C) 1995, 1996, 1997, 1998, 2000, 2003 Free Software
+Foundation, Inc.
+
+     Permission is granted to copy, distribute and/or modify this
+     document under the terms of the GNU Free Documentation License,
+     Version 1.1 or any later version published by the Free Software
+     Foundation; with no Invariant Sections, with the Front-Cover texts
+     being "A GNU Manual," and with the Back-Cover Texts as in (a)
+     below.  A copy of the license is included in the section entitled
+     "GNU Free Documentation License."
+
+     (a) The FSF's Back-Cover Text is: "You have freedom to copy and
+     modify this GNU Manual, like GNU software.  Copies published by
+     the Free Software Foundation raise funds for GNU development."
+   
+INFO-DIR-SECTION Software development
+START-INFO-DIR-ENTRY
+* Gforth: (gforth).             A fast interpreter for the Forth language.
+END-INFO-DIR-ENTRY
+
+
+File: gforth.info,  Node: Dynamic Superinstructions,  Next: DOES>,  Prev: Direct or Indirect Threaded?,  Up: Threading
+
+Dynamic Superinstructions
+-------------------------
+
+   The engines `gforth' and `gforth-fast' use another optimization:
+Dynamic superinstructions with replication.  As an example, consider
+the following colon definition:
+
+     : squared ( n1 -- n2 )
+       dup * ;
+
+   Gforth compiles this into the threaded code sequence
+
+     dup
+     *
+     ;s
+
+   In normal direct threaded code there is a code address occupying one
+cell for each of these primitives.  Each code address points to a
+machine code routine, and the interpreter jumps to this machine code in
+order to execute the primitive.  The routines for these three
+primitives are (in `gforth-fast' on the 386):
+
+     Code dup
+     ( $804B950 )  add     esi , # -4  \ $83 $C6 $FC
+     ( $804B953 )  add     ebx , # 4  \ $83 $C3 $4
+     ( $804B956 )  mov     dword ptr 4 [esi] , ecx  \ $89 $4E $4
+     ( $804B959 )  jmp     dword ptr FC [ebx]  \ $FF $63 $FC
+     end-code
+     Code *
+     ( $804ACC4 )  mov     eax , dword ptr 4 [esi]  \ $8B $46 $4
+     ( $804ACC7 )  add     esi , # 4  \ $83 $C6 $4
+     ( $804ACCA )  add     ebx , # 4  \ $83 $C3 $4
+     ( $804ACCD )  imul    ecx , eax  \ $F $AF $C8
+     ( $804ACD0 )  jmp     dword ptr FC [ebx]  \ $FF $63 $FC
+     end-code
+     Code ;s
+     ( $804A693 )  mov     eax , dword ptr [edi]  \ $8B $7
+     ( $804A695 )  add     edi , # 4  \ $83 $C7 $4
+     ( $804A698 )  lea     ebx , dword ptr 4 [eax]  \ $8D $58 $4
+     ( $804A69B )  jmp     dword ptr FC [ebx]  \ $FF $63 $FC
+     end-code
+
+   With dynamic superinstructions and replication the compiler does not
+just lay down the threaded code, but also copies the machine code
+fragments, usually without the jump at the end.
+
+     ( $4057D27D )  add     esi , # -4  \ $83 $C6 $FC
+     ( $4057D280 )  add     ebx , # 4  \ $83 $C3 $4
+     ( $4057D283 )  mov     dword ptr 4 [esi] , ecx  \ $89 $4E $4
+     ( $4057D286 )  mov     eax , dword ptr 4 [esi]  \ $8B $46 $4
+     ( $4057D289 )  add     esi , # 4  \ $83 $C6 $4
+     ( $4057D28C )  add     ebx , # 4  \ $83 $C3 $4
+     ( $4057D28F )  imul    ecx , eax  \ $F $AF $C8
+     ( $4057D292 )  mov     eax , dword ptr [edi]  \ $8B $7
+     ( $4057D294 )  add     edi , # 4  \ $83 $C7 $4
+     ( $4057D297 )  lea     ebx , dword ptr 4 [eax]  \ $8D $58 $4
+     ( $4057D29A )  jmp     dword ptr FC [ebx]  \ $FF $63 $FC
+
+   Only when a threaded-code control-flow change happens (e.g., in
+`;s'), the jump is appended.  This optimization eliminates many of
+these jumps and makes the rest much more predictable.  The speedup
+depends on the processor and the application; on the Athlon and Pentium
+III this optimization typically produces a speedup by a factor of 2.
+
+   The code addresses in the direct-threaded code are set to point to
+the appropriate points in the copied machine code, in this example like
+this:
+
+     primitive  code address
+        dup       $4057D27D
+        *         $4057D286
+        ;s        $4057D292
+
+   Thus there can be threaded-code jumps to any place in this piece of
+code.  This also simplifies decompilation quite a bit.
+
+   You can disable this optimization with `--no-dynamic'.  You can use
+the copying without eliminating the jumps (i.e., dynamic replication,
+but without superinstructions) with `--no-super'; this gives the branch
+prediction benefit alone; the effect on performance depends on the CPU;
+on the Athlon and Pentium III the speedup is a little less than for
+dynamic superinstructions with replication.
+
+   One use of these options is if you want to patch the threaded code.
+With superinstructions, many of the dispatch jumps are eliminated, so
+patching often has no effect.  These options preserve all the dispatch
+jumps.
+
+   On some machines dynamic superinstructions are disabled by default,
+because it is unsafe on these machines.  However, if you feel
+adventurous, you can enable it with `--dynamic'.
+
+
+File: gforth.info,  Node: DOES>,  Prev: Dynamic Superinstructions,  Up: Threading
+
+DOES>
+-----
+
+   One of the most complex parts of a Forth engine is `dodoes', i.e.,
+the chunk of code executed by every word defined by a
+`CREATE'...`DOES>' pair; actually with primitive-centric code, this is
+only needed if the xt of the word is `execute'd. The main problem here
+is: How to find the Forth code to be executed, i.e. the code after the
+`DOES>' (the `DOES>'-code)? There are two solutions:
+
+   In fig-Forth the code field points directly to the `dodoes' and the
+`DOES>'-code address is stored in the cell after the code address (i.e.
+at `CFA cell+'). It may seem that this solution is illegal in the
+Forth-79 and all later standards, because in fig-Forth this address
+lies in the body (which is illegal in these standards). However, by
+making the code field larger for all words this solution becomes legal
+again.  We use this approach.  Leaving a cell unused in most words is a
+bit wasteful, but on the machines we are targeting this is hardly a
+problem.
+
+
+File: gforth.info,  Node: Primitives,  Next: Performance,  Prev: Threading,  Up: Engine
+
+Primitives
+==========
+
+* Menu:
+
+* Automatic Generation::
+* TOS Optimization::
+* Produced code::
+
+
+File: gforth.info,  Node: Automatic Generation,  Next: TOS Optimization,  Prev: Primitives,  Up: Primitives
+
+Automatic Generation
+--------------------
+
+   Since the primitives are implemented in a portable language, there
+is no longer any need to minimize the number of primitives. On the
+contrary, having many primitives has an advantage: speed. In order to
+reduce the number of errors in primitives and to make programming them
+easier, we provide a tool, the primitive generator (`prims2x.fs' aka
+Vmgen, *note Vmgen: (vmgen)Top.), that automatically generates most
+(and sometimes all) of the C code for a primitive from the stack effect
+notation.  The source for a primitive has the following form:
+
+Forth-name  ( stack-effect )        category    [pronounc.]
+[`""'glossary entry`""']
+C code
+[`:'
+Forth code]
+
+   The items in brackets are optional. The category and glossary fields
+are there for generating the documentation, the Forth code is there for
+manual implementations on machines without GNU C. E.g., the source for
+the primitive `+' is:
+     +    ( n1 n2 -- n )   core    plus
+     n = n1+n2;
+
+   This looks like a specification, but in fact `n = n1+n2' is C code.
+Our primitive generation tool extracts a lot of information from the
+stack effect notations(1): The number of items popped from and pushed
+on the stack, their type, and by what name they are referred to in the
+C code. It then generates a C code prelude and postlude for each
+primitive. The final C code for `+' looks like this:
+
+     I_plus: /* + ( n1 n2 -- n ) */  /* label, stack effect */
+     /*  */                          /* documentation */
+     NAME("+")                       /* debugging output (with -DDEBUG) */
+     {
+     DEF_CA                          /* definition of variable ca (indirect threading) */
+     Cell n1;                        /* definitions of variables */
+     Cell n2;
+     Cell n;
+     NEXT_P0;                        /* NEXT part 0 */
+     n1 = (Cell) sp[1];              /* input */
+     n2 = (Cell) TOS;
+     sp += 1;                        /* stack adjustment */
+     {
+     n = n1+n2;                      /* C code taken from the source */
+     }
+     NEXT_P1;                        /* NEXT part 1 */
+     TOS = (Cell)n;                  /* output */
+     NEXT_P2;                        /* NEXT part 2 */
+     }
+
+   This looks long and inefficient, but the GNU C compiler optimizes
+quite well and produces optimal code for `+' on, e.g., the R3000 and the
+HP RISC machines: Defining the `n's does not produce any code, and
+using them as intermediate storage also adds no cost.
+
+   There are also other optimizations that are not illustrated by this
+example: assignments between simple variables are usually for free (copy
+propagation). If one of the stack items is not used by the primitive
+(e.g.  in `drop'), the compiler eliminates the load from the stack
+(dead code elimination). On the other hand, there are some things that
+the compiler does not do, therefore they are performed by `prims2x.fs':
+The compiler does not optimize code away that stores a stack item to
+the place where it just came from (e.g., `over').
+
+   While programming a primitive is usually easy, there are a few cases
+where the programmer has to take the actions of the generator into
+account, most notably `?dup', but also words that do not (always) fall
+through to `NEXT'.
+
+   For more information
+
+   ---------- Footnotes ----------
+
+   (1) We use a one-stack notation, even though we have separate data
+and floating-point stacks; The separate notation can be generated
+easily from the unified notation.
+
+
+File: gforth.info,  Node: TOS Optimization,  Next: Produced code,  Prev: Automatic Generation,  Up: Primitives
+
+TOS Optimization
+----------------
+
+   An important optimization for stack machine emulators, e.g., Forth
+engines, is keeping  one or more of the top stack items in registers.
+If a word has the stack effect in1...inx `--' out1...outy, keeping the
+top n items in registers
+   * is better than keeping n-1 items, if x>=n and y>=n, due to fewer
+     loads from and stores to the stack.
+
+   * is slower than keeping n-1 items, if x<>y and x<n and y<n, due to
+     additional moves between registers.
+
+   In particular, keeping one item in a register is never a
+disadvantage, if there are enough registers. Keeping two items in
+registers is a disadvantage for frequent words like `?branch',
+constants, variables, literals and `i'. Therefore our generator only
+produces code that keeps zero or one items in registers. The generated
+C code covers both cases; the selection between these alternatives is
+made at C-compile time using the switch `-DUSE_TOS'. `TOS' in the C
+code for `+' is just a simple variable name in the one-item case,
+otherwise it is a macro that expands into `sp[0]'. Note that the GNU C
+compiler tries to keep simple variables like `TOS' in registers, and it
+usually succeeds, if there are enough registers.
+
+   The primitive generator performs the TOS optimization for the
+floating-point stack, too (`-DUSE_FTOS'). For floating-point operations
+the benefit of this optimization is even larger: floating-point
+operations take quite long on most processors, but can be performed in
+parallel with other operations as long as their results are not used.
+If the FP-TOS is kept in a register, this works. If it is kept on the
+stack, i.e., in memory, the store into memory has to wait for the
+result of the floating-point operation, lengthening the execution time
+of the primitive considerably.
+
+   The TOS optimization makes the automatic generation of primitives a
+bit more complicated. Just replacing all occurrences of `sp[0]' by
+`TOS' is not sufficient. There are some special cases to consider:
+   * In the case of `dup ( w -- w w )' the generator must not eliminate
+     the store to the original location of the item on the stack, if
+     the TOS optimization is turned on.
+
+   * Primitives with stack effects of the form `--' out1...outy must
+     store the TOS to the stack at the start.  Likewise, primitives
+     with the stack effect in1...inx `--' must load the TOS from the
+     stack at the end. But for the null stack effect `--' no stores or
+     loads should be generated.
+
+
+File: gforth.info,  Node: Produced code,  Prev: TOS Optimization,  Up: Primitives
+
+Produced code
+-------------
+
+   To see what assembly code is produced for the primitives on your
+machine with your compiler and your flag settings, type `make engine.s'
+and look at the resulting file `engine.s'.  Alternatively, you can also
+disassemble the code of primitives with `see' on some architectures.
+
+
+File: gforth.info,  Node: Performance,  Prev: Primitives,  Up: Engine
+
+Performance
+===========
+
+   On RISCs the Gforth engine is very close to optimal; i.e., it is
+usually impossible to write a significantly faster threaded-code engine.
+
+   On register-starved machines like the 386 architecture processors
+improvements are possible, because `gcc' does not utilize the registers
+as well as a human, even with explicit register declarations; e.g.,
+Bernd Beuster wrote a Forth system fragment in assembly language and
+hand-tuned it for the 486; this system is 1.19 times faster on the
+Sieve benchmark on a 486DX2/66 than Gforth compiled with `gcc-2.6.3'
+with `-DFORCE_REG'.  The situation has improved with gcc-2.95 and
+gforth-0.4.9; now the most important virtual machine registers fit in
+real registers (and we can even afford to use the TOS optimization),
+resulting in a speedup of 1.14 on the sieve over the earlier results.
+And dynamic superinstructions provide another speedup (but only around
+a factor 1.2 on the 486).
+
+   The potential advantage of assembly language implementations is not
+necessarily realized in complete Forth systems: We compared Gforth-0.5.9
+(direct threaded, compiled with `gcc-2.95.1' and `-DFORCE_REG') with
+Win32Forth 1.2093 (newer versions are reportedly much faster), LMI's NT
+Forth (Beta, May 1994) and Eforth (with and without peephole (aka
+pinhole) optimization of the threaded code); all these systems were
+written in assembly language. We also compared Gforth with three
+systems written in C: PFE-0.9.14 (compiled with `gcc-2.6.3' with the
+default configuration for Linux: `-O2 -fomit-frame-pointer -DUSE_REGS
+-DUNROLL_NEXT'), ThisForth Beta (compiled with `gcc-2.6.3 -O3
+-fomit-frame-pointer'; ThisForth employs peephole optimization of the
+threaded code) and TILE (compiled with `make opt'). We benchmarked
+Gforth, PFE, ThisForth and TILE on a 486DX2/66 under Linux. Kenneth
+O'Heskin kindly provided the results for Win32Forth and NT Forth on a
+486DX2/66 with similar memory performance under Windows NT. Marcel
+Hendrix ported Eforth to Linux, then extended it to run the benchmarks,
+added the peephole optimizer, ran the benchmarks and reported the
+results.
+
+   We used four small benchmarks: the ubiquitous Sieve; bubble-sorting
+and matrix multiplication come from the Stanford integer benchmarks and
+have been translated into Forth by Martin Fraeman; we used the versions
+included in the TILE Forth package, but with bigger data set sizes; and
+a recursive Fibonacci number computation for benchmarking calling
+performance. The following table shows the time taken for the benchmarks
+scaled by the time taken by Gforth (in other words, it shows the speedup
+factor that Gforth achieved over the other systems).
+
+     relative       Win32-    NT       eforth       This-
+     time     Gforth Forth Forth eforth  +opt   PFE Forth  TILE
+     sieve      1.00  2.16  1.78   2.16  1.32  2.46  4.96 13.37
+     bubble     1.00  1.93  2.07   2.18  1.29  2.21        5.70
+     matmul     1.00  1.92  1.76   1.90  0.96  2.06        5.32
+     fib        1.00  2.32  2.03   1.86  1.31  2.64  4.55  6.54
+
+   You may be quite surprised by the good performance of Gforth when
+compared with systems written in assembly language. One important reason
+for the disappointing performance of these other systems is probably
+that they are not written optimally for the 486 (e.g., they use the
+`lods' instruction). In addition, Win32Forth uses a comfortable, but
+costly method for relocating the Forth image: like `cforth', it
+computes the actual addresses at run time, resulting in two address
+computations per `NEXT' (*note Image File Background::).
+
+   The speedup of Gforth over PFE, ThisForth and TILE can be easily
+explained with the self-imposed restriction of the latter systems to
+standard C, which makes efficient threading impossible (however, the
+measured implementation of PFE uses a GNU C extension: *note Defining
+Global Register Variables: (gcc.info)Global Reg Vars.).  Moreover,
+current C compilers have a hard time optimizing other aspects of the
+ThisForth and the TILE source.
+
+   The performance of Gforth on 386 architecture processors varies
+widely with the version of `gcc' used. E.g., `gcc-2.5.8' failed to
+allocate any of the virtual machine registers into real machine
+registers by itself and would not work correctly with explicit register
+declarations, giving a significantly slower engine (on a 486DX2/66
+running the Sieve) than the one measured above.
+
+   Note that there have been several releases of Win32Forth since the
+release presented here, so the results presented above may have little
+predictive value for the performance of Win32Forth today (results for
+the current release on an i486DX2/66 are welcome).
+
+   In `Translating Forth to Efficient C
+(http://www.complang.tuwien.ac.at/papers/ertl&maierhofer95.ps.gz)' by
+M. Anton Ertl and Martin Maierhofer (presented at EuroForth '95), an
+indirect threaded version of Gforth is compared with Win32Forth, NT
+Forth, PFE, ThisForth, and several native code systems; that version of
+Gforth is slower on a 486 than the version used here. You can find a
+newer version of these measurements at
+`http://www.complang.tuwien.ac.at/forth/performance.html'. You can find
+numbers for Gforth on various machines in `Benchres'.
+
+
+File: gforth.info,  Node: Cross Compiler,  Next: Bugs,  Prev: Engine,  Up: Top
+
+Cross Compiler
+**************
+
+   The cross compiler is used to bootstrap a Forth kernel. Since Gforth
+is mostly written in Forth, including crucial parts like the outer
+interpreter and compiler, it needs compiled Forth code to get started.
+The cross compiler allows to create new images for other architectures,
+even running under another Forth system.
+
+* Menu:
+
+* Using the Cross Compiler::
+* How the Cross Compiler Works::
+
+
+File: gforth.info,  Node: Using the Cross Compiler,  Next: How the Cross Compiler Works,  Prev: Cross Compiler,  Up: Cross Compiler
+
+Using the Cross Compiler
+========================
+
+   The cross compiler uses a language that resembles Forth, but isn't.
+The main difference is that you can execute Forth code after definition,
+while you usually can't execute the code compiled by cross, because the
+code you are compiling is typically for a different computer than the
+one you are compiling on.
+
+   The Makefile is already set up to allow you to create kernels for new
+architectures with a simple make command. The generic kernels using the
+GCC compiled virtual machine are created in the normal build process
+with `make'. To create a embedded Gforth executable for e.g. the 8086
+processor (running on a DOS machine), type
+
+     make kernl-8086.fi
+
+   This will use the machine description from the `arch/8086' directory
+to create a new kernel. A machine file may look like that:
+
+     \ Parameter for target systems                         06oct92py
+     
+         4 Constant cell             \ cell size in bytes
+         2 Constant cell<<           \ cell shift to bytes
+         5 Constant cell>bit         \ cell shift to bits
+         8 Constant bits/char        \ bits per character
+         8 Constant bits/byte        \ bits per byte [default: 8]
+         8 Constant float            \ bytes per float
+         8 Constant /maxalign        \ maximum alignment in bytes
+     false Constant bigendian        \ byte order
+     ( true=big, false=little )
+     
+     include machpc.fs               \ feature list
+
+   This part is obligatory for the cross compiler itself, the feature
+list is used by the kernel to conditionally compile some features in
+and out, depending on whether the target supports these features.
+
+   There are some optional features, if you define your own primitives,
+have an assembler, or need special, nonstandard preparation to make the
+boot process work. `asm-include' includes an assembler, `prims-include'
+includes primitives, and `>boot' prepares for booting.
+
+     : asm-include    ." Include assembler" cr
+       s" arch/8086/asm.fs" included ;
+     
+     : prims-include  ." Include primitives" cr
+       s" arch/8086/prim.fs" included ;
+     
+     : >boot          ." Prepare booting" cr
+       s" ' boot >body into-forth 1+ !" evaluate ;
+
+   These words are used as sort of macro during the cross compilation in
+the file `kernel/main.fs'. Instead of using these macros, it would be
+possible -- but more complicated -- to write a new kernel project file,
+too.
+
+   `kernel/main.fs' expects the machine description file name on the
+stack; the cross compiler itself (`cross.fs') assumes that either
+`mach-file' leaves a counted string on the stack, or `machine-file'
+leaves an address, count pair of the filename on the stack.
+
+   The feature list is typically controlled using `SetValue', generic
+files that are used by several projects can use `DefaultValue' instead.
+Both functions work like `Value', when the value isn't defined, but
+`SetValue' works like `to' if the value is defined, and `DefaultValue'
+doesn't set anything, if the value is defined.
+
+     \ generic mach file for pc gforth                       03sep97jaw
+     
+     true DefaultValue NIL  \ relocating
+     
+     >ENVIRON
+     
+     true DefaultValue file          \ controls the presence of the
+                                     \ file access wordset
+     true DefaultValue OS            \ flag to indicate a operating system
+     
+     true DefaultValue prims         \ true: primitives are c-code
+     
+     true DefaultValue floating      \ floating point wordset is present
+     
+     true DefaultValue glocals       \ gforth locals are present
+                                     \ will be loaded
+     true DefaultValue dcomps        \ double number comparisons
+     
+     true DefaultValue hash          \ hashing primitives are loaded/present
+     
+     true DefaultValue xconds        \ used together with glocals,
+                                     \ special conditionals supporting gforths'
+                                     \ local variables
+     true DefaultValue header        \ save a header information
+     
+     true DefaultValue backtrace     \ enables backtrace code
+     
+     false DefaultValue ec
+     false DefaultValue crlf
+     
+     cell 2 = [IF] &32 [ELSE] &256 [THEN] KB DefaultValue kernel-size
+     
+     &16 KB          DefaultValue stack-size
+     &15 KB &512 +   DefaultValue fstack-size
+     &15 KB          DefaultValue rstack-size
+     &14 KB &512 +   DefaultValue lstack-size
+
+
+File: gforth.info,  Node: How the Cross Compiler Works,  Prev: Using the Cross Compiler,  Up: Cross Compiler
+
+How the Cross Compiler Works
+============================
+
+
+File: gforth.info,  Node: Bugs,  Next: Origin,  Prev: Cross Compiler,  Up: Top
+
+Bugs
+****
+
+   Known bugs are described in the file `BUGS' in the Gforth
+distribution.
+
+   If you find a bug, please submit a bug report through
+`https://savannah.gnu.org/bugs/?func=addbug&group=gforth'.
+
+   * A program (or a sequence of keyboard commands) that reproduces the
+     bug.
+
+   * A description of what you think constitutes the buggy behaviour.
+
+   * The Gforth version used (it is announced at the start of an
+     interactive Gforth session).
+
+   * The machine and operating system (on Unix systems `uname -a' will
+     report this information).
+
+   * The installation options (you can find the configure options at the
+     start of `config.status') and configuration (`configure' output or
+     `config.cache').
+
+   * A complete list of changes (if any) you (or your installer) have
+     made to the Gforth sources.
+
+   For a thorough guide on reporting bugs read *Note How to Report
+Bugs: (gcc.info)Bug Reporting.
+
+
+File: gforth.info,  Node: Origin,  Next: Forth-related information,  Prev: Bugs,  Up: Top
+
+Authors and Ancestors of Gforth
+*******************************
+
+Authors and Contributors
+========================
+
+   The Gforth project was started in mid-1992 by Bernd Paysan and Anton
+Ertl. The third major author was Jens Wilke.  Neal Crook contributed a
+lot to the manual.  Assemblers and disassemblers were contributed by
+Andrew McKewan, Christian Pirker, and Bernd Thallner.  Lennart Benschop
+(who was one of Gforth's first users, in mid-1993) and Stuart Ramsden
+inspired us with their continuous feedback. Lennart Benshop contributed
+`glosgen.fs', while Stuart Ramsden has been working on automatic
+support for calling C libraries. Helpful comments also came from Paul
+Kleinrubatscher, Christian Pirker, Dirk Zoller, Marcel Hendrix, John
+Wavrik, Barrie Stott, Marc de Groot, Jorge Acerada, Bruce Hoyt, Robert
+Epprecht, Dennis Ruffer and David N. Williams. Since the release of
+Gforth-0.2.1 there were also helpful comments from many others; thank
+you all, sorry for not listing you here (but digging through my mailbox
+to extract your names is on my to-do list).
+
+   Gforth also owes a lot to the authors of the tools we used (GCC, CVS,
+and autoconf, among others), and to the creators of the Internet: Gforth
+was developed across the Internet, and its authors did not meet
+physically for the first 4 years of development.
+
+Pedigree
+========
+
+   Gforth descends from bigFORTH (1993) and fig-Forth.  Of course, a
+significant part of the design of Gforth was prescribed by ANS Forth.
+
+   Bernd Paysan wrote bigFORTH, a descendent from TurboForth, an
+unreleased 32 bit native code version of VolksForth for the Atari ST,
+written mostly by Dietrich Weineck.
+
+   VolksForth was written by Klaus Schleisiek, Bernd Pennemann, Georg
+Rehfeld and Dietrich Weineck for the C64 (called UltraForth there) in
+the mid-80s and ported to the Atari ST in 1986.  It descends from F83.
+
+   Henry Laxen and Mike Perry wrote F83 as a model implementation of the
+Forth-83 standard. !! Pedigree? When?
+
+   A team led by Bill Ragsdale implemented fig-Forth on many processors
+in 1979. Robert Selzer and Bill Ragsdale developed the original
+implementation of fig-Forth for the 6502 based on microForth.
+
+   The principal architect of microForth was Dean Sanderson. microForth
+was FORTH, Inc.'s first off-the-shelf product. It was developed in 1976
+for the 1802, and subsequently implemented on the 8080, the 6800 and the
+Z80.
+
+   All earlier Forth systems were custom-made, usually by Charles Moore,
+who discovered (as he puts it) Forth during the late 60s. The first full
+Forth existed in 1971.
+
+   A part of the information in this section comes from `The Evolution
+of Forth (http://www.forth.com/Content/History/History1.htm)' by
+Elizabeth D. Rather, Donald R. Colburn and Charles H. Moore, presented
+at the HOPL-II conference and preprinted in SIGPLAN Notices 28(3),
+1993.  You can find more historical and genealogical information about
+Forth there.
+
+
+File: gforth.info,  Node: Forth-related information,  Next: Licenses,  Prev: Origin,  Up: Top
+
+Other Forth-related information
+*******************************
+
+   There is an active news group (comp.lang.forth) discussing Forth
+(including Gforth) and Forth-related issues. Its FAQs
+(http://www.complang.tuwien.ac.at/forth/faq/faq-general-2.html)
+(frequently asked questions and their answers) contains a lot of
+information on Forth.  You should read it before posting to
+comp.lang.forth.
+
+   The ANS Forth standard is most usable in its HTML form
+(http://www.taygeta.com/forth/dpans.html).
+
+
+File: gforth.info,  Node: Licenses,  Next: Word Index,  Prev: Forth-related information,  Up: Top
+
+Licenses
+********
+
+* Menu:
+
+* GNU Free Documentation License::  License for copying this manual.
+* Copying::                         GPL (for copying this software).
+
+
+File: gforth.info,  Node: GNU Free Documentation License,  Next: Copying,  Up: Licenses
+
+GNU Free Documentation License
+==============================
+
+                        Version 1.1, March 2000
+     Copyright (C) 2000 Free Software Foundation, Inc.
+     59 Temple Place, Suite 330, Boston, MA  02111-1307, USA
+     
+     Everyone is permitted to copy and distribute verbatim copies
+     of this license document, but changing it is not allowed.
+
+  0. PREAMBLE
+
+     The purpose of this License is to make a manual, textbook, or other
+     written document "free" in the sense of freedom: to assure everyone
+     the effective freedom to copy and redistribute it, with or without
+     modifying it, either commercially or noncommercially.  Secondarily,
+     this License preserves for the author and publisher a way to get
+     credit for their work, while not being considered responsible for
+     modifications made by others.
+
+     This License is a kind of "copyleft", which means that derivative
+     works of the document must themselves be free in the same sense.
+     It complements the GNU General Public License, which is a copyleft
+     license designed for free software.
+
+     We have designed this License in order to use it for manuals for
+     free software, because free software needs free documentation: a
+     free program should come with manuals providing the same freedoms
+     that the software does.  But this License is not limited to
+     software manuals; it can be used for any textual work, regardless
+     of subject matter or whether it is published as a printed book.
+     We recommend this License principally for works whose purpose is
+     instruction or reference.
+
+  1. APPLICABILITY AND DEFINITIONS
+
+     This License applies to any manual or other work that contains a
+     notice placed by the copyright holder saying it can be distributed
+     under the terms of this License.  The "Document", below, refers to
+     any such manual or work.  Any member of the public is a licensee,
+     and is addressed as "you".
+
+     A "Modified Version" of the Document means any work containing the
+     Document or a portion of it, either copied verbatim, or with
+     modifications and/or translated into another language.
+
+     A "Secondary Section" is a named appendix or a front-matter
+     section of the Document that deals exclusively with the
+     relationship of the publishers or authors of the Document to the
+     Document's overall subject (or to related matters) and contains
+     nothing that could fall directly within that overall subject.
+     (For example, if the Document is in part a textbook of
+     mathematics, a Secondary Section may not explain any mathematics.)
+     The relationship could be a matter of historical connection with
+     the subject or with related matters, or of legal, commercial,
+     philosophical, ethical or political position regarding them.
+
+     The "Invariant Sections" are certain Secondary Sections whose
+     titles are designated, as being those of Invariant Sections, in
+     the notice that says that the Document is released under this
+     License.
+
+     The "Cover Texts" are certain short passages of text that are
+     listed, as Front-Cover Texts or Back-Cover Texts, in the notice
+     that says that the Document is released under this License.
+
+     A "Transparent" copy of the Document means a machine-readable copy,
+     represented in a format whose specification is available to the
+     general public, whose contents can be viewed and edited directly
+     and straightforwardly with generic text editors or (for images
+     composed of pixels) generic paint programs or (for drawings) some
+     widely available drawing editor, and that is suitable for input to
+     text formatters or for automatic translation to a variety of
+     formats suitable for input to text formatters.  A copy made in an
+     otherwise Transparent file format whose markup has been designed
+     to thwart or discourage subsequent modification by readers is not
+     Transparent.  A copy that is not "Transparent" is called "Opaque".
+
+     Examples of suitable formats for Transparent copies include plain
+     ASCII without markup, Texinfo input format, LaTeX input format,
+     SGML or XML using a publicly available DTD, and
+     standard-conforming simple HTML designed for human modification.
+     Opaque formats include PostScript, PDF, proprietary formats that
+     can be read and edited only by proprietary word processors, SGML
+     or XML for which the DTD and/or processing tools are not generally
+     available, and the machine-generated HTML produced by some word
+     processors for output purposes only.
+
+     The "Title Page" means, for a printed book, the title page itself,
+     plus such following pages as are needed to hold, legibly, the
+     material this License requires to appear in the title page.  For
+     works in formats which do not have any title page as such, "Title
+     Page" means the text near the most prominent appearance of the
+     work's title, preceding the beginning of the body of the text.
+
+  2. VERBATIM COPYING
+
+     You may copy and distribute the Document in any medium, either
+     commercially or noncommercially, provided that this License, the
+     copyright notices, and the license notice saying this License
+     applies to the Document are reproduced in all copies, and that you
+     add no other conditions whatsoever to those of this License.  You
+     may not use technical measures to obstruct or control the reading
+     or further copying of the copies you make or distribute.  However,
+     you may accept compensation in exchange for copies.  If you
+     distribute a large enough number of copies you must also follow
+     the conditions in section 3.
+
+     You may also lend copies, under the same conditions stated above,
+     and you may publicly display copies.
+
+  3. COPYING IN QUANTITY
+
+     If you publish printed copies of the Document numbering more than
+     100, and the Document's license notice requires Cover Texts, you
+     must enclose the copies in covers that carry, clearly and legibly,
+     all these Cover Texts: Front-Cover Texts on the front cover, and
+     Back-Cover Texts on the back cover.  Both covers must also clearly
+     and legibly identify you as the publisher of these copies.  The
+     front cover must present the full title with all words of the
+     title equally prominent and visible.  You may add other material
+     on the covers in addition.  Copying with changes limited to the
+     covers, as long as they preserve the title of the Document and
+     satisfy these conditions, can be treated as verbatim copying in
+     other respects.
+
+     If the required texts for either cover are too voluminous to fit
+     legibly, you should put the first ones listed (as many as fit
+     reasonably) on the actual cover, and continue the rest onto
+     adjacent pages.
+
+     If you publish or distribute Opaque copies of the Document
+     numbering more than 100, you must either include a
+     machine-readable Transparent copy along with each Opaque copy, or
+     state in or with each Opaque copy a publicly-accessible
+     computer-network location containing a complete Transparent copy
+     of the Document, free of added material, which the general
+     network-using public has access to download anonymously at no
+     charge using public-standard network protocols.  If you use the
+     latter option, you must take reasonably prudent steps, when you
+     begin distribution of Opaque copies in quantity, to ensure that
+     this Transparent copy will remain thus accessible at the stated
+     location until at least one year after the last time you
+     distribute an Opaque copy (directly or through your agents or
+     retailers) of that edition to the public.
+
+     It is requested, but not required, that you contact the authors of
+     the Document well before redistributing any large number of
+     copies, to give them a chance to provide you with an updated
+     version of the Document.
+
+  4. MODIFICATIONS
+
+     You may copy and distribute a Modified Version of the Document
+     under the conditions of sections 2 and 3 above, provided that you
+     release the Modified Version under precisely this License, with
+     the Modified Version filling the role of the Document, thus
+     licensing distribution and modification of the Modified Version to
+     whoever possesses a copy of it.  In addition, you must do these
+     things in the Modified Version:
+
+       A. Use in the Title Page (and on the covers, if any) a title
+          distinct from that of the Document, and from those of
+          previous versions (which should, if there were any, be listed
+          in the History section of the Document).  You may use the
+          same title as a previous version if the original publisher of
+          that version gives permission.
+
+       B. List on the Title Page, as authors, one or more persons or
+          entities responsible for authorship of the modifications in
+          the Modified Version, together with at least five of the
+          principal authors of the Document (all of its principal
+          authors, if it has less than five).
+
+       C. State on the Title page the name of the publisher of the
+          Modified Version, as the publisher.
+
+       D. Preserve all the copyright notices of the Document.
+
+       E. Add an appropriate copyright notice for your modifications
+          adjacent to the other copyright notices.
+
+       F. Include, immediately after the copyright notices, a license
+          notice giving the public permission to use the Modified
+          Version under the terms of this License, in the form shown in
+          the Addendum below.
+
+       G. Preserve in that license notice the full lists of Invariant
+          Sections and required Cover Texts given in the Document's
+          license notice.
+
+       H. Include an unaltered copy of this License.
+
+       I. Preserve the section entitled "History", and its title, and
+          add to it an item stating at least the title, year, new
+          authors, and publisher of the Modified Version as given on
+          the Title Page.  If there is no section entitled "History" in
+          the Document, create one stating the title, year, authors,
+          and publisher of the Document as given on its Title Page,
+          then add an item describing the Modified Version as stated in
+          the previous sentence.
+
+       J. Preserve the network location, if any, given in the Document
+          for public access to a Transparent copy of the Document, and
+          likewise the network locations given in the Document for
+          previous versions it was based on.  These may be placed in
+          the "History" section.  You may omit a network location for a
+          work that was published at least four years before the
+          Document itself, or if the original publisher of the version
+          it refers to gives permission.
+
+       K. In any section entitled "Acknowledgments" or "Dedications",
+          preserve the section's title, and preserve in the section all
+          the substance and tone of each of the contributor
+          acknowledgments and/or dedications given therein.
+
+       L. Preserve all the Invariant Sections of the Document,
+          unaltered in their text and in their titles.  Section numbers
+          or the equivalent are not considered part of the section
+          titles.
+
+       M. Delete any section entitled "Endorsements".  Such a section
+          may not be included in the Modified Version.
+
+       N. Do not retitle any existing section as "Endorsements" or to
+          conflict in title with any Invariant Section.
+
+     If the Modified Version includes new front-matter sections or
+     appendices that qualify as Secondary Sections and contain no
+     material copied from the Document, you may at your option
+     designate some or all of these sections as invariant.  To do this,
+     add their titles to the list of Invariant Sections in the Modified
+     Version's license notice.  These titles must be distinct from any
+     other section titles.
+
+     You may add a section entitled "Endorsements", provided it contains
+     nothing but endorsements of your Modified Version by various
+     parties--for example, statements of peer review or that the text
+     has been approved by an organization as the authoritative
+     definition of a standard.
+
+     You may add a passage of up to five words as a Front-Cover Text,
+     and a passage of up to 25 words as a Back-Cover Text, to the end
+     of the list of Cover Texts in the Modified Version.  Only one
+     passage of Front-Cover Text and one of Back-Cover Text may be
+     added by (or through arrangements made by) any one entity.  If the
+     Document already includes a cover text for the same cover,
+     previously added by you or by arrangement made by the same entity
+     you are acting on behalf of, you may not add another; but you may
+     replace the old one, on explicit permission from the previous
+     publisher that added the old one.
+
+     The author(s) and publisher(s) of the Document do not by this
+     License give permission to use their names for publicity for or to
+     assert or imply endorsement of any Modified Version.
+
+  5. COMBINING DOCUMENTS
+
+     You may combine the Document with other documents released under
+     this License, under the terms defined in section 4 above for
+     modified versions, provided that you include in the combination
+     all of the Invariant Sections of all of the original documents,
+     unmodified, and list them all as Invariant Sections of your
+     combined work in its license notice.
+
+     The combined work need only contain one copy of this License, and
+     multiple identical Invariant Sections may be replaced with a single
+     copy.  If there are multiple Invariant Sections with the same name
+     but different contents, make the title of each such section unique
+     by adding at the end of it, in parentheses, the name of the
+     original author or publisher of that section if known, or else a
+     unique number.  Make the same adjustment to the section titles in
+     the list of Invariant Sections in the license notice of the
+     combined work.
+
+     In the combination, you must combine any sections entitled
+     "History" in the various original documents, forming one section
+     entitled "History"; likewise combine any sections entitled
+     "Acknowledgments", and any sections entitled "Dedications".  You
+     must delete all sections entitled "Endorsements."
+
+  6. COLLECTIONS OF DOCUMENTS
+
+     You may make a collection consisting of the Document and other
+     documents released under this License, and replace the individual
+     copies of this License in the various documents with a single copy
+     that is included in the collection, provided that you follow the
+     rules of this License for verbatim copying of each of the
+     documents in all other respects.
+
+     You may extract a single document from such a collection, and
+     distribute it individually under this License, provided you insert
+     a copy of this License into the extracted document, and follow
+     this License in all other respects regarding verbatim copying of
+     that document.
+
+  7. AGGREGATION WITH INDEPENDENT WORKS
+
+     A compilation of the Document or its derivatives with other
+     separate and independent documents or works, in or on a volume of
+     a storage or distribution medium, does not as a whole count as a
+     Modified Version of the Document, provided no compilation
+     copyright is claimed for the compilation.  Such a compilation is
+     called an "aggregate", and this License does not apply to the
+     other self-contained works thus compiled with the Document, on
+     account of their being thus compiled, if they are not themselves
+     derivative works of the Document.
+
+     If the Cover Text requirement of section 3 is applicable to these
+     copies of the Document, then if the Document is less than one
+     quarter of the entire aggregate, the Document's Cover Texts may be
+     placed on covers that surround only the Document within the
+     aggregate.  Otherwise they must appear on covers around the whole
+     aggregate.
+
+  8. TRANSLATION
+
+     Translation is considered a kind of modification, so you may
+     distribute translations of the Document under the terms of section
+     4.  Replacing Invariant Sections with translations requires special
+     permission from their copyright holders, but you may include
+     translations of some or all Invariant Sections in addition to the
+     original versions of these Invariant Sections.  You may include a
+     translation of this License provided that you also include the
+     original English version of this License.  In case of a
+     disagreement between the translation and the original English
+     version of this License, the original English version will prevail.
+
+  9. TERMINATION
+
+     You may not copy, modify, sublicense, or distribute the Document
+     except as expressly provided for under this License.  Any other
+     attempt to copy, modify, sublicense or distribute the Document is
+     void, and will automatically terminate your rights under this
+     License.  However, parties who have received copies, or rights,
+     from you under this License will not have their licenses
+     terminated so long as such parties remain in full compliance.
+
+ 10. FUTURE REVISIONS OF THIS LICENSE
+
+     The Free Software Foundation may publish new, revised versions of
+     the GNU Free Documentation License from time to time.  Such new
+     versions will be similar in spirit to the present version, but may
+     differ in detail to address new problems or concerns.  See
+     `http://www.gnu.org/copyleft/'.
+
+     Each version of the License is given a distinguishing version
+     number.  If the Document specifies that a particular numbered
+     version of this License "or any later version" applies to it, you
+     have the option of following the terms and conditions either of
+     that specified version or of any later version that has been
+     published (not as a draft) by the Free Software Foundation.  If
+     the Document does not specify a version number of this License,
+     you may choose any version ever published (not as a draft) by the
+     Free Software Foundation.
+
+ADDENDUM: How to use this License for your documents
+----------------------------------------------------
+
+   To use this License in a document you have written, include a copy of
+the License in the document and put the following copyright and license
+notices just after the title page:
+
+       Copyright (C)  YEAR  YOUR NAME.
+       Permission is granted to copy, distribute and/or modify this document
+       under the terms of the GNU Free Documentation License, Version 1.1
+       or any later version published by the Free Software Foundation;
+       with the Invariant Sections being LIST THEIR TITLES, with the
+       Front-Cover Texts being LIST, and with the Back-Cover Texts being LIST.
+       A copy of the license is included in the section entitled ``GNU
+       Free Documentation License''.
+
+   If you have no Invariant Sections, write "with no Invariant Sections"
+instead of saying which ones are invariant.  If you have no Front-Cover
+Texts, write "no Front-Cover Texts" instead of "Front-Cover Texts being
+LIST"; likewise for Back-Cover Texts.
+
+   If your document contains nontrivial examples of program code, we
+recommend releasing these examples in parallel under your choice of
+free software license, such as the GNU General Public License, to
+permit their use in free software.
+

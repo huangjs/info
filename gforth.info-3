@@ -1,0 +1,1299 @@
+This is gforth.info, produced by makeinfo version 4.2 from gforth.texi.
+
+This manual is for Gforth (version 0.6.2, August 25, 2003), a fast and
+portable implementation of the ANS Forth language
+
+   Copyright (C) 1995, 1996, 1997, 1998, 2000, 2003 Free Software
+Foundation, Inc.
+
+     Permission is granted to copy, distribute and/or modify this
+     document under the terms of the GNU Free Documentation License,
+     Version 1.1 or any later version published by the Free Software
+     Foundation; with no Invariant Sections, with the Front-Cover texts
+     being "A GNU Manual," and with the Back-Cover Texts as in (a)
+     below.  A copy of the license is included in the section entitled
+     "GNU Free Documentation License."
+
+     (a) The FSF's Back-Cover Text is: "You have freedom to copy and
+     modify this GNU Manual, like GNU software.  Copies published by
+     the Free Software Foundation raise funds for GNU development."
+   
+INFO-DIR-SECTION Software development
+START-INFO-DIR-ENTRY
+* Gforth: (gforth).             A fast interpreter for the Forth language.
+END-INFO-DIR-ENTRY
+
+
+File: gforth.info,  Node: Stacks and Postfix notation,  Next: Your first definition,  Prev: Introducing the Text Interpreter,  Up: Introduction
+
+Stacks, postfix notation and parameter passing
+==============================================
+
+   In procedural programming languages (like C and Pascal), the
+building-block of programs is the "function" or "procedure". These
+functions or procedures are called with "explicit parameters". For
+example, in C we might write:
+
+     total = total + new_volume(length,height,depth);
+
+where new_volume is a function-call to another piece of code, and total,
+length, height and depth are all variables. length, height and depth are
+parameters to the function-call.
+
+   In Forth, the equivalent of the function or procedure is the
+"definition" and parameters are implicitly passed between definitions
+using a shared stack that is visible to the programmer. Although Forth
+does support variables, the existence of the stack means that they are
+used far less often than in most other programming languages. When the
+text interpreter encounters a number, it will place ("push") it on the
+stack. There are several stacks (the actual number is
+implementation-dependent ...) and the particular stack used for any
+operation is implied unambiguously by the operation being performed.
+The stack used for all integer operations is called the "data stack"
+and, since this is the stack used most commonly, references to "the
+data stack" are often abbreviated to "the stack".
+
+   The stacks have a last-in, first-out (LIFO) organisation. If you
+type:
+
+     1 2 3<RET>  ok
+
+   Then this instructs the text interpreter to placed three numbers on
+the (data) stack. An analogy for the behaviour of the stack is to take a
+pack of playing cards and deal out the ace (1), 2 and 3 into a pile on
+the table. The 3 was the last card onto the pile ("last-in") and if you
+take a card off the pile then, unless you're prepared to fiddle a bit,
+the card that you take off will be the 3 ("first-out"). The number that
+will be first-out of the stack is called the "top of stack", which is
+often abbreviated to "TOS".
+
+   To understand how parameters are passed in Forth, consider the
+behaviour of the definition `+' (pronounced "plus"). You will not be
+surprised to learn that this definition performs addition. More
+precisely, it adds two number together and produces a result. Where does
+it get the two numbers from? It takes the top two numbers off the
+stack. Where does it place the result? On the stack. You can act-out the
+behaviour of `+' with your playing cards like this:
+
+   * Pick up two cards from the stack on the table
+
+   * Stare at them intently and ask yourself "what is the sum of these
+     two numbers"
+
+   * Decide that the answer is 5
+
+   * Shuffle the two cards back into the pack and find a 5
+
+   * Put a 5 on the remaining ace that's on the table.
+
+   If you don't have a pack of cards handy but you do have Forth
+running, you can use the definition `.s' to show the current state of
+the stack, without affecting the stack. Type:
+
+     clearstack 1 2 3<RET> ok
+     .s<RET> <3> 1 2 3  ok
+
+   The text interpreter looks up the word `clearstack' and executes it;
+it tidies up the stack and removes any entries that may have been left
+on it by earlier examples. The text interpreter pushes each of the
+three numbers in turn onto the stack. Finally, the text interpreter
+looks up the word `.s' and executes it. The effect of executing `.s' is
+to print the "<3>" (the total number of items on the stack) followed by
+a list of all the items on the stack; the item on the far right-hand
+side is the TOS.
+
+   You can now type:
+
+     + .s<RET> <2> 1 5  ok
+
+which is correct; there are now 2 items on the stack and the result of
+the addition is 5.
+
+   If you're playing with cards, try doing a second addition: pick up
+the two cards, work out that their sum is 6, shuffle them into the pack,
+look for a 6 and place that on the table. You now have just one item on
+the stack. What happens if you try to do a third addition? Pick up the
+first card, pick up the second card - ah! There is no second card. This
+is called a "stack underflow" and consitutes an error. If you try to do
+the same thing with Forth it often reports an error (probably a Stack
+Underflow or an Invalid Memory Address error).
+
+   The opposite situation to a stack underflow is a "stack overflow",
+which simply accepts that there is a finite amount of storage space
+reserved for the stack. To stretch the playing card analogy, if you had
+enough packs of cards and you piled the cards up on the table, you would
+eventually be unable to add another card; you'd hit the ceiling. Gforth
+allows you to set the maximum size of the stacks. In general, the only
+time that you will get a stack overflow is because a definition has a
+bug in it and is generating data on the stack uncontrollably.
+
+   There's one final use for the playing card analogy. If you model your
+stack using a pack of playing cards, the maximum number of items on
+your stack will be 52 (I assume you didn't use the Joker). The maximum
+value of any item on the stack is 13 (the King). In fact, the only
+possible numbers are positive integer numbers 1 through 13; you can't
+have (for example) 0 or 27 or 3.52 or -2. If you change the way you
+think about some of the cards, you can accommodate different numbers.
+For example, you could think of the Jack as representing 0, the Queen
+as representing -1 and the King as representing -2. Your range remains
+unchanged (you can still only represent a total of 13 numbers) but the
+numbers that you can represent are -2 through 10.
+
+   In that analogy, the limit was the amount of information that a
+single stack entry could hold, and Forth has a similar limit. In Forth,
+the size of a stack entry is called a "cell". The actual size of a cell
+is implementation dependent and affects the maximum value that a stack
+entry can hold. A Standard Forth provides a cell size of at least
+16-bits, and most desktop systems use a cell size of 32-bits.
+
+   Forth does not do any type checking for you, so you are free to
+manipulate and combine stack items in any way you wish. A convenient way
+of treating stack items is as 2's complement signed integers, and that
+is what Standard words like `+' do. Therefore you can type:
+
+     -5 12 + .s<RET> <1> 7  ok
+
+   If you use numbers and definitions like `+' in order to turn Forth
+into a great big pocket calculator, you will realise that it's rather
+different from a normal calculator. Rather than typing 2 + 3 = you had
+to type 2 3 + (ignore the fact that you had to use `.s' to see the
+result). The terminology used to describe this difference is to say that
+your calculator uses "Infix Notation" (parameters and operators are
+mixed) whilst Forth uses "Postfix Notation" (parameters and operators
+are separate), also called "Reverse Polish Notation".
+
+   Whilst postfix notation might look confusing to begin with, it has
+several important advantages:
+
+   * it is unambiguous
+
+   * it is more concise
+
+   * it fits naturally with a stack-based system
+
+   To examine these claims in more detail, consider these sums:
+
+     6 + 5 * 4 =
+     4 * 5 + 6 =
+
+   If you're just learning maths or your maths is very rusty, you will
+probably come up with the answer 44 for the first and 26 for the
+second. If you are a bit of a whizz at maths you will remember the
+convention that multiplication takes precendence over addition, and
+you'd come up with the answer 26 both times. To explain the answer 26
+to someone who got the answer 44, you'd probably rewrite the first sum
+like this:
+
+     6 + (5 * 4) =
+
+   If what you really wanted was to perform the addition before the
+multiplication, you would have to use parentheses to force it.
+
+   If you did the first two sums on a pocket calculator you would
+probably get the right answers, unless you were very cautious and
+entered them using these keystroke sequences:
+
+   6 + 5 = * 4 = 4 * 5 = + 6 =
+
+   Postfix notation is unambiguous because the order that the operators
+are applied is always explicit; that also means that parentheses are
+never required. The operators are active (the act of quoting the
+operator makes the operation occur) which removes the need for "=".
+
+   The sum 6 + 5 * 4 can be written (in postfix notation) in two
+equivalent ways:
+
+     6 5 4 * +      or:
+     5 4 * 6 +
+
+   An important thing that you should notice about this notation is that
+the order of the numbers does not change; if you want to subtract 2
+from 10 you type `10 2 -'.
+
+   The reason that Forth uses postfix notation is very simple to
+explain: it makes the implementation extremely simple, and it follows
+naturally from using the stack as a mechanism for passing parameters.
+Another way of thinking about this is to realise that all Forth
+definitions are active; they execute as they are encountered by the text
+interpreter. The result of this is that the syntax of Forth is trivially
+simple.
+
+
+File: gforth.info,  Node: Your first definition,  Next: How does that work?,  Prev: Stacks and Postfix notation,  Up: Introduction
+
+Your first Forth definition
+===========================
+
+   Until now, the examples we've seen have been trivial; we've just been
+using Forth as a bigger-than-pocket calculator. Also, each calculation
+we've shown has been a "one-off" - to repeat it we'd need to type it in
+again(1) In this section we'll see how to add new words to Forth's
+vocabulary.
+
+   The easiest way to create a new word is to use a "colon definition".
+We'll define a few and try them out before worrying too much about how
+they work. Try typing in these examples; be careful to copy the spaces
+accurately:
+
+     : add-two 2 + . ;
+     : greet ." Hello and welcome" ;
+     : demo 5 add-two ;
+
+Now try them out:
+
+     greet<RET> Hello and welcome  ok
+     greet greet<RET> Hello and welcomeHello and welcome  ok
+     4 add-two<RET> 6  ok
+     demo<RET> 7  ok
+     9 greet demo add-two<RET> Hello and welcome7 11  ok
+
+   The first new thing that we've introduced here is the pair of words
+`:' and `;'. These are used to start and terminate a new definition,
+respectively. The first word after the `:' is the name for the new
+definition.
+
+   As you can see from the examples, a definition is built up of words
+that have already been defined; Forth makes no distinction between
+definitions that existed when you started the system up, and those that
+you define yourself.
+
+   The examples also introduce the words `.' (dot), `."' (dot-quote)
+and `dup' (dewp). Dot takes the value from the top of the stack and
+displays it. It's like `.s' except that it only displays the top item
+of the stack and it is destructive; after it has executed, the number
+is no longer on the stack. There is always one space printed after the
+number, and no spaces before it. Dot-quote defines a string (a sequence
+of characters) that will be printed when the word is executed. The
+string can contain any printable characters except `"'. A `"' has a
+special function; it is not a Forth word but it acts as a delimiter
+(the way that delimiters work is described in the next section).
+Finally, `dup' duplicates the value at the top of the stack. Try typing
+`5 dup .s' to see what it does.
+
+   We already know that the text interpreter searches through the
+dictionary to locate names. If you've followed the examples earlier, you
+will already have a definition called `add-two'. Lets try modifying it
+by typing in a new definition:
+
+     : add-two dup . ." + 2 =" 2 + . ;<RET> redefined add-two  ok
+
+   Forth recognised that we were defining a word that already exists,
+and printed a message to warn us of that fact. Let's try out the new
+definition:
+
+     9 add-two<RET> 9 + 2 =11  ok
+
+All that we've actually done here, though, is to create a new
+definition, with a particular name. The fact that there was already a
+definition with the same name did not make any difference to the way
+that the new definition was created (except that Forth printed a warning
+message). The old definition of add-two still exists (try `demo' again
+to see that this is true). Any new definition will use the new
+definition of `add-two', but old definitions continue to use the
+version that already existed at the time that they were `compiled'.
+
+   Before you go on to the next section, try defining and redefining
+some words of your own.
+
+   ---------- Footnotes ----------
+
+   (1) That's not quite true. If you press the up-arrow key on your
+keyboard you should be able to scroll back to any earlier command, edit
+it and re-enter it.
+
+
+File: gforth.info,  Node: How does that work?,  Next: Forth is written in Forth,  Prev: Your first definition,  Up: Introduction
+
+How does that work?
+===================
+
+   Now we're going to take another look at the definition of `add-two'
+from the previous section. From our knowledge of the way that the text
+interpreter works, we would have expected this result when we tried to
+define `add-two':
+
+     : add-two 2 + . ;<RET>
+       ^^^^^^^
+     Error: Undefined word
+
+   The reason that this didn't happen is bound up in the way that `:'
+works. The word `:' does two special things. The first special thing
+that it does prevents the text interpreter from ever seeing the
+characters `add-two'. The text interpreter uses a variable called `>IN'
+(pronounced "to-in") to keep track of where it is in the input line.
+When it encounters the word `:' it behaves in exactly the same way as
+it does for any other word; it looks it up in the name dictionary,
+finds its xt and executes it. When `:' executes, it looks at the input
+buffer, finds the word `add-two' and advances the value of `>IN' to
+point past it. It then does some other stuff associated with creating
+the new definition (including creating an entry for `add-two' in the
+name dictionary). When the execution of `:' completes, control returns
+to the text interpreter, which is oblivious to the fact that it has
+been tricked into ignoring part of the input line.
+
+   Words like `:' - words that advance the value of `>IN' and so
+prevent the text interpreter from acting on the whole of the input line
+- are called "parsing words".
+
+   The second special thing that `:' does is change the value of a
+variable called `state', which affects the way that the text
+interpreter behaves. When Gforth starts up, `state' has the value 0,
+and the text interpreter is said to be "interpreting". During a colon
+definition (started with `:'), `state' is set to -1 and the text
+interpreter is said to be "compiling".
+
+   In this example, the text interpreter is compiling when it processes
+the string "`2 + . ;'". It still breaks the string down into character
+sequences in the same way. However, instead of pushing the number `2'
+onto the stack, it lays down ("compiles") some magic into the
+definition of `add-two' that will make the number `2' get pushed onto
+the stack when `add-two' is "executed". Similarly, the behaviours of
+`+' and `.' are also compiled into the definition.
+
+   One category of words don't get compiled. These so-called "immediate
+words" get executed (performed now) regardless of whether the text
+interpreter is interpreting or compiling. The word `;' is an immediate
+word. Rather than being compiled into the definition, it executes. Its
+effect is to terminate the current definition, which includes changing
+the value of `state' back to 0.
+
+   When you execute `add-two', it has a "run-time effect" that is
+exactly the same as if you had typed `2 + . <RET>' outside of a
+definition.
+
+   In Forth, every word or number can be described in terms of two
+properties:
+
+   * Its "interpretation semantics" describe how it will behave when the
+     text interpreter encounters it in "interpret" state. The
+     interpretation semantics of a word are represented by an "execution
+     token".
+
+   * Its "compilation semantics" describe how it will behave when the
+     text interpreter encounters it in "compile" state. The compilation
+     semantics of a word are represented in an implementation-dependent
+     way; Gforth uses a "compilation token".
+
+Numbers are always treated in a fixed way:
+
+   * When the number is "interpreted", its behaviour is to push the
+     number onto the stack.
+
+   * When the number is "compiled", a piece of code is appended to the
+     current definition that pushes the number when it runs. (In other
+     words, the compilation semantics of a number are to postpone its
+     interpretation semantics until the run-time of the definition that
+     it is being compiled into.)
+
+   Words don't behave in such a regular way, but most have default
+semantics which means that they behave like this:
+
+   * The "interpretation semantics" of the word are to do something
+     useful.
+
+   * The "compilation semantics" of the word are to append its
+     "interpretation semantics" to the current definition (so that its
+     run-time behaviour is to do something useful).
+
+   The actual behaviour of any particular word can be controlled by
+using the words `immediate' and `compile-only' when the word is
+defined. These words set flags in the name dictionary entry of the most
+recently defined word, and these flags are retrieved by the text
+interpreter when it finds the word in the name dictionary.
+
+   A word that is marked as "immediate" has compilation semantics that
+are identical to its interpretation semantics. In other words, it
+behaves like this:
+
+   * The "interpretation semantics" of the word are to do something
+     useful.
+
+   * The "compilation semantics" of the word are to do something useful
+     (and actually the same thing); i.e., it is executed during
+     compilation.
+
+   Marking a word as "compile-only" prohibits the text interpreter from
+performing the interpretation semantics of the word directly; an attempt
+to do so will generate an error. It is never necessary to use
+`compile-only' (and it is not even part of ANS Forth, though it is
+provided by many implementations) but it is good etiquette to apply it
+to a word that will not behave correctly (and might have unexpected
+side-effects) in interpret state. For example, it is only legal to use
+the conditional word `IF' within a definition. If you forget this and
+try to use it elsewhere, the fact that (in Gforth) it is marked as
+`compile-only' allows the text interpreter to generate a helpful error
+message rather than subjecting you to the consequences of your folly.
+
+   This example shows the difference between an immediate and a
+non-immediate word:
+
+     : show-state state @ . ;
+     : show-state-now show-state ; immediate
+     : word1 show-state ;
+     : word2 show-state-now ;
+
+   The word `immediate' after the definition of `show-state-now' makes
+that word an immediate word. These definitions introduce a new word:
+`@' (pronounced "fetch"). This word fetches the value of a variable,
+and leaves it on the stack. Therefore, the behaviour of `show-state' is
+to print a number that represents the current value of `state'.
+
+   When you execute `word1', it prints the number 0, indicating that
+the system is interpreting. When the text interpreter compiled the
+definition of `word1', it encountered `show-state' whose compilation
+semantics are to append its interpretation semantics to the current
+definition. When you execute `word1', it performs the interpretation
+semantics of `show-state'.  At the time that `word1' (and therefore
+`show-state') are executed, the system is interpreting.
+
+   When you pressed <RET> after entering the definition of `word2', you
+should have seen the number -1 printed, followed by "` ok'". When the
+text interpreter compiled the definition of `word2', it encountered
+`show-state-now', an immediate word, whose compilation semantics are
+therefore to perform its interpretation semantics. It is executed
+straight away (even before the text interpreter has moved on to process
+another group of characters; the `;' in this example). The effect of
+executing it are to display the value of `state' at the time that the
+definition of `word2' is being defined. Printing -1 demonstrates that
+the system is compiling at this time. If you execute `word2' it does
+nothing at all.
+
+   Before leaving the subject of immediate words, consider the
+behaviour of `."' in the definition of `greet', in the previous
+section. This word is both a parsing word and an immediate word. Notice
+that there is a space between `."' and the start of the text `Hello and
+welcome', but that there is no space between the last letter of
+`welcome' and the `"' character. The reason for this is that `."' is a
+Forth word; it must have a space after it so that the text interpreter
+can identify it. The `"' is not a Forth word; it is a "delimiter". The
+examples earlier show that, when the string is displayed, there is
+neither a space before the `H' nor after the `e'. Since `."' is an
+immediate word, it executes at the time that `greet' is defined. When
+it executes, its behaviour is to search forward in the input line
+looking for the delimiter. When it finds the delimiter, it updates
+`>IN' to point past the delimiter. It also compiles some magic code
+into the definition of `greet'; the xt of a run-time routine that
+prints a text string. It compiles the string `Hello and welcome' into
+memory so that it is available to be printed later. When the text
+interpreter gains control, the next word it finds in the input stream
+is `;' and so it terminates the definition of `greet'.
+
+
+File: gforth.info,  Node: Forth is written in Forth,  Next: Review - elements of a Forth system,  Prev: How does that work?,  Up: Introduction
+
+Forth is written in Forth
+=========================
+
+   When you start up a Forth compiler, a large number of definitions
+already exist. In Forth, you develop a new application using bottom-up
+programming techniques to create new definitions that are defined in
+terms of existing definitions. As you create each definition you can
+test and debug it interactively.
+
+   If you have tried out the examples in this section, you will probably
+have typed them in by hand; when you leave Gforth, your definitions will
+be lost. You can avoid this by using a text editor to enter Forth source
+code into a file, and then loading code from the file using `include'
+(*note Forth source files::). A Forth source file is processed by the
+text interpreter, just as though you had typed it in by hand(1).
+
+   Gforth also supports the traditional Forth alternative to using text
+files for program entry (*note Blocks::).
+
+   In common with many, if not most, Forth compilers, most of Gforth is
+actually written in Forth. All of the `.fs' files in the installation
+directory(2) are Forth source files, which you can study to see
+examples of Forth programming.
+
+   Gforth maintains a history file that records every line that you
+type to the text interpreter. This file is preserved between sessions,
+and is used to provide a command-line recall facility. If you enter long
+definitions by hand, you can use a text editor to paste them out of the
+history file into a Forth source file for reuse at a later time (for
+more information *note Command-line editing::).
+
+   ---------- Footnotes ----------
+
+   (1) Actually, there are some subtle differences - see *Note The Text
+Interpreter::.
+
+   (2) For example, `/usr/local/share/gforth...'
+
+
+File: gforth.info,  Node: Review - elements of a Forth system,  Next: Where to go next,  Prev: Forth is written in Forth,  Up: Introduction
+
+Review - elements of a Forth system
+===================================
+
+   To summarise this chapter:
+
+   * Forth programs use "factoring" to break a problem down into small
+     fragments called "words" or "definitions".
+
+   * Forth program development is an interactive process.
+
+   * The main command loop that accepts input, and controls both
+     interpretation and compilation, is called the "text interpreter"
+     (also known as the "outer interpreter").
+
+   * Forth has a very simple syntax, consisting of words and numbers
+     separated by spaces or carriage-return characters. Any additional
+     syntax is imposed by "parsing words".
+
+   * Forth uses a stack to pass parameters between words. As a result,
+     it uses postfix notation.
+
+   * To use a word that has previously been defined, the text
+     interpreter searches for the word in the "name dictionary".
+
+   * Words have "interpretation semantics" and "compilation semantics".
+
+   * The text interpreter uses the value of `state' to select between
+     the use of the "interpretation semantics" and the  "compilation
+     semantics" of a word that it encounters.
+
+   * The relationship between the "interpretation semantics" and
+     "compilation semantics" for a word depend upon the way in which
+     the word was defined (for example, whether it is an "immediate"
+     word).
+
+   * Forth definitions can be implemented in Forth (called "high-level
+     definitions") or in some other way (usually a lower-level language
+     and as a result often called "low-level definitions", "code
+     definitions" or "primitives").
+
+   * Many Forth systems are implemented mainly in Forth.
+
+
+File: gforth.info,  Node: Where to go next,  Next: Exercises,  Prev: Review - elements of a Forth system,  Up: Introduction
+
+Where To Go Next
+================
+
+   Amazing as it may seem, if you have read (and understood) this far,
+you know almost all the fundamentals about the inner workings of a Forth
+system. You certainly know enough to be able to read and understand the
+rest of this manual and the ANS Forth document, to learn more about the
+facilities that Forth in general and Gforth in particular provide. Even
+scarier, you know almost enough to implement your own Forth system.
+However, that's not a good idea just yet... better to try writing some
+programs in Gforth.
+
+   Forth has such a rich vocabulary that it can be hard to know where to
+start in learning it. This section suggests a few sets of words that are
+enough to write small but useful programs. Use the word index in this
+document to learn more about each word, then try it out and try to write
+small definitions using it. Start by experimenting with these words:
+
+   * Arithmetic: `+ - * / /MOD */ ABS INVERT'
+
+   * Comparison: `MIN MAX ='
+
+   * Logic: `AND OR XOR NOT'
+
+   * Stack manipulation: `DUP DROP SWAP OVER'
+
+   * Loops and decisions: `IF ELSE ENDIF ?DO I LOOP'
+
+   * Input/Output: `. ." EMIT CR KEY'
+
+   * Defining words: `: ; CREATE'
+
+   * Memory allocation words: `ALLOT ,'
+
+   * Tools: `SEE WORDS .S MARKER'
+
+   When you have mastered those, go on to:
+
+   * More defining words: `VARIABLE CONSTANT VALUE TO CREATE DOES>'
+
+   * Memory access: `@ !'
+
+   When you have mastered these, there's nothing for it but to read
+through the whole of this manual and find out what you've missed.
+
+
+File: gforth.info,  Node: Exercises,  Prev: Where to go next,  Up: Introduction
+
+Exercises
+=========
+
+   TODO: provide a set of programming excercises linked into the stuff
+done already and into other sections of the manual. Provide solutions
+to all the exercises in a .fs file in the distribution.
+
+
+File: gforth.info,  Node: Words,  Next: Error messages,  Prev: Introduction,  Up: Top
+
+Forth Words
+***********
+
+* Menu:
+
+* Notation::
+* Case insensitivity::
+* Comments::
+* Boolean Flags::
+* Arithmetic::
+* Stack Manipulation::
+* Memory::
+* Control Structures::
+* Defining Words::
+* Interpretation and Compilation Semantics::
+* Tokens for Words::
+* Compiling words::
+* The Text Interpreter::
+* The Input Stream::
+* Word Lists::
+* Environmental Queries::
+* Files::
+* Blocks::
+* Other I/O::
+* Locals::
+* Structures::
+* Object-oriented Forth::
+* Programming Tools::
+* Assembler and Code Words::
+* Threading Words::
+* Passing Commands to the OS::
+* Keeping track of Time::
+* Miscellaneous Words::
+
+
+File: gforth.info,  Node: Notation,  Next: Case insensitivity,  Prev: Words,  Up: Words
+
+Notation
+========
+
+   The Forth words are described in this section in the glossary
+notation that has become a de-facto standard for Forth texts:
+
+word     Stack effect   wordset   pronunciation
+   Description
+
+WORD
+     The name of the word.
+
+STACK EFFECT
+     The stack effect is written in the notation `before -- after',
+     where before and after describe the top of stack entries before
+     and after the execution of the word. The rest of the stack is not
+     touched by the word. The top of stack is rightmost, i.e., a stack
+     sequence is written as it is typed in. Note that Gforth uses a
+     separate floating point stack, but a unified stack notation. Also,
+     return stack effects are not shown in stack effect, but in
+     Description. The name of a stack item describes the type and/or
+     the function of the item. See below for a discussion of the types.
+
+     All words have two stack effects: A compile-time stack effect and a
+     run-time stack effect. The compile-time stack-effect of most words
+     is  - . If the compile-time stack-effect of a word deviates from
+     this standard behaviour, or the word does other unusual things at
+     compile time, both stack effects are shown; otherwise only the
+     run-time stack effect is shown.
+
+PRONUNCIATION
+     How the word is pronounced.
+
+WORDSET
+     The ANS Forth standard is divided into several word sets. A
+     standard system need not support all of them. Therefore, in
+     theory, the fewer word sets your program uses the more portable it
+     will be. However, we suspect that most ANS Forth systems on
+     personal machines will feature all word sets. Words that are not
+     defined in ANS Forth have `gforth' or `gforth-internal' as word
+     set. `gforth' describes words that will work in future releases of
+     Gforth; `gforth-internal' words are more volatile. Environmental
+     query strings are also displayed like words; you can recognize
+     them by the `environment' in the word set field.
+
+DESCRIPTION
+     A description of the behaviour of the word.
+
+   The type of a stack item is specified by the character(s) the name
+starts with:
+
+`f'
+     Boolean flags, i.e. `false' or `true'.
+
+`c'
+     Char
+
+`w'
+     Cell, can contain an integer or an address
+
+`n'
+     signed integer
+
+`u'
+     unsigned integer
+
+`d'
+     double sized signed integer
+
+`ud'
+     double sized unsigned integer
+
+`r'
+     Float (on the FP stack)
+
+`a-'
+     Cell-aligned address
+
+`c-'
+     Char-aligned address (note that a Char may have two bytes in
+     Windows NT)
+
+`f-'
+     Float-aligned address
+
+`df-'
+     Address aligned for IEEE double precision float
+
+`sf-'
+     Address aligned for IEEE single precision float
+
+`xt'
+     Execution token, same size as Cell
+
+`wid'
+     Word list ID, same size as Cell
+
+`ior, wior'
+     I/O result code, cell-sized.  In Gforth, you can `throw' iors.
+
+`f83name'
+     Pointer to a name structure
+
+`"'
+     string in the input stream (not on the stack). The terminating
+     character is a blank by default. If it is not a blank, it is shown
+     in `<>' quotes.
+
+
+File: gforth.info,  Node: Case insensitivity,  Next: Comments,  Prev: Notation,  Up: Words
+
+Case insensitivity
+==================
+
+   Gforth is case-insensitive; you can enter definitions and invoke
+Standard words using upper, lower or mixed case (however, *note
+Implementation-defined options: core-idef.).
+
+   ANS Forth only requires implementations to recognise Standard words
+when they are typed entirely in upper case. Therefore, a Standard
+program must use upper case for all Standard words. You can use whatever
+case you like for words that you define, but in a Standard program you
+have to use the words in the same case that you defined them.
+
+   Gforth supports case sensitivity through `table's (case-sensitive
+wordlists, *note Word Lists::).
+
+   Two people have asked how to convert Gforth to be case-sensitive;
+while we think this is a bad idea, you can change all wordlists into
+tables like this:
+
+     ' table-find forth-wordlist wordlist-map  !
+
+   Note that you now have to type the predefined words in the same case
+that we defined them, which are varying.  You may want to convert them
+to your favourite case before doing this operation (I won't explain how,
+because if you are even contemplating doing this, you'd better have
+enough knowledge of Forth systems to know this already).
+
+
+File: gforth.info,  Node: Comments,  Next: Boolean Flags,  Prev: Case insensitivity,  Up: Words
+
+Comments
+========
+
+   Forth supports two styles of comment; the traditional in-line
+comment, `(' and its modern cousin, the comment to end of line; `\'.
+
+`('       compilation 'ccc<close-paren>' - ; run-time -         core,file       ``paren''
+   Comment, usually till the next `)': parse and discard all subsequent
+characters in the parse area until ")" is encountered. During
+interactive input, an end-of-line also acts as a comment terminator.
+For file input, it does not; if the end-of-file is encountered whilst
+parsing for the ")" delimiter, Gforth will generate a warning.
+
+`\'       compilation 'ccc<newline>' - ; run-time -         core-ext,block-ext       ``backslash''
+   Comment till the end of the line if `BLK' contains 0 (i.e., while
+not loading a block), parse and discard the remainder of the parse
+area. Otherwise, parse and discard all subsequent characters in the
+parse area corresponding to the current line.
+
+`\G'       compilation 'ccc<newline>' - ; run-time -         gforth       ``backslash-gee''
+   Equivalent to `\' but used as a tag to annotate definition comments
+into documentation.
+
+
+File: gforth.info,  Node: Boolean Flags,  Next: Arithmetic,  Prev: Comments,  Up: Words
+
+Boolean Flags
+=============
+
+   A Boolean flag is cell-sized. A cell with all bits clear represents
+the flag `false' and a flag with all bits set represents the flag
+`true'. Words that check a flag (for example, `IF') will treat a cell
+that has any bit set as `true'.
+
+`true'       - f         core-ext       ``true''
+   `Constant' - f is a cell with all bits set.
+
+`false'       - f         core-ext       ``false''
+   `Constant' - f is a cell with all bits clear.
+
+`on'       a-addr -         gforth       ``on''
+   Set the (value of the) variable  at a-addr to `true'.
+
+`off'       a-addr -         gforth       ``off''
+   Set the (value of the) variable at a-addr to `false'.
+
+
+File: gforth.info,  Node: Arithmetic,  Next: Stack Manipulation,  Prev: Boolean Flags,  Up: Words
+
+Arithmetic
+==========
+
+   Forth arithmetic is not checked, i.e., you will not hear about
+integer overflow on addition or multiplication, you may hear about
+division by zero if you are lucky. The operator is written after the
+operands, but the operands are still in the original order. I.e., the
+infix `2-1' corresponds to `2 1 -'. Forth offers a variety of division
+operators. If you perform division with potentially negative operands,
+you do not want to use `/' or `/mod' with its undefined behaviour, but
+rather `fm/mod' or `sm/mod' (probably the former, *note Mixed
+precision::).
+
+* Menu:
+
+* Single precision::
+* Double precision::            Double-cell integer arithmetic
+* Bitwise operations::
+* Numeric comparison::
+* Mixed precision::             Operations with single and double-cell integers
+* Floating Point::
+
+
+File: gforth.info,  Node: Single precision,  Next: Double precision,  Prev: Arithmetic,  Up: Arithmetic
+
+Single precision
+----------------
+
+   By default, numbers in Forth are single-precision integers that are
+one cell in size. They can be signed or unsigned, depending upon how you
+treat them. For the rules used by the text interpreter for recognising
+single-precision integers see *Note Number Conversion::.
+
+   These words are all defined for signed operands, but some of them
+also work for unsigned numbers: `+', `1+', `-', `1-', `*'.
+
+`+'       n1 n2 - n        core       ``plus''
+
+`1+'       n1 - n2        core       ``one-plus''
+
+`-'       n1 n2 - n        core       ``minus''
+
+`1-'       n1 - n2        core       ``one-minus''
+
+`*'       n1 n2 - n        core       ``star''
+
+`/'       n1 n2 - n        core       ``slash''
+
+`mod'       n1 n2 - n        core       ``mod''
+
+`/mod'       n1 n2 - n3 n4        core       ``slash-mod''
+
+`negate'       n1 - n2        core       ``negate''
+
+`abs'       n - u        core       ``abs''
+
+`min'       n1 n2 - n        core       ``min''
+
+`max'       n1 n2 - n        core       ``max''
+
+`FLOORED'       - f         environment       ``FLOORED''
+   True if `/' etc. perform floored division
+
+
+File: gforth.info,  Node: Double precision,  Next: Bitwise operations,  Prev: Single precision,  Up: Arithmetic
+
+Double precision
+----------------
+
+   For the rules used by the text interpreter for recognising
+double-precision integers, see *Note Number Conversion::.
+
+   A double precision number is represented by a cell pair, with the
+most significant cell at the TOS. It is trivial to convert an unsigned
+single to a double: simply push a `0' onto the TOS. Since numbers are
+represented by Gforth using 2's complement arithmetic, converting a
+signed single to a (signed) double requires sign-extension across the
+most significant cell. This can be achieved using `s>d'. The moral of
+the story is that you cannot convert a number without knowing whether
+it represents an unsigned or a signed number.
+
+   These words are all defined for signed operands, but some of them
+also work for unsigned numbers: `d+', `d-'.
+
+`s>d'       n - d         core       ``s-to-d''
+
+`d>s'       d - n         double       ``d-to-s''
+
+`d+'       d1 d2 - d        double       ``d-plus''
+
+`d-'       d1 d2 - d        double       ``d-minus''
+
+`dnegate'       d1 - d2        double       ``d-negate''
+
+`dabs'       d - ud         double       ``d-abs''
+
+`dmin'       d1 d2 - d         double       ``d-min''
+
+`dmax'       d1 d2 - d         double       ``d-max''
+
+
+File: gforth.info,  Node: Bitwise operations,  Next: Numeric comparison,  Prev: Double precision,  Up: Arithmetic
+
+Bitwise operations
+------------------
+
+`and'       w1 w2 - w        core       ``and''
+
+`or'       w1 w2 - w        core       ``or''
+
+`xor'       w1 w2 - w        core       ``x-or''
+
+`invert'       w1 - w2        core       ``invert''
+
+`lshift'       u1 n - u2        core       ``l-shift''
+
+`rshift'       u1 n - u2        core       ``r-shift''
+   Logical shift right by n bits.
+
+`2*'       n1 - n2        core       ``two-star''
+   Shift left by 1; also works on unsigned numbers
+
+`d2*'       d1 - d2        double       ``d-two-star''
+   Shift left by 1; also works on unsigned numbers
+
+`2/'       n1 - n2        core       ``two-slash''
+   Arithmetic shift right by 1.  For signed numbers this is a floored
+division by 2 (note that `/' not necessarily floors).
+
+`d2/'       d1 - d2        double       ``d-two-slash''
+   Arithmetic shift right by 1.  For signed numbers this is a floored
+division by 2.
+
+
+File: gforth.info,  Node: Numeric comparison,  Next: Mixed precision,  Prev: Bitwise operations,  Up: Arithmetic
+
+Numeric comparison
+------------------
+
+   Note that the words that compare for equality (`= <> 0= 0<> d= d<>
+d0= d0<>') work for for both signed and unsigned numbers.
+
+`<'       n1 n2 - f        core       ``less-than''
+
+`<='       n1 n2 - f        gforth       ``less-or-equal''
+
+`<>'       n1 n2 - f        core-ext       ``not-equals''
+
+`='       n1 n2 - f        core       ``equals''
+
+`>'       n1 n2 - f        core       ``greater-than''
+
+`>='       n1 n2 - f        gforth       ``greater-or-equal''
+
+`0<'       n - f        core       ``zero-less-than''
+
+`0<='       n - f        gforth       ``zero-less-or-equal''
+
+`0<>'       n - f        core-ext       ``zero-not-equals''
+
+`0='       n - f        core       ``zero-equals''
+
+`0>'       n - f        core-ext       ``zero-greater-than''
+
+`0>='       n - f        gforth       ``zero-greater-or-equal''
+
+`u<'       u1 u2 - f        core       ``u-less-than''
+
+`u<='       u1 u2 - f        gforth       ``u-less-or-equal''
+
+`u>'       u1 u2 - f        core-ext       ``u-greater-than''
+
+`u>='       u1 u2 - f        gforth       ``u-greater-or-equal''
+
+`within'       u1 u2 u3 - f        core-ext       ``within''
+   u2=<u1<u3 or: u3=<u2 and u1 is not in [u3,u2).  This works for
+unsigned and signed numbers (but not a mixture).  Another way to think
+about this word is to consider the numbers as a circle (wrapping around
+from `max-u' to 0 for unsigned, and from `max-n' to min-n for signed
+numbers); now consider the range from u2 towards increasing numbers up
+to and excluding u3 (giving an empty range if u2=u3); if u1 is in this
+range, `within' returns true.
+
+`d<'       d1 d2 - f        double       ``d-less-than''
+
+`d<='       d1 d2 - f        gforth       ``d-less-or-equal''
+
+`d<>'       d1 d2 - f        gforth       ``d-not-equals''
+
+`d='       d1 d2 - f        double       ``d-equals''
+
+`d>'       d1 d2 - f        gforth       ``d-greater-than''
+
+`d>='       d1 d2 - f        gforth       ``d-greater-or-equal''
+
+`d0<'       d - f        double       ``d-zero-less-than''
+
+`d0<='       d - f        gforth       ``d-zero-less-or-equal''
+
+`d0<>'       d - f        gforth       ``d-zero-not-equals''
+
+`d0='       d - f        double       ``d-zero-equals''
+
+`d0>'       d - f        gforth       ``d-zero-greater-than''
+
+`d0>='       d - f        gforth       ``d-zero-greater-or-equal''
+
+`du<'       ud1 ud2 - f        double-ext       ``d-u-less-than''
+
+`du<='       ud1 ud2 - f        gforth       ``d-u-less-or-equal''
+
+`du>'       ud1 ud2 - f        gforth       ``d-u-greater-than''
+
+`du>='       ud1 ud2 - f        gforth       ``d-u-greater-or-equal''
+
+
+File: gforth.info,  Node: Mixed precision,  Next: Floating Point,  Prev: Numeric comparison,  Up: Arithmetic
+
+Mixed precision
+---------------
+
+`m+'       d1 n - d2        double       ``m-plus''
+
+`*/'       n1 n2 n3 - n4         core       ``star-slash''
+   n4=(n1*n2)/n3, with the intermediate result being double.
+
+`*/mod'       n1 n2 n3 - n4 n5         core       ``star-slash-mod''
+   n1*n2=n3*n5+n4, with the intermediate result (n1*n2) being double.
+
+`m*'       n1 n2 - d        core       ``m-star''
+
+`um*'       u1 u2 - ud        core       ``u-m-star''
+
+`m*/'       d1 n2 u3 - dquot         double       ``m-star-slash''
+   dquot=(d1*n2)/u3, with the intermediate result being
+triple-precision.  In ANS Forth u3 can only be a positive signed number.
+
+`um/mod'       ud u1 - u2 u3        core       ``u-m-slash-mod''
+   ud=u3*u1+u2, u1>u2>=0
+
+`fm/mod'       d1 n1 - n2 n3        core       ``f-m-slash-mod''
+   Floored division: d1 = n3*n1+n2, n1>n2>=0 or 0>=n2>n1.
+
+`sm/rem'       d1 n1 - n2 n3        core       ``s-m-slash-rem''
+   Symmetric division: d1 = n3*n1+n2, sign(n2)=sign(d1) or 0.
+
+
+File: gforth.info,  Node: Floating Point,  Prev: Mixed precision,  Up: Arithmetic
+
+Floating Point
+--------------
+
+   For the rules used by the text interpreter for recognising
+floating-point numbers see *Note Number Conversion::.
+
+   Gforth has a separate floating point stack, but the documentation
+uses the unified notation.(1)
+
+   Floating point numbers have a number of unpleasant surprises for the
+unwary (e.g., floating point addition is not associative) and even a few
+for the wary. You should not use them unless you know what you are doing
+or you don't care that the results you get are totally bogus. If you
+want to learn about the problems of floating point numbers (and how to
+avoid them), you might start with `David Goldberg, What Every Computer
+Scientist Should Know About Floating-Point Arithmetic
+(http://www.validgh.com/goldberg/paper.ps), ACM Computing Surveys
+23(1):5-48, March 1991'.
+
+`d>f'       d - r        float       ``d-to-f''
+
+`f>d'       r - d        float       ``f-to-d''
+
+`f+'       r1 r2 - r3        float       ``f-plus''
+
+`f-'       r1 r2 - r3        float       ``f-minus''
+
+`f*'       r1 r2 - r3        float       ``f-star''
+
+`f/'       r1 r2 - r3        float       ``f-slash''
+
+`fnegate'       r1 - r2        float       ``f-negate''
+
+`fabs'       r1 - r2        float-ext       ``f-abs''
+
+`fmax'       r1 r2 - r3        float       ``f-max''
+
+`fmin'       r1 r2 - r3        float       ``f-min''
+
+`floor'       r1 - r2        float       ``floor''
+   Round towards the next smaller integral value, i.e., round toward
+negative infinity.
+
+`fround'       r1 - r2        gforth       ``f-round''
+   Round to the nearest integral value.
+
+`f**'       r1 r2 - r3        float-ext       ``f-star-star''
+   r3 is r1 raised to the r2th power.
+
+`fsqrt'       r1 - r2        float-ext       ``f-square-root''
+
+`fexp'       r1 - r2        float-ext       ``f-e-x-p''
+
+`fexpm1'       r1 - r2        float-ext       ``f-e-x-p-m-one''
+   r2=e**r1-1
+
+`fln'       r1 - r2        float-ext       ``f-l-n''
+
+`flnp1'       r1 - r2        float-ext       ``f-l-n-p-one''
+   r2=ln(r1+1)
+
+`flog'       r1 - r2        float-ext       ``f-log''
+   The decimal logarithm.
+
+`falog'       r1 - r2        float-ext       ``f-a-log''
+   r2=10**r1
+
+`f2*'       r1 - r2         gforth       ``f2*''
+   Multiply r1 by 2.0e0
+
+`f2/'       r1 - r2         gforth       ``f2/''
+   Multiply r1 by 0.5e0
+
+`1/f'       r1 - r2         gforth       ``1/f''
+   Divide 1.0e0 by r1.
+
+`precision'       - u         float-ext       ``precision''
+   u is the number of significant digits currently used by `F.' `FE.'
+and `FS.'
+
+`set-precision'       u -         float-ext       ``set-precision''
+   Set the number of significant digits currently used by `F.' `FE.'
+and `FS.' to u.
+
+   Angles in floating point operations are given in radians (a full
+circle has 2 pi radians).
+
+`fsin'       r1 - r2        float-ext       ``f-sine''
+
+`fcos'       r1 - r2        float-ext       ``f-cos''
+
+`fsincos'       r1 - r2 r3        float-ext       ``f-sine-cos''
+   r2=sin(r1), r3=cos(r1)
+
+`ftan'       r1 - r2        float-ext       ``f-tan''
+
+`fasin'       r1 - r2        float-ext       ``f-a-sine''
+
+`facos'       r1 - r2        float-ext       ``f-a-cos''
+
+`fatan'       r1 - r2        float-ext       ``f-a-tan''
+
+`fatan2'       r1 r2 - r3        float-ext       ``f-a-tan-two''
+   r1/r2=tan(r3). ANS Forth does not require, but probably intends this
+to be the inverse of `fsincos'. In gforth it is.
+
+`fsinh'       r1 - r2        float-ext       ``f-cinch''
+
+`fcosh'       r1 - r2        float-ext       ``f-cosh''
+
+`ftanh'       r1 - r2        float-ext       ``f-tan-h''
+
+`fasinh'       r1 - r2        float-ext       ``f-a-cinch''
+
+`facosh'       r1 - r2        float-ext       ``f-a-cosh''
+
+`fatanh'       r1 - r2        float-ext       ``f-a-tan-h''
+
+`pi'       - r         gforth       ``pi''
+   `Fconstant' - r is the value pi; the ratio of a circle's area to its
+diameter.
+
+   One particular problem with floating-point arithmetic is that
+comparison for equality often fails when you would expect it to
+succeed.  For this reason approximate equality is often preferred (but
+you still have to know what you are doing).  Also note that IEEE NaNs
+may compare differently from what you might expect.  The comparison
+words are:
+
+`f~rel'       r1 r2 r3 - flag         gforth       ``f~rel''
+   Approximate equality with relative error: |r1-r2|<r3*|r1+r2|.
+
+`f~abs'       r1 r2 r3 - flag         gforth       ``f~abs''
+   Approximate equality with absolute error: |r1-r2|<r3.
+
+`f~'       r1 r2 r3 - flag         float-ext       ``f-proximate''
+   ANS Forth medley for comparing r1 and r2 for equality: r3>0:
+`f~abs'; r3=0: bitwise comparison; r3<0: `fnegate f~rel'.
+
+`f='       r1 r2 - f        gforth       ``f-equals''
+
+`f<>'       r1 r2 - f        gforth       ``f-not-equals''
+
+`f<'       r1 r2 - f        float       ``f-less-than''
+
+`f<='       r1 r2 - f        gforth       ``f-less-or-equal''
+
+`f>'       r1 r2 - f        gforth       ``f-greater-than''
+
+`f>='       r1 r2 - f        gforth       ``f-greater-or-equal''
+
+`f0<'       r - f        float       ``f-zero-less-than''
+
+`f0<='       r - f        gforth       ``f-zero-less-or-equal''
+
+`f0<>'       r - f        gforth       ``f-zero-not-equals''
+
+`f0='       r - f        float       ``f-zero-equals''
+
+`f0>'       r - f        gforth       ``f-zero-greater-than''
+
+`f0>='       r - f        gforth       ``f-zero-greater-or-equal''
+
+   ---------- Footnotes ----------
+
+   (1) It's easy to generate the separate notation from that by just
+separating the floating-point numbers out: e.g. `( n r1 u r2 -- r3 )'
+becomes `( n u -- ) ( F: r1 r2 -- r3 )'.
+
+
+File: gforth.info,  Node: Stack Manipulation,  Next: Memory,  Prev: Arithmetic,  Up: Words
+
+Stack Manipulation
+==================
+
+   Gforth maintains a number of separate stacks:
+
+   * A data stack (also known as the "parameter stack") - for
+     characters, cells, addresses, and double cells.
+
+   * A floating point stack - for holding floating point (FP) numbers.
+
+   * A return stack - for holding the return addresses of colon
+     definitions and other (non-FP) data.
+
+   * A locals stack - for holding local variables.
+
+* Menu:
+
+* Data stack::
+* Floating point stack::
+* Return stack::
+* Locals stack::
+* Stack pointer manipulation::
+

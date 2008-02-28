@@ -1,0 +1,2491 @@
+This is librep.info, produced by makeinfo version 4.7 from librep.texi.
+
+INFO-DIR-SECTION Programming Languages
+START-INFO-DIR-ENTRY
+* librep: (librep).		A flexible Lisp environment
+END-INFO-DIR-ENTRY
+
+   This is Edition 1.2, last updated 8 September 2000, of `The librep
+Manual', for librep, Version 0.13.
+
+   Copyright 1999-2000 John Harper.
+
+   Permission is granted to make and distribute verbatim copies of this
+manual provided the copyright notice and this permission notice are
+preserved on all copies.
+
+   Permission is granted to copy and distribute modified versions of
+this manual under the conditions for verbatim copying, provided that
+the entire resulting derived work is distributed under the terms of a
+permission notice identical to this one.
+
+
+File: librep.info,  Node: Debugging,  Next: Tips,  Prev: Timers,  Up: The language
+
+4.39 Debugging
+==============
+
+When you have written a Lisp program you will have to debug it (unless
+all your programs work first time?). There are two main classes of
+errors; syntax errors and semantic errors.
+
+   Syntax errors occur when the text you've typed out to represent your
+program is not a valid representation of a Lisp object (since a program
+is simply an ordered set of Lisp objects). When you try to load your
+program the Lisp reader will find the syntax error and tell you about,
+unfortunately though it probably won't be able to tell you exactly
+where the error is.
+
+   The most common source of syntax errors is too few or too many
+parentheses; the Jade or Emacs `Ctrl-Meta-f' and `Ctrl-Meta-b' commands
+can be used to show the structure of the program as the Lisp reader
+sees it.
+
+   Semantic errors are what we normally call bugs--errors in logic, the
+program is syntactically correct but doesn't do what you want it to.
+For these types of errors librep provides hooks to allow interactive
+debugging. The debugger supplied with librep uses these hooks to
+implement a simple command line debugger; programs using librep as an
+extension language may provide their own debugger interface.
+
+   There are several ways to enter the Lisp debugger; functions can be
+marked so that they cause the debugger to be entered when they are
+called, breakpoints can be written in functions or it can be called
+explicitly with a form to step through.
+
+ -- Command: trace symbol
+     This command marks the symbol SYMBOL so that each time its value
+     is dereferenced the debugger is entered when the next form is
+     evaluated. This can be used to set breakpoints on functions (or
+     variables).
+
+     When called interactively SYMBOL is prompted for.
+
+ -- Command: untrace symbol
+     The opposite of `trace'--unmarks the symbol.
+
+ -- Function: break
+     This function causes the debugger to be entered immediately. By
+     putting the form `(break)' at suitable points in your program
+     simple breakpoints can be created.
+
+ -- Command: step form
+     This function invokes the debugger to step through the form FORM.
+
+     When called interactively FORM is prompted for.
+
+ -- Function: backtrace #!optional stream
+     Prints a description of the current Lisp function call stack to
+     STREAM (or `standard-output' if STREAM is undefined).
+
+          (backtrace (current-buffer))
+               -| #<subr backtrace> ((current-buffer)) nil
+               -| #<closure eval-and-print> ((backtrace (current-buffer))) t
+               => t
+
+     Each line represents a stack frame, the first item is the called
+     function, the second is the list of arguments applied to it. The
+     third item is true if the list of arguments as displayed has
+     already been evaluated.
+
+   Whenever the Lisp debugger is entered the form waiting to be
+evaluated is printed, preceded by the current depth of execution in
+angular brackets. At this point the special debugger commands available
+are,
+
+`step'
+`s'
+     Step into the current form; this means that in a list form the
+     debugger is used to evaluated each argument in turn.
+
+`next'
+`n'
+     Continue evaluating forms normally until the next form at the
+     current level is entered, then re-enter the debugger.
+
+`continue'
+`c'
+     Continue execution normally. Note that this command is the one to
+     use when an error has been trapped.
+
+`return FORM'
+`r FORM'
+     Evaluate FORM then return this value as the result of the current
+     form.
+
+`print FORM'
+`p FORM'
+     Evaluate FORM, then print its value.
+
+`form'
+`f'
+     Print the form being debugged.
+
+`backtrace'
+`b'
+     Print a backtrace of the current Lisp call stack.
+
+   Entering a null string repeats the previous `next', `step', or
+`continue' command.
+
+   After the form has been evaluated (i.e. after you've typed one of the
+commands above) the value of the form is printed in the buffer,
+prefixed by the string `=> '.
+
+   Note that it is also possible to make certain types of errors invoke
+the debugger immediately they are signalled, see *Note Errors::. Also
+note that the debugger is unable to step through compiled Lisp code.
+
+
+File: librep.info,  Node: Tips,  Prev: Debugging,  Up: The language
+
+4.40 Tips
+=========
+
+This section of the manual gives advice about programming in `librep'.
+
+   For advice on getting the most out of the compiler, see *Note
+Compilation Tips::.
+
+* Menu:
+
+* Comment Styles::              Different types of comments
+
+
+File: librep.info,  Node: Comment Styles,  Up: Tips
+
+4.40.1 Comment Styles
+---------------------
+
+As already described, single-line comments in Lisp are introduced by a
+semi-colon (`;') character. By convention a different number of
+semi-colons is used to introduce different types of comments,
+
+`;'
+     A comment referring to the line of Lisp code that it occurs on,
+     comments of this type are usually indented to the same depth, on
+     the right of the Lisp code. When editing in Jade's Lisp mode the
+     command `Meta-;' can be used to insert a comment of this type.
+
+     For example,
+
+          (defconst op-call #x08)         ;call (stk[n] stk[n-1] ... stk[0])
+                                          ; pops n values, replacing the
+                                          ; function with the result.
+          (defconst op-push #x10)         ;pushes constant # n
+
+`;;'
+     Comments starting with two semi-colons are written on a line of
+     their own and indented to the same depth as the next line of Lisp
+     code. They describe the following lines of code.
+
+     For example,
+
+          (let
+              ((fname (concat file-name ?c)))
+            ;; Be sure to remove any partially written dst-file.
+            (when (file-exists-p fname)
+              (delete-file fname)))
+
+     Comments of this type are also placed before a function definition
+     to describe the function. This saves wasting memory with a
+     documentation string in a module's internal functions.
+
+     For example,
+
+          ;; Compile a form which occurred at the `top-level' into a
+          ;; byte code form.
+          ;; defuns, defmacros, defvars, etc... are treated specially.
+          ;; require forms are evaluated before being output uncompiled;
+          ;; this is so any macros are brought in before they're used.
+          (defun comp-compile-top-form (form)
+            ...
+
+`;;;'
+     This type of comment always starts in the first column of the
+     line, they are used to make general comments about a program and
+     don't refer to any function or piece of code in particular.
+
+     For example,
+
+          ;;; Notes:
+
+          ;;; Instruction Encoding
+          ;;; ====================
+          ;;; Instructions which get an argument (with opcodes of zero up to
+          ...
+
+`;;;;'
+     Each program should have a comment of this type as its first line,
+     the body of the comment is the name of the file, two dashes and a
+     brief description of what the program does. They always start in
+     the first column.
+
+     For example,
+
+          ;;;; compiler.jl -- Simple compiler for Lisp files/forms
+
+   If you adhere to these standards the indentation functions provide by
+the Lisp mode will indent your comments to the correct depth.
+
+
+File: librep.info,  Node: The REPL,  Next: librep Internals,  Prev: The language,  Up: Top
+
+5 The REPL
+**********
+
+When you invoke the stand-alone librep interpreter without giving it a
+script to execute the system is started in interactive mode. This means
+that the "REPL" is entered--the read-eval-print loop.
+
+   The REPL works as its name suggests. It reads Lisp forms from the
+console, evaluates them, and then prints the result back to the
+console. Here is an example REPL session:
+
+     user> (+ 1 1)
+     2
+     user> (cons 'a 'b)
+     (a . b)
+
+The `user>' string is the prompt that the REPL prints when it is
+waiting for an input form. This form may span several lines, e.g.:
+
+     user> (cons 'a
+     'b)
+     (a . b)
+
+The prompt above contains the string `user'. This is the name of the
+module that the form will be evaluated in (*note Modules::).
+
+   As well as allowing arbitrary Lisp forms to be entered and evaluated,
+the REPL provides a rich set of meta-commands, these are used to
+configure and inspect the state of the system, as well as providing
+convenient shortcuts for common operations.
+
+   A meta-command is differentiated from a normal Lisp form by preceding
+it with a comma (`,') character. The name of the command should follow
+the comma, with any argument forms after that. Note that unlike normal
+Lisp forms, no parentheses are used to mark the command application.
+
+   For example the `whereis' meta-command searches all loaded modules
+for those exporting a particular symbol. It might be used as follows:
+
+     user> ,whereis string-match
+     string-match is exported by: rep.regexp
+
+The following table lists all currently supported meta-commands:
+
+`access STRUCT ...'
+     Add the modules named STRUCT ... to the list of structures whose
+     exported definitions may be accessed by the current module (using
+     the `structure-ref' special form).
+
+`accessible'
+     Print the names of the modules whose contents may be accessed
+     using the `structure-ref' form from the current module.
+
+`apropos "REGEXP"'
+     Print the definitions in the scope of the current module whose
+     names match the regular expression REGEXP.
+
+`bindings'
+     Print all bindings in the current module.
+
+`collect'
+     Run the garbage collector.
+
+`compile [STRUCT ...]'
+     Compile any uncompiled functions in the modules named STRUCT ....
+     If no named modules are given, use the current module.
+
+`compile-proc PROCEDURE ...'
+     Compile the functions called PROCEDURE ... in the current module.
+
+`describe SYMBOL'
+     Look for documentation describing the current meaning of SYMBOL,
+     if any is found, print it.
+
+`dis FORM'
+     Disassemble the bytecode form or compiled function that is the
+     result of evaluating FORM.
+
+`expand FORM'
+     Print FORM with any outermost macro calls recursively expanded.
+
+`exports'
+     Print the names of the variables exported from the current module.
+
+`help'
+     List all REPL commands.
+
+`imports'
+     Print the names of the modules imported by the current module.
+
+`in STRUCT [FORM]'
+     If FORM is given, temporarily switch to the module called STRUCT,
+     evaluate FORM printing the result, then switch back to the
+     original module.
+
+     If FORM isn't given, simply switch the current module to be STRUCT.
+
+`interfaces'
+     Print all defined module interfaces, and their definitions.
+
+`load STRUCT ...'
+     Attempt to load the module called STRUCT.
+
+`load-file "FILENAME" ...'
+     Load the file of Lisp forms called FILENAME.
+
+`locate SYMBOL'
+     Recursively scan from the current module for the module providing
+     the binding of SYMBOL.
+
+`new STRUCT'
+     Create a new module called STRUCT, and set it as the current
+     module. It will import the `rep.module-system' module, but nothing
+     else (i.e. no actual language).
+
+`open STRUCT ...'
+     Import the modules called STRUCT ... to the current module.  This
+     is analogous to the `open' clause in the configuration form of the
+     module's definition.
+
+`profile FORM'
+     Evaluate FORM, recording information about the frequency and
+     duration of the calls it makes to subroutines (and the calls they
+     make, and so on). This information is tabulated and printed after
+     the evaluation has finished.
+
+`quit'
+     Terminate the Lisp interpreter.
+
+`reload STRUCT ...'
+     Reload the modules called STRUCT .... If modules of these names
+     had previously been loaded, they will be deallocated when there
+     are no remaining references to them.
+
+     Note that importing the interface of one module into another does
+     not create object references between the two modules (the
+     references are purely symbolic). However, each closure (i.e.
+     function) created in a module does contain a reference to the
+     module it was created in.
+
+`step FORM'
+     Evaluate FORM in single-step mode (using the debugger).
+
+`structures'
+     Print the names of all currently defined modules.
+
+`time FORM'
+     Evaluate the form FORM, print the result and the time it took to
+     perform the evaluation.
+
+`unload STRUCT ...'
+     Attempt to unload the modules called STRUCT .... As with
+     reloading, unloading a module only removes the link between the
+     module name and the module body. Only once no more references
+     exist to the module body will it be freed.
+
+`whereis SYMBOL'
+     Scan all loaded modules for those that export a binding of SYMBOL,
+     and print the results.
+
+
+File: librep.info,  Node: librep Internals,  Next: Reporting bugs,  Prev: The REPL,  Up: Top
+
+6 librep Internals
+******************
+
+This chapter will document the internals of `librep', including how to
+embed the interpreter into general applications, and how to write
+dynamically-loadable C libraries. Unfortunately most of it hasn't been
+written. As always, the best reference is the source, Luke!
+
+* Menu:
+
+* Intro To Internals::
+* Data Type Representation::
+* Garbage Collection Internals::
+* Defining Lisp Subrs::
+* Useful Functions::
+* Shared Libraries::
+
+
+File: librep.info,  Node: Intro To Internals,  Next: Data Type Representation,  Up: librep Internals
+
+6.1 Introduction To librep Internals
+====================================
+
+
+File: librep.info,  Node: Data Type Representation,  Next: Garbage Collection Internals,  Prev: Intro To Internals,  Up: librep Internals
+
+6.2 Data Type Representation
+============================
+
+
+File: librep.info,  Node: Garbage Collection Internals,  Next: Defining Lisp Subrs,  Prev: Data Type Representation,  Up: librep Internals
+
+6.3 Garbage Collection Internals
+================================
+
+
+File: librep.info,  Node: Defining Lisp Subrs,  Next: Useful Functions,  Prev: Garbage Collection Internals,  Up: librep Internals
+
+6.4 Defining Lisp Subrs
+=======================
+
+
+File: librep.info,  Node: Useful Functions,  Next: Shared Libraries,  Prev: Defining Lisp Subrs,  Up: librep Internals
+
+6.5 Useful Functions
+====================
+
+
+File: librep.info,  Node: Shared Libraries,  Prev: Useful Functions,  Up: librep Internals
+
+6.6 Shared Libraries
+====================
+
+
+File: librep.info,  Node: Reporting bugs,  Next: News,  Prev: librep Internals,  Up: Top
+
+7 Reporting bugs
+****************
+
+If the `librep' interpreter crashes it's probably a bug (unless you're
+using the `rep-gtk' binding, in which case creating invalid GTK widget
+hierarchies can easily crash the Lisp system). If the interpreter hangs
+such that sending it interrupt signals doesn't fix the problem, that's
+probably also a bug.
+
+   To help me fix any bugs found please try to collect as much
+meaningful information as possible. This will hopefully include stack
+backtraces (of both the C and Lisp stacks if possible), what features
+are loaded, what you did immediately before triggering the bug, a
+description of your the system, etc...
+
+   Please send any bug reports to the mailing list:
+<librep-list@lists.sourceforge.net>. Alternatively, the author may be
+contacted at: <jsh@users.sourceforge.net>.
+
+
+File: librep.info,  Node: News,  Next: Function index,  Prev: Reporting bugs,  Up: Top
+
+Appendix A News
+***************
+
+0.17
+====
+
+   * Added `rep.ffi' module (Foreign Function Interface). Uses gcc's
+     libffi. Very untested.
+
+   * Partial implementation of guile's `GH' interface.
+
+   * Bug fixes:
+
+        - Don't hang in select for a second when starting processes via
+          the `system' function (race condition that only seems to show
+          up on Linux 2.6 kernels)
+
+        - Miscellaneous fixes for Mac OS X.
+
+        - Don't return a reversed list of items from the XML parser.
+          (Alexander V. Nikolaev)
+
+        - Fixes to string capitalization functions. (Charles Stewart)
+
+
+0.16
+====
+
+   * New modules `rep.data.trie', `rep.threads.proxy'
+
+   * Also added `rep.xml.reader' and `rep.xml.printer', though these
+     should probably be used with extreme caution
+
+   * Appending to queues is now O(1) not O(n)
+
+   * Many changes to `rep.net.rpc' module, protocol is incompatible
+     with previous version. Should be more robust
+
+   * `rep.i18n.gettext' module exports the `bindtextdomaincodeset'
+     function (Christophe Fergeau)
+
+   * Slightly more secure way of seeding the rng
+
+   * `inexact->exact' can now convert floating point numbers to
+     rationals (though not optimally). This means that `numerator' and
+     `denominator' also work better with floats now
+
+   * New function `file-ttyp'
+
+   * Some random bug fixes
+
+
+0.15
+====
+
+   * Parser can now associate lexical location (file name and line
+     number) with parsed objects. Added `call-with-lexical-origins' and
+     `lexical-origin' functions. This adds memory overhead but is only
+     enabled in interpreted mode, or other times it could be useful
+     (e.g.  when compiling)
+
+   * The compiler enables line-numbering, and uses the information when
+     it prints errors. It also prints errors in a more standard format
+     (intended to mimic GCC), and distinguishes warnings from errors
+
+   * Debugger is much improved, and supports emacs-style emission of
+     line number tokens. Use the included `rep-debugger.el' elisp code
+     to source-debug rep programs in Emacs!
+
+   * New command line option `--debug'. When given, rep starts up in
+     the debugger
+
+   * Reformatted backtrace output. Also backtraces only ever include
+     evaluated argument lists now. They also include lexical information
+     when possible
+
+   * Syntax errors include error description and line number
+
+   * Now supports weak reference objects. New functions
+     `make-weak-ref', `weak-ref', `weak-ref-set'. A weak reference is a
+     pointer to another object. When that object is garbage collected,
+     the pointer in the weak reference is set to false.
+
+   * New `error helper' module. When an error is handled, this module
+     is called and tries to print a human-understandable message
+     explaining why the error may have occurred
+
+   * REPL commands may now be specified by their shortest unique set of
+     leading characters, e.g. `,o' instead of `,open'
+
+   * Added an `#undefined' value. Returned by `%define' and the macros
+     using it (`defun', `defmacro', etc...)
+
+   * New function `table-size' in module `rep.data.tables'
+
+   * `thread-suspend' returns true iff the timeout was reached (i.e.
+     return false if `thread-wake' was used to unsuspend the thread)
+
+   * Objects defined using the `object' macro now have an implicit
+     `self' binding - the object representing their self (or their most
+     derived self)
+
+   * Added TIMEOUT parameter to `condition-variable-wait' and
+     `obtain-mutex' functions
+
+   * New `rep.threads.message-port' module, implements a simple message
+     queue for threads
+
+   * `log' function now optionally accepts a second argument, the base
+     of the logarithm
+
+   * Use gmp to generate random numbers when possible (if at least
+     version 3 of gmp is found) [disabled in librep 0.15.1 - gmp seems
+     to be buggy?]
+
+   * The `string-replace' function may now be given a function as its
+     TEMPLATE parameter
+
+   * Bug fixes:
+
+        - Signal an error if writes don't write all characters they were
+          asked to. Also, some functions could write fewer characters
+          than they were supposed to even if no errors occurred
+
+        - Remembered that file sizes may not fit in fixnums
+
+        - Don't preserve trailing slashes in results of
+          canonical-file-name (to make the path canonical)
+
+        - Don't signal an error when end of file is encountered
+          immediately after reading `#\X' syntax
+
+        - `current-thread' and `all-threads' will create a thread
+          object for the implicit thread if there isn't one already
+
+        - In C subrs that take optional integer arguments, signal an
+          error if the given value isn't an integer or undefined
+          (false). Also, accept all types of numbers where it makes
+          sense to do so
+
+        - Signal an error if end of file is read while parsing a block
+          comment
+
+        - Don't ever return a null object from `current-time-string'
+
+        - Catch errors signalled during command line option processing,
+          and pass them to the standard error handler
+
+        - Right hand side of `letrec' bindings may now have more than
+          one form
+
+        - The `object' macro now evaluates its BASE-OBJECT parameter
+          exactly once
+
+        - Finally removed `define-value'
+
+        - Ignore null lines (or lines which only have comments) in the
+          repl
+
+        - In the compiler, don't expand macros which have have been
+          shadowed by local bindings
+
+        - Don't print some compiler errors/warnings twice
+
+        - Fixes for `mips-compaq-nonstopux' architecture (Tom Bates)
+
+        - Fixed `,reload' and `,unload' repl commands not to try to
+          remove non-existent structures
+
+
+0.14
+====
+
+   * New module `rep.util.md5', has two functions for generating MD5
+     message digests (of files or strings)
+
+   * Changes to the `rep.io.sockets' function:
+
+     In the `socket-server' function the HOST and/or PORT arguments may
+     be false, meaning to listen on all addresses and to choose a
+     random unused port.
+
+     New functions `socket-peer-address' and `socket-peer-port', these
+     always returns the details of the far end of the connetion.
+     `socket-address' and `socket-port' have been changed to always
+     return the details of the local connection point.
+
+   * New function in `rep.system' module, `crypt'. A wrapper for the
+     system's `crypt' function (if it has one)
+
+   * New function in `rep.threads' mdoule, `make-suspended-thread'
+
+   * New module `rep.net.rpc', provides a text-stream based RPC
+     mechanism for Lisp programs. Similar in some ways to untyped CORBA.
+     (This is still in the experimental stage - its interface may
+     change in forthcoming releases)
+
+   * New functions in `rep.data' module, `list->vector' and
+     `vector->list'
+
+   * New macro `define-special-form'. A combination of `defvar' and
+     `setq' - it always makes the variable special and it always sets
+     it to the given value
+
+   * New module `rep.test.framework' implementing `assert', `check' and
+     `test' macros. This provides a framework for implementing unit
+     tests in Lisp modules (such that running the interpreter with the
+     `--check' option will run all tests that have been set up to be
+     autoloaded
+
+   * Bug fixes:
+
+        - When reading from strings, don't choke on zero bytes
+
+        - When writing into sockets, be aware that the socket is in
+          non-blocking mode
+
+        - SDBM and GDBM modules now close any open databases before the
+          interpreter exits
+
+        - Fixed the `rep_parse_number' function not to require a
+          terminating null character in the string when parsing bignums
+
+        - Only define `Qrep_lang_interpreter' once
+
+        - Don't assign vm registers to physical registers on 68000
+          architectures - it's been reported to crash
+
+        - When running asynchronous subprocesses, open and initialize
+          the pty slave before forking to avoid a race condition with
+          the child process
+
+        - Flush symbols from the module cache at another point
+
+        - Fixes for Unixware
+
+        - When compiling non-top-level `defvar' forms, add any doc
+          string they have to the database
+
+
+0.13.5
+======
+
+   * Tar file handling no longer requires GNU tar
+
+   * The `defvar' special form can now take only a single argument
+
+   * The reader now treats `#\return' characters as white space
+
+   * Other miscellaneous bug fixes...
+
+
+0.13.4
+======
+
+   * Don't restrict symbols exported from plugin libraries, some need
+     to export symbols to work properly (this bug only seemed to appear
+     on Solaris systems)
+
+   * Added `rep_file_type' and `rep_guardian_type' to the list of
+     symbols exported from librep
+
+   * Fixed the `install-aliases' script (Peter Teichman)
+
+   * New module `rep.threads.condition-variable'
+
+   * Added `string-split' and `string-replace' to the gaol
+
+
+0.13.3
+======
+
+   * Try to only export public symbols from `librep.so' and modules
+
+   * When expanding file names translate `/..' to `/'
+
+   * Set an upper bound on the allowed recursion depth when regexp
+     matching, prevents the stack from overflowing in pathological cases
+
+   * Added optional second arg to `readline' function, a function to
+     call to generate completions. The `rl-completion-generator' method
+     of supplying this function is deprecated
+
+   * Fixed bugs when handling character-case in regexp module (Andrew
+     Rodionoff)
+
+   * Added an `premature-end-of-stream' error. This is signalled
+     instead of `end-of-stream' when reading characters in the middle
+     of a syntax form. The `end-of-stream' error is only signalled when
+     the end of the stream is reached before encountering anything other
+     than whitespace characters
+
+   * Fixed bug of expanding declarations in the `define' macro expansion
+
+
+0.13.2
+======
+
+   * Fix `define' so that it tracks bound variables and ignores
+     shadowed keywords when traversing code
+
+   * Added checks to compilation process for the kind of missing
+     shared-library problems that many people see
+
+   * Fixed the `install-aliases' shell script
+
+   * New configure option: `--enable-full-name-terminator'
+
+
+0.13.1
+======
+
+   * Added functions `remove-if' and `remove-if-not'
+
+   * Various bug-fixes for non-linux or solaris systems (John H.
+     Palmieri, Philippe Defert)
+
+   * `#f', `#t', `#!optional', `#!key' and `#!rest' are now uninterned
+     symbols. Keywords are interned in a separate obarray
+
+   * Fixed bug of caching regexps even when their string has been
+     modified
+
+   * Fixed some bugs in the ftp remote file handler and the
+     `pwd-prompt' function
+
+   * Fixed `define' to ignore `structure' and `define-structure' forms
+
+
+0.13
+====
+
+   * The end-of-list / boolean-false object is no longer the symbol
+     `nil'. Instead there is a special object `()' fulfulling these two
+     roles. For modules importing the `rep' module, the symbol `nil'
+     evaluates to `()'. This allows the `scheme' module to be more
+     compliant with the Scheme standard
+
+   * Parameter list changes:
+
+        - Deprecated `&optional' and `&rest', in favour of `#!optional'
+          and `#!rest'.
+
+        - Added keyword parameters. Use `#!key' to declare them.
+          Keyword syntax is `#:PARAM'. For example:
+
+               ((lambda (#!key a b) (list a b)) #:b 2 #:a 1) => (1 2)
+
+        - `#!optional' and `#!key' parameters may now have default
+          values, syntax is `(VAR DEFAULT)'. For example:
+
+               ((lambda (#!optional (a 1)) a)) => 1
+
+   * The module namespace is now hierarchical. `.' characters in module
+     names denote directory separators, e.g. `foo.bar' translates to
+     the file `foo/bar'
+
+     All module names prefixed with `rep.' are reserved for librep,
+     other top-level names should be picked to be as unique as possible
+
+     The existing modules have been renamed to fit this scheme (see the
+     file `TREE' in the distribution for the hierarchy details).
+     However, old module names will still work for the time being
+
+   * The `rep' module no longer includes the `rep.regexp',
+     `rep.system', `rep.io.files', `rep.io.processes' or
+     `rep.io.file-handlers' modules. These need to be imported
+     explicitly
+
+   * Doc strings are now indexed by module name as well as symbol name.
+     The `define' macro now takes a doc string as its optional third
+     parameter
+
+   * Record constructors may include all lambda-list keywords (e.g.
+     keywords and/or default values)
+
+   * Incompatible virtual machine changes, hence bytecode files will
+     need to be recompiled. Improvements include:
+
+        - Only heap-allocate variables when absolutely necessary
+
+        - Closure analysis to allow inlining of some types of `letrec'
+          expressions
+
+        - Added a `safe' virtual machine, which makes no assumptions
+          regarding validity of bytecode, so is safe for untrusted code
+
+   * Added an `unscheme' module. Another Scheme implementation, but the
+     goal of this one is to integrate cleanly with the librep runtime
+     environment, even if this is at the expense of R4RS compliance
+
+     For example, in `unscheme' code, `#f => ()' and `#t => t'. This
+     allows rep and unscheme functions to call each other without
+     needing to convert any data
+
+   * By default, it is now illegal to modify top-level variables that
+     have not previously been defined
+
+   * New macro `define-structures' to export multiple views of a single
+     underlying environment
+
+   * The librep runtime no longer handles the `--help' option itself,
+     this should be done by scripts
+
+   * Don't search `$LD_LIBRARY_PATH' for plugins, but prepend all
+     directories in colon-separated `$REP_DL_LOAD_PATH' to
+     `dl-load-path'. Similarly, the contents of `$REP_LOAD_PATH' is
+     prepended to `rep-load-path'
+
+   * `(/ X) => (/ 1 X)'
+
+   * Extra string-manipulation functions: `string-replace',
+     `string-split' (in the `rep.regexp' module)
+
+   * `#f' and `#t' are now primitive symbols, not special objects
+
+   * Special case tail-recursive calls to `apply', to ensure they get
+     eliminated
+
+   * The `0x123' and `0123' read syntaxes have been deprecated, use
+     `#x123' and `#o123' instead
+
+   * `#| ... |#' comments now nest correctly
+
+   * New modules: `rep.i18n.gettext', `rep.vm.safe-interpreter',
+     `rep.vm.assembler', `unscheme', `rep.data.objects',
+     `rep.www.quote-url', `rep.www.fetch-url', `rep.util.ispell',
+     `rep.util.base64', `rep.util.autoloader', `rep.io.sockets',
+     `rep.util.time', `rep.net.domain-name'
+
+   * Bug fixes, including:
+
+        - Find size of `long long' type on AIX, IRIX and Solaris (Dan
+          McNichol, Albert Chin-A-Young)
+
+        - Never allow macros to be called as functions
+
+        - Make bitfields unsigned (Albert Chin-A-Young)
+
+        - Fixed bounds-checking when parsing non-base-10 fixnums
+
+        - Thread fixes (and much lower thread-switch latency in many
+          cases)
+
+        - Fixed `DEFUN' macro for C++ (Matt Tucker); also fixed header
+          files to avoid C++ keywords
+
+        - Make error message for bytecode version mismatches more
+          meaningful
+
+        - Fixed: `default-boundp', `continuation-callable-p'
+
+        - Only the evaluate the value of `defvar' forms if the symbol
+          isn't already bound
+
+        - Compile else-less `case' expressions correctly; eliminate
+          tail-recursion in `cond' forms when possible
+
+        - Various fixes in `scheme' module
+
+0.12.4
+======
+
+   * Support building without GNU MP, `--without-gmp' option to
+     configure. Use `long long' for non-fixnum integers (promote to
+     floats when out of range); no exact rationals. There's also an
+     option to disable continuations/threading
+     (`--disable-continuations')
+
+   * Sanitized function inlining:
+
+        - Use `(declare (inline NAMES...))' to tell the compiler that
+          it might be useful to inline the named functions
+
+        - Don't even think about inlining across module/file boundaries
+          (for now anyway)
+
+   * Cleaned up the `gaol' module. Interface is essentially:
+     `gaol-define', `gaol-define-special', `gaol-define-file-handler'.
+     Added `gaol-open' to import complete modules. Still supports old
+     interface
+
+   * Be a lot more efficient when printing quoted strings and symbol
+     names (for some streams there used to be a system-call per
+     character!)  Also, when quoting weird symbol names, be more
+     intelligent
+
+   * Removed code to autoload from modules (which didn't really work
+     anyway)
+
+   * Be more intelligent about deciding when to flush the module cache
+
+   * Build fixes for IRIX (David Kaelbling)
+
+   * Other miscellaneous bug-fixes and performance tweaks
+
+
+0.12.3
+======
+
+   * New function `thread-join', waits for a specified thread to exit,
+     then returns the value of the last form it evaluated
+
+   * Added a rudimentary profiler (`,profile FORM' command in repl)
+
+   * Reorganized `ring' module, sanitized the interface (preserving
+     compatibility with old functions), also added a `ring->list'
+     function
+
+   * `rplaca' and `rplacd' (but not `setcar' and `setcdr') functions
+     now return the cell being modified, not the value being stored
+     into it, for compatibility with CL (Karl Hegbloom)
+
+   * `unwind-protect', `catch', `condition-case': these special forms
+     are now macros
+
+   * When signalling `bad-arg' or `missing-arg' errors, try to include
+     the function as the first element of the error data
+
+   * `load' function now _only_ loads files without suffixes if
+     NO-SUFFIX arg is non-`nil' (prevents picking up un-suffixed files
+     by mistake, e.g. from the current directory)
+
+   * Fixed some bugs when reading rationals
+
+   * Fixed bug of `gettext' module not redefining `_' binding in `rep'
+     module
+
+   * Fixed bug when building `rep-config' script (Mark Hewitt, Dan
+     Winship)
+
+   * Fixed bug of `rep_INTERN_SPECIAL' macro not looking for default
+     values of special variables
+
+   * Fixed interpreted versions of `min' and `max' when operating on
+     non-numeric values
+
+   * If unable to allocate heap space, just print an error and
+     terminate the program (the low-memory handling doesn't currently
+     work properly)
+
+   * Fixed bug when extracting doc strings from `define' forms
+
+   * Fixed bug when compiling structure definitions in non-top-level
+     environments
+
+   * Fixed bug of being unable to `load' empty files
+
+   * When recursively macro-expanding, dereference identifiers in the
+     correct module
+
+
+0.12.2
+======
+
+   * The tar file-handler now caches the unpacked archive (wins big
+     when loading sawfish themes)
+
+   * The `gaol' module can now create multiple gaols, each with it's
+     own namespace
+
+   * More performance tweaks
+
+   * Miscellaneous bug-fixes (more vm stack smashing, `defconst' never
+     evaluates its constant)
+
+
+0.12.1
+======
+
+   * Some virtual machine performance tweaks
+
+   * Fixed nasty stack smashing bug (when using compiler declarations)
+
+   * Some 64-bit cleanups (George Lebl)
+
+   * Fixed non-ANSI C syntax (Sam Falkner)
+
+
+0.12
+====
+
+   * Added a basic module system.
+
+     Modelled after the Scheme48 system, but simpler. At its simplest,
+     include a `define-structure' form in each file representing a
+     module:
+
+          (define-structure NAME INTERFACE CONFIG BODY...)
+
+     The external definitions of this module can then be imported by
+     other modules through their CONFIG statements, e.g. `(open
+     NAMES...)'. Most modules will open `rep' to get the standard
+     language definitions.
+
+     `foo#bar' reads as `(structure-ref foo bar)'
+
+     The `timers', `tables', `sdbm', `gdbm', `readline', `gettext',
+     `ring', `mutex', `memoize', `lisp-doc', `disassembler', `compiler',
+     `date', `cgi-get', `gaol' features are all now modules (this is
+     backwards compatible, since modules may be imported using
+     `require')
+
+     See the "Modules" section of the manual for more details.
+
+   * The repl now contains meta-commands for inspecting and configuring
+     the module system (amongst other things)
+
+   * Added a facility for creating new primitive types: `make-datum',
+     `datum-ref', `datum-set', `has-type-p', `define-datum-printer'
+
+   * Added an SRFI 9 compatible `define-record-type' macro for defining
+     data structures (the `records' module)
+
+   * Added fluid variables--a method of creating dynamically scoped
+     bindings that fit well with lexically scoped definitions
+     (`make-fluid', `fluid', `fluid-set', `with-fluids', `let-fluids')
+
+   * Added a `queues' module providing a basic queue type
+
+   * Added stream functions: `peek-char', `input-stream-p',
+     `output-stream-p'
+
+   * Interpreter now also eliminates tail-calls
+
+   * Changed handling of inexact numbers to be compatible with the
+     Scheme standard:
+
+        - Many operations now produce inexact outputs if any of their
+          inputs are inexact (e.g. `min', `max', `floor', `ceiling',
+          `round', `truncate')
+
+        - `eql' and `equal' no longer ignore exactness when comparing
+          numbers. `=', `/=', `<', `>', `<=' and `>=' _do_ ignore
+          inexactness. E.g.
+
+               (eql 2 2.) => nil
+               (= 2 2.) => t
+
+   * Support most of Scheme's read-syntax for numbers (i.e. `#b', `#o',
+     `#d', `#x' radix prefixes, and `#e', `#i' exactness prefixes).
+
+   * Implemented Scheme's `string->number' and `number->string'
+     functions
+
+   * Included a basic R4RS Scheme implementation (module: `scheme'). Do
+     `,new foo <RET> ,open scheme' to test it in the repl, use `(open
+     scheme)' instead of `(open rep)' to use it within modules.
+
+     The compiler also knows enough about Scheme to be able to compile
+     it.  Also, use the `-s' or `--scheme' options to load a file of
+     Scheme code.
+
+   * The debugger works better (and can be used to walk the stack
+     history somewhat)
+
+   * Last arg of `append' and `nconc' may be a non-proper-list now
+
+   * Implemented the Scheme `do' macro for iteration
+
+   * `define' supports curried functions. E.g. `(define ((plus a) b) (+
+     a b))', then `(plus 1)' evaluates to the function that adds one to
+     its argument.
+
+   * Many performance improvements:
+
+        - Allocates less memory (so garbage collects less often)
+
+        - Much faster at bytecode-to-bytecode function calling
+
+        - Much reduced VM overhead (when compiled with GCC)
+
+   * Compiler improvements:
+
+        - Supports the `(declare CLAUSES...)' form. See the "Compiler
+          Declarations" section of the manual for details on the actual
+          declarations supported.
+
+        - Is cleverer about detecting when to create new bindings when
+          tail recursing, and when the old bindings can just be
+          overwritten
+
+        - Groks the module system, and the language of the module being
+          compiled (so that it can compile both rep and Scheme code)
+
+        - Splices bodies of top-level `progn' and `begin' forms
+          themselves into the top-level (for when macros expand into
+          multiple definitions)
+
+        - Compiling already defined functions (or whole modules of
+          functions) now (mostly) works
+
+        - Coalesce and compile non-defining top-level forms
+
+   * Many bug fixes (see ChangeLog files for details)
+
+
+0.11.3
+======
+
+   * Fixed bug of throwing uninitialized errors when autoloading
+
+   * Fixed bug of interpreting `(let () ...)' as a named let
+
+0.11.2
+======
+
+   * Replaced many special forms by macros--`let', `let*', `function',
+     `if', `and', `or', `prog2', `defmacro', `defun', `defconst',
+     `define-value', `setq-default'
+
+   * `let' now supports Scheme's named-let construct for iteration via
+     tail recursion
+
+   * Parse some standard Common Lisp and Scheme syntax: `#| ... |#'
+     block comments, `#\C' or `#\NAME' characters (where NAME may be
+     one of: `space', `newline', `backspace', `tab', `linefeed',
+     `return', `page', `rubout'), and `#(...)' vectors
+
+   * When comparing symbols, compare their names as strings
+
+   * Implemented Scheme's `dynamic-wind' function
+
+   * Fixed bug of sometimes evaluating function arguments in the
+     environment of the callee not the caller
+
+   * Fixed bug when calculating how long to sleep for when no threads
+     are available
+
+   * Fixed bugs in mutex implementation (Damon Anderson)
+
+   * Work around bugs in Tru64 `RTLD_GLOBAL'; everything should work on
+     Tru64 now (Aron Griffis)
+
+   * Fixed bug of not saving current regexp state across continuations
+
+
+0.11.1
+======
+
+   * The compiler now eliminates single-function tail calls (instead of
+     leaving it to the virtual machine)
+
+   * Updated to use libtool-1.3.4
+
+   * Miscellaneous bug fixes and minor changes
+
+0.11
+====
+
+   * Better support for numerical computing. Now supports bignums,
+     rational numbers (numerator and denominator are bignums), and
+     floating point values as well as the original fixnums. Many new
+     numerical functions supporting these types. Promotes and demotes
+     hopefully as you'd expect (never demotes an inexact number to an
+     exact number).  Tries to follow the Scheme numeric system as much
+     as possible
+
+   * Supports "guardian" objects through the `make-guardian' function
+     (as described in Dybvig's paper). These are a clean mechanism for
+     allowing the programmer to control when arbitrary lisp objects are
+     finally deallocated. Also added a new hook: `after-gc-hook'
+
+   * The default error handler can now be redefined. If the variable
+     `error-handler-function' contains a function then it will be
+     called to handle the error, with arguments `(ERROR DATA)'.
+
+   * New special form `case', switches on a key value and sets of
+     constants
+
+   * New function `call/cc' (also available through the alias
+     `call-with-current-continuation'). Provides scheme-like
+     continuation functions. Special variables are now deep-bound to
+     support this correctly
+
+   * Supports "soft" preemptive threads using continuations and a
+     general "barrier" mechanism (used either for restricting control
+     flow, or for receiving notification when control passes across a
+     barrier)
+
+   * Parameter lists in lambda expressions now support improper lists,
+     as in scheme. E.g. `(lambda (x . y) ...)'
+
+   * Implements the scheme `define' syntax, with support for inner
+     definitions
+
+   * The `tables' plugin implements hash tables, with extensible
+     hashing and comparison methods; supports both strongly and weakly
+     keyed tables
+
+   * Included a GDBM binding; DOC files are now stored in GDBM files
+     (SDBM has limits on datum sizes)
+
+   * `put' and `get' functions now use `equal' to compare property names
+
+   * Virtual machine / compiler improvements:
+
+        - Variable references and mutations are classified by type:
+          lexical bindings use (one-dimensional) lexically addressed
+          instructions, global non-special bindings have their own
+          instructions, everything else uses the original instructions.
+          Similar classification when creating new bindings
+
+        - Eliminate tail-recursive function calls wherever possible in
+          compiled code (when the calling function has no dynamic state)
+
+     Compiled lisp code will need to be rebuilt to run on the modified
+     virtual machine.
+
+   * When expanding macros, bind `macro-environment' to the macro
+     environment it was called with. This allows macros to reliably
+     expand inner macro uses
+
+   * New hook `before-exit-hook'. Called immediately before exiting
+
+   * `rep-xgettext' now has an option `--c'. This makes it output
+     pseudo C code containing the string constants found
+
+   * Fixed misfeature of interpreting filenames `FOO//BAR' as `/BAR'.
+     Contiguous path separators are now merged (i.e. `FOO/BAR')
+
+
+0.10
+====
+
+   * Updated support for dumping (freezing) lisp definitions to handle
+     lisp-1 nature with closures. Also now generates C code instead of
+     assembler for portability; creates a plugin that may be loaded
+     through the REP_DUMP_FILE environment variable
+
+   * Plugin `.la' files may now contain rep-specific settings:
+     `rep_open_globally=yes' and `rep_requires='FEATURES...''
+
+   * New function `define-value'. A combination of `set' and `defvar',
+     but without implying dynamic scope
+
+   * `load' scans AFTER-LOAD-ALIST for plugins as well as lisp libraries
+
+   * `(if t)' now evaluates to `nil' not `t'
+
+   * Fix regexp bug in matching simple non-greedy operators (Matt Krai)
+
+   * Borrowed guile's bouncing parentheses for readline (Ceri Storey)
+
+   * New C functions `rep_load_environment' and `rep_top_level_exit'
+
+   * `defvar' allows symbols to be redefined in protected environments
+     if they haven't also been defined by unprotected environments
+
+   * Detect GCC's with broken `__builtin_return_address' functions
+     (George Lebl)
+
+   * Try to use libc `gettext' implementation, but only if it looks
+     like it's the GNU implementation
+
+
+0.9
+===
+
+   * Support for using GNU readline (give configure the
+     `--with-readline' option)
+
+   * New functions: `letrec', `caar', ..., `cddr', `caaar', ...,
+     `cdddr', `in-hook-p', `make-variable-special'
+
+   * Changed `unless' to have the Common Lisp semantics--return `nil'
+     when the condition evaluates true, not the value of the condition
+
+   * Fixed/added some compiler optimisations
+
+   * Fixed `rep-xgettext' script to remove duplicated strings and to
+     search exhaustively
+
+   * `add-hook' forces the hook variable to be special (in case it
+     wasn't declared using `defvar')
+
+
+0.8.1
+=====
+
+Fixed some documentation bugs; fixed some build problems
+
+0.8
+===
+
+   * Default scoping is now lexical, only variables declared using
+     `defvar' are dynamically scoped.
+
+   * There is now only a single namespace for symbols (excepting
+     property lists), this means that the `fset', `symbol-function' and
+     `fboundp' functions have been removed
+
+     This allows all elements in procedure-call forms to be evaluated
+     equally (as in scheme), so things like:
+
+          ((if t + -) 1 2)
+
+     now work. Related to this, function names (i.e. symbols and lambda
+     expressions) are no longer dereferenced by any operations taking
+     functions as arguments. Only built-in subroutines and closures are
+     considered functions.
+
+     This means that where before you'd write something like:
+
+          (mapcar '+ '(1 2 3))
+
+     this is now illegal; the `+' function must be evaluated:
+
+          (mapcar + '(1 2 3))
+
+   * `lambda' is now a special form evaluating to a closure (as in
+     scheme); this means that the following are exactly equivalent:
+
+          (lambda (x) x) == (function (lambda (x) x)) == #'(lambda (x) x)
+
+     An alternative method of enclosing a lambda expression is to use
+     the `make-closure' function.
+
+   * `gaol' module providing semi-safe environment for untrusted code
+     to evaluate in
+
+   * Support for i18n through `gettext' module; also support for `%1$s'
+     type format specifiers
+
+   * New functions `string-equal' and `string-lessp'
+
+
+0.7.1
+=====
+
+   * Added `--with-rep-prefix' option to autoconf AM_PATH_REP macro
+
+   * Fixed bug when inserting a new timer before an existing timer
+
+   * Fix the malloc tracking code
+
+   * Fix dlmalloc for FreeBSD
+
+   * Use install when installing, not cp
+
+   * Some fixes for compiling with SUN's C compiler on Solaris
+
+
+0.7
+===
+
+   * Added file handler for read-only access to the contents of tar
+     archives, access files like `foo.tar.gz#tar/bar'
+
+   * `process-id' function now returns pid of lisp interpreter when
+     called with zero arguments
+
+   * Added (untested) support for loading dynamic objects via
+     `shl_load' (HP-UX)
+
+   * Added (untested) support for systems that prefix symbol names in
+     dynamic objects with underscores
+
+   * Fix bug when compiling `last' function
+
+   * Fix bug of not closing files in the `load' function
+
+
+0.6.2
+=====
+
+   * Added `autoload-verbose' variable; set it to `nil' to turn off the
+     messages when autoloading
+
+   * Fix problems when `--prefix' option has a trailing slash
+
+   * Updated libtool files to version 1.3.3
+
+   * Initial (incomplete) support for building under Tru64, from Aron
+     Griffis
+
+
+0.6.1
+=====
+
+No new features; minor portability tweaks and build changes. Fix bug of
+trying to load directories as Lisp scripts
+
+0.6
+===
+
+   * Add `unsetenv' function
+
+   * `system' now uses `process-environment'
+
+   * Workaround compiler bug with GCC 2.95 on sparc
+
+   * Fix build problem where libsdbm.la can't be located
+
+
+0.5
+===
+
+   * New function `set-input-handler', registers an asynchronous input
+     handler for a local file
+
+   * Don't abort on receipt of unexpected `SIGCHLD' signals
+
+   * Upgrade libtool to version 1.2f
+
+   * The `rep' binary by default always loads a script named `rep', not
+     named by it's `argv[0]' (this breaks under the newer libtool)
+
+
+0.4
+===
+
+   * Sending a rep process a `SIGUSR2' prints all debug buffers
+
+   * Added `--with-value-type', and `--with-malloc-alignment' configure
+     options. Also added code to automatically detect the first of
+     these options.
+
+   * Fixed some 64-bit problems
+
+   * Removed the difference between static and dynamic strings
+
+
+0.3
+===
+
+   * New compiler command line option `--write-docs'
+
+
+0.2
+===
+
+   * The variables `error-mode' and `interrupt-mode' control where
+     errors and user-interrupts (i.e. `SIGINT' signals) are handled.
+     The three possible values are: `top-level', `exit' and `nil'
+     (denotes the current event loop).
+
+   * Fixed bug where all dynamic types were erroneously `symbolp'.
+
+   * `SIGINT', `SIGHUP' and `SIGTERM' signals should now be caught more
+     successfully.
+
+   * Added a new directory to `dl-load-path': `LIBEXECDIR/rep/ARCH' to
+     contain third-party shared libraries.
+
+
+0.1
+===
+
+First public release.
+
+
+File: librep.info,  Node: Function index,  Next: Variable index,  Prev: News,  Up: Top
+
+Function index
+**************
+
+ [index ]
+* Menu:
+
+* *:                                     Arithmetic Functions.
+                                                              (line  26)
+* +:                                     Arithmetic Functions.
+                                                              (line  12)
+* -:                                     Arithmetic Functions.
+                                                              (line  15)
+* /:                                     Arithmetic Functions.
+                                                              (line  29)
+* /=:                                    Comparison Predicates.
+                                                              (line  19)
+* 1+:                                    Arithmetic Functions.
+                                                              (line  46)
+* 1-:                                    Arithmetic Functions.
+                                                              (line  52)
+* <:                                     Comparison Predicates.
+                                                              (line  29)
+* <=:                                    Comparison Predicates.
+                                                              (line  32)
+* =:                                     Comparison Predicates.
+                                                              (line  16)
+* >:                                     Comparison Predicates.
+                                                              (line  22)
+* >=:                                    Comparison Predicates.
+                                                              (line  26)
+* _:                                     i18n.                (line  17)
+* abs:                                   Real Number Functions.
+                                                              (line   7)
+* accept-process-output:                 Process I/O.         (line  49)
+* acos:                                  Mathematical Functions.
+                                                              (line  26)
+* active-processes:                      Process Objects.     (line 100)
+* add-hook:                              Normal Hooks.        (line  15)
+* all-threads:                           Creating Threads.    (line  31)
+* alpha-char-p:                          Characters.          (line  21)
+* alphanumericp:                         Characters.          (line  39)
+* and:                                   Conditional Structures.
+                                                              (line 132)
+* append:                                Building Lists.      (line  68)
+* apply:                                 Calling Functions.   (line  16)
+* apropos:                               Obarrays.            (line  42)
+* aref:                                  Array Functions.     (line  10)
+* arrayp:                                Array Functions.     (line   7)
+* aset:                                  Array Functions.     (line  22)
+* asin:                                  Mathematical Functions.
+                                                              (line  23)
+* assoc:                                 Association Lists.   (line  29)
+* assq:                                  Association Lists.   (line  37)
+* atan:                                  Mathematical Functions.
+                                                              (line  29)
+* atom:                                  Cons Cells.          (line  44)
+* autoload:                              Autoloading.         (line  21)
+* backquote:                             Backquoting.         (line  18)
+* backtrace:                             Debugging.           (line  56)
+* beep:                                  Beeping.             (line   9)
+* bindtextdomain:                        i18n.                (line  25)
+* boundp:                                Void Variables.      (line  12)
+* break:                                 Debugging.           (line  46)
+* bytecodep:                             Compilation Functions.
+                                                              (line  62)
+* call-hook:                             Normal Hooks.        (line  43)
+* call-process:                          Synchronous Processes.
+                                                              (line  19)
+* call-with-current-continuation:        Continuations.       (line  30)
+* call-with-dynamic-root:                Thread Contexts.     (line  12)
+* call/cc:                               Continuations.       (line  19)
+* canonical-file-name:                   File Names.          (line  86)
+* capitalize-string:                     String Functions.    (line  69)
+* car:                                   Cons Cells.          (line  50)
+* case:                                  Conditional Structures.
+                                                              (line  84)
+* catch:                                 Catch and Throw.     (line  56)
+* cdr:                                   Cons Cells.          (line  60)
+* ceiling:                               Real Number Functions.
+                                                              (line  13)
+* char-downcase:                         Characters.          (line  61)
+* char-upcase:                           Characters.          (line  47)
+* close-file:                            Destroying File Objects.
+                                                              (line  12)
+* closure-function:                      Anonymous Functions. (line  41)
+* closurep:                              Anonymous Functions. (line  38)
+* compile-directory:                     Compilation Functions.
+                                                              (line  30)
+* compile-file:                          Compilation Functions.
+                                                              (line  18)
+* compile-form:                          Compilation Functions.
+                                                              (line   7)
+* compile-function:                      Compilation Functions.
+                                                              (line  14)
+* compile-module:                        Compilation Functions.
+                                                              (line  44)
+* complete-string:                       String Functions.    (line  36)
+* concat:                                Strings.             (line  75)
+* cond:                                  Conditional Structures.
+                                                              (line  44)
+* condition-case:                        Errors.              (line  41)
+* cons:                                  Cons Cells.          (line  17)
+* consp:                                 Cons Cells.          (line  24)
+* continue-process:                      Process States.      (line  47)
+* copy-file:                             Manipulating Files.  (line  20)
+* copy-file-from-local-fs:               File Handlers.       (line  59)
+* copy-file-to-local-fs:                 File Handlers.       (line  54)
+* copy-sequence:                         Sequence Functions.  (line  23)
+* copy-stream:                           Output Functions.    (line  18)
+* cos:                                   Mathematical Functions.
+                                                              (line  17)
+* current-thread:                        Creating Threads.    (line  26)
+* current-time:                          Timestamps.          (line  17)
+* current-time-string:                   Formatting Dates.    (line  10)
+* datum-ref:                             Datums.              (line  21)
+* datum-set:                             Datums.              (line  25)
+* declare:                               Compiler Declarations.
+                                                              (line  12)
+* defconst:                              Defining Variables.  (line  35)
+* define <1>:                            Definitions.         (line  45)
+* define:                                Defining Variables.  (line  10)
+* define-datum-printer:                  Datums.              (line  32)
+* define-interface:                      Module Interfaces.   (line  22)
+* define-macro:                          Definitions.         (line  57)
+* define-record-discloser:               Records.             (line  73)
+* define-record-type:                    Records.             (line  21)
+* define-structure:                      Module Definition.   (line  12)
+* define-structures:                     Module Definition.   (line  65)
+* defmacro:                              Defining Macros.     (line  14)
+* defun:                                 Defining Functions.  (line  10)
+* defvar:                                Defining Variables.  (line  17)
+* delete:                                Modifying Lists.     (line  65)
+* delete-directory:                      Manipulating Directories.
+                                                              (line  10)
+* delete-file:                           Manipulating Files.  (line   7)
+* delete-from-queue:                     Queues.              (line  40)
+* delete-if:                             Mapping Functions.   (line  39)
+* delete-if-not:                         Mapping Functions.   (line  49)
+* delete-timer:                          Timers.              (line  26)
+* delq:                                  Modifying Lists.     (line  87)
+* denominator:                           Rational Functions.  (line  12)
+* dequeue:                               Queues.              (line  22)
+* digit-char-p:                          Characters.          (line  35)
+* directory-file-name:                   File Names.          (line  53)
+* directory-files:                       Manipulating Directories.
+                                                              (line  15)
+* disassemble-fun:                       Disassembly.         (line  15)
+* do:                                    Looping Structures.  (line  30)
+* elt:                                   Sequence Functions.  (line  41)
+* enqueue:                               Queues.              (line  19)
+* eq:                                    Equality Predicates. (line   7)
+* eq-hash:                               Hash Tables.         (line  62)
+* eql:                                   Equality Predicates. (line  39)
+* equal:                                 Equality Predicates. (line  22)
+* equal-hash:                            Hash Tables.         (line  66)
+* eval:                                  Evaluation.          (line  27)
+* eval-after-load:                       Load Function.       (line  93)
+* eval-when-compile:                     Compiler Declarations.
+                                                              (line  93)
+* evenp:                                 Numeric Predicates.  (line  28)
+* exact->inexact:                        Rational Functions.  (line  15)
+* exactp:                                Numeric Predicates.  (line  10)
+* exp:                                   Mathematical Functions.
+                                                              (line   7)
+* expand-file-name:                      File Names.          (line  63)
+* expand-last-match:                     Regexp Functions.    (line  80)
+* expt:                                  Mathematical Functions.
+                                                              (line  36)
+* featurep:                              Features.            (line  26)
+* file-binding:                          Functions on File Objects.
+                                                              (line  33)
+* file-bound-stream:                     Functions on File Objects.
+                                                              (line  41)
+* file-directory-p:                      File Information.    (line  17)
+* file-exists-p:                         File Information.    (line  10)
+* file-handler-data:                     Functions on File Objects.
+                                                              (line  47)
+* file-modes:                            File Information.    (line  40)
+* file-modes-as-string:                  File Information.    (line  45)
+* file-modtime:                          File Information.    (line  56)
+* file-name-absolute-p:                  File Names.          (line  12)
+* file-name-as-directory:                File Names.          (line  43)
+* file-name-directory:                   File Names.          (line  16)
+* file-name-nondirectory:                File Names.          (line  30)
+* file-newer-than-file-p:                File Information.    (line  61)
+* file-nlinks:                           File Information.    (line  36)
+* file-owner-p:                          File Information.    (line  29)
+* file-readable-p:                       File Information.    (line  23)
+* file-regular-p:                        File Information.    (line  13)
+* file-size:                             File Information.    (line  33)
+* file-symlink-p:                        File Information.    (line  20)
+* file-writable-p:                       File Information.    (line  26)
+* filep:                                 File Objects.        (line  11)
+* filter:                                Mapping Functions.   (line  60)
+* find-symbol:                           Obarrays.            (line  33)
+* fix-time:                              Timestamps.          (line  23)
+* floor:                                 Real Number Functions.
+                                                              (line  10)
+* fluid:                                 Fluid Variables.     (line  22)
+* fluid-set:                             Fluid Variables.     (line  26)
+* flush-file:                            Functions on File Objects.
+                                                              (line  29)
+* format:                                Formatted Output.    (line   7)
+* funcall:                               Calling Functions.   (line  12)
+* functionp:                             Functions.           (line  25)
+* garbage-collect:                       Garbage Collection.  (line  18)
+* gcd:                                   Integer Functions.   (line  24)
+* gensym:                                Creating Symbols.    (line  20)
+* get:                                   Property Lists.      (line  30)
+* get-command-line-option:               Command Line Options.
+                                                              (line  17)
+* get-output-stream-string:              Output Streams.      (line  37)
+* getenv:                                Environment Variables.
+                                                              (line   9)
+* has-type-p:                            Datums.              (line  29)
+* if:                                    Conditional Structures.
+                                                              (line  13)
+* inexact->exact:                        Real Number Functions.
+                                                              (line  23)
+* inexactp:                              Numeric Predicates.  (line  13)
+* input-stream-p:                        Streams.             (line  21)
+* integerp:                              Numeric Predicates.  (line  16)
+* intern:                                Interning.           (line  27)
+* intern-symbol:                         Interning.           (line  39)
+* interrupt-process:                     Signalling Processes.
+                                                              (line   7)
+* keywordp:                              Keyword Symbols.     (line  20)
+* kill-process:                          Signalling Processes.
+                                                              (line  10)
+* last:                                  Accessing List Elements.
+                                                              (line  35)
+* lcm:                                   Integer Functions.   (line  28)
+* length:                                Sequence Functions.  (line  10)
+* let <1>:                               Looping Structures.  (line  64)
+* let:                                   Local Variables.     (line  32)
+* let*:                                  Local Variables.     (line  72)
+* let-fluids:                            Fluid Variables.     (line  41)
+* letrec:                                Local Variables.     (line  91)
+* list:                                  Building Lists.      (line  35)
+* list*:                                 Building Lists.      (line  48)
+* listp:                                 Lists.               (line  15)
+* load:                                  Load Function.       (line   7)
+* local-file-name:                       File Names.          (line 100)
+* log:                                   Mathematical Functions.
+                                                              (line  10)
+* logand:                                Bitwise Functions.   (line  20)
+* logior:                                Bitwise Functions.   (line  30)
+* lognot:                                Bitwise Functions.   (line  44)
+* logxor:                                Bitwise Functions.   (line  37)
+* lower-case-p:                          Characters.          (line  32)
+* lsh:                                   Bitwise Functions.   (line  10)
+* macroexpand:                           Macro Expansion.     (line  18)
+* macroexpand-1:                         Macro Expansion.     (line  42)
+* macrop:                                Macros.              (line  23)
+* make-closure:                          Anonymous Functions. (line  35)
+* make-datum:                            Datums.              (line  17)
+* make-directory:                        Manipulating Directories.
+                                                              (line   7)
+* make-file-from-stream:                 File Handlers.       (line  71)
+* make-fluid:                            Fluid Variables.     (line  18)
+* make-guardian:                         Guardians.           (line  18)
+* make-keyword:                          Keyword Symbols.     (line  13)
+* make-list:                             Building Lists.      (line  54)
+* make-mutex:                            Mutexes.             (line  12)
+* make-obarray:                          Obarrays.            (line  26)
+* make-process:                          Process Objects.     (line  55)
+* make-queue:                            Queues.              (line  15)
+* make-string:                           Strings.             (line  64)
+* make-string-input-stream:              Input Streams.       (line  45)
+* make-string-output-stream:             Output Streams.      (line  33)
+* make-suspended-thread:                 Creating Threads.    (line  22)
+* make-symbol:                           Creating Symbols.    (line  12)
+* make-symlink:                          Manipulating Symlinks.
+                                                              (line   7)
+* make-table:                            Hash Tables.         (line  17)
+* make-temp-name:                        File Names.          (line 116)
+* make-thread:                           Creating Threads.    (line  15)
+* make-timer:                            Timers.              (line  13)
+* make-vector:                           Vectors.             (line  33)
+* make-weak-table:                       Hash Tables.         (line  24)
+* makunbound:                            Void Variables.      (line  15)
+* mapc:                                  Mapping Functions.   (line  21)
+* mapcar:                                Mapping Functions.   (line  11)
+* mapconcat:                             String Functions.    (line  73)
+* match-end:                             Regexp Functions.    (line  67)
+* match-start:                           Regexp Functions.    (line  51)
+* max:                                   Comparison Predicates.
+                                                              (line  38)
+* maybe-obtain-mutex:                    Mutexes.             (line  22)
+* member:                                Accessing List Elements.
+                                                              (line  45)
+* memq:                                  Accessing List Elements.
+                                                              (line  57)
+* message:                               Messages.            (line  14)
+* min:                                   Comparison Predicates.
+                                                              (line  42)
+* mod:                                   Integer Functions.   (line  19)
+* modulo:                                Integer Functions.   (line  18)
+* mutexp:                                Mutexes.             (line  15)
+* nconc:                                 Modifying Lists.     (line  21)
+* negativep:                             Numeric Predicates.  (line  34)
+* not:                                   Conditional Structures.
+                                                              (line 145)
+* nreverse:                              Modifying Lists.     (line  53)
+* nth:                                   Accessing List Elements.
+                                                              (line  13)
+* nthcdr:                                Accessing List Elements.
+                                                              (line  25)
+* null:                                  Lists.               (line  19)
+* numberp:                               Numbers.             (line  75)
+* numerator:                             Rational Functions.  (line   9)
+* obtain-mutex:                          Mutexes.             (line  18)
+* oddp:                                  Numeric Predicates.  (line  25)
+* open-file:                             Creating File Objects.
+                                                              (line   7)
+* or:                                    Conditional Structures.
+                                                              (line 121)
+* output-stream-p:                       Streams.             (line  24)
+* parse-date:                            Parsing Dates.       (line  11)
+* positivep:                             Numeric Predicates.  (line  31)
+* prin1:                                 Output Functions.    (line  40)
+* prin1-to-string:                       Output Functions.    (line  51)
+* princ:                                 Output Functions.    (line  58)
+* print:                                 Output Functions.    (line  27)
+* process-args:                          Process Objects.     (line  75)
+* process-connection-type:               Asynchronous Processes.
+                                                              (line  58)
+* process-dir:                           Process Objects.     (line  83)
+* process-error-stream:                  Process I/O.         (line  36)
+* process-exit-status:                   Process Information. (line  20)
+* process-exit-value:                    Process Information. (line  12)
+* process-function:                      Process States.      (line  59)
+* process-id:                            Process Information. (line   7)
+* process-in-use-p:                      Process States.      (line  34)
+* process-output-stream:                 Process I/O.         (line  24)
+* process-prog:                          Process Objects.     (line  67)
+* process-running-p:                     Process States.      (line  28)
+* process-stopped-p:                     Process States.      (line  31)
+* processp:                              Process Objects.     (line  17)
+* prog1:                                 Sequencing Structures.
+                                                              (line  34)
+* prog2:                                 Sequencing Structures.
+                                                              (line  42)
+* progn:                                 Sequencing Structures.
+                                                              (line  22)
+* provide:                               Features.            (line  30)
+* put:                                   Property Lists.      (line  41)
+* queue->list:                           Queues.              (line  32)
+* queue-empty-p:                         Queues.              (line  26)
+* queue-length:                          Queues.              (line  37)
+* queuep:                                Queues.              (line  29)
+* quote:                                 Quoting.             (line  34)
+* quote-regexp:                          Regexp Functions.    (line   9)
+* quotient:                              Integer Functions.   (line  10)
+* random:                                Random Numbers.      (line   9)
+* rassoc:                                Association Lists.   (line  50)
+* rassq:                                 Association Lists.   (line  58)
+* rationalp:                             Numeric Predicates.  (line  19)
+* read <1>:                              The Lisp Reader.     (line  11)
+* read:                                  Input Functions.     (line  24)
+* read-char:                             Input Functions.     (line   7)
+* read-from-string:                      Input Functions.     (line  30)
+* read-line:                             Input Functions.     (line  11)
+* read-symlink:                          Manipulating Symlinks.
+                                                              (line  10)
+* realp:                                 Numeric Predicates.  (line  22)
+* release-mutex:                         Mutexes.             (line  27)
+* remainder:                             Integer Functions.   (line  13)
+* remote-ftp-add-passwd:                 Remote Files.        (line  54)
+* remove:                                Building Lists.      (line 113)
+* remove-hook:                           Normal Hooks.        (line  29)
+* remq:                                  Building Lists.      (line 117)
+* rename-file:                           Manipulating Files.  (line  11)
+* require:                               Features.            (line  39)
+* reverse:                               Building Lists.      (line 121)
+* round:                                 Real Number Functions.
+                                                              (line  19)
+* rplaca:                                Cons Cells.          (line  70)
+* rplacd:                                Cons Cells.          (line  81)
+* run-byte-code:                         Compilation Functions.
+                                                              (line  50)
+* seconds->time:                         Timestamps.          (line  42)
+* seek-file:                             Functions on File Objects.
+                                                              (line   7)
+* sequencep <1>:                         Sequence Functions.  (line   7)
+* sequencep:                             Sequences.           (line  13)
+* set:                                   Setting Variables.   (line  26)
+* set-file-handler-data:                 Functions on File Objects.
+                                                              (line  51)
+* set-file-modes:                        File Information.    (line  52)
+* set-input-handler:                     Functions on File Objects.
+                                                              (line  58)
+* set-process-args:                      Process Objects.     (line  79)
+* set-process-connection-type:           Asynchronous Processes.
+                                                              (line  64)
+* set-process-dir:                       Process Objects.     (line  87)
+* set-process-error-stream:              Process I/O.         (line  40)
+* set-process-function:                  Process States.      (line  63)
+* set-process-output-stream:             Process I/O.         (line  28)
+* set-process-prog:                      Process Objects.     (line  71)
+* set-timer:                             Timers.              (line  30)
+* setenv:                                Environment Variables.
+                                                              (line  17)
+* setplist:                              Property Lists.      (line  56)
+* setq:                                  Setting Variables.   (line  16)
+* signal:                                Errors.              (line  14)
+* signal-process:                        Signalling Processes.
+                                                              (line  16)
+* sin:                                   Mathematical Functions.
+                                                              (line  14)
+* sit-for:                               Process I/O.         (line  55)
+* sleep-for:                             Sleeping.            (line   7)
+* sort:                                  Modifying Lists.     (line  93)
+* space-char-p:                          Characters.          (line  43)
+* special-form-p:                        Special Forms.       (line  23)
+* sqrt:                                  Mathematical Functions.
+                                                              (line  32)
+* start-process:                         Asynchronous Processes.
+                                                              (line  30)
+* stderr-file:                           Creating File Objects.
+                                                              (line  33)
+* stdin-file:                            Creating File Objects.
+                                                              (line  27)
+* stdout-file:                           Creating File Objects.
+                                                              (line  30)
+* step:                                  Debugging.           (line  51)
+* stop-process:                          Process States.      (line  40)
+* streamp:                               Streams.             (line  18)
+* string-capitalized-p:                  String Functions.    (line  60)
+* string-downcase:                       String Functions.    (line  66)
+* string-equal:                          Strings.             (line 122)
+* string-hash:                           Hash Tables.         (line  56)
+* string-head-eq:                        String Functions.    (line  45)
+* string-lessp:                          Strings.             (line 141)
+* string-looking-at:                     Regexp Functions.    (line  37)
+* string-lower-case-p:                   String Functions.    (line  57)
+* string-match:                          Regexp Functions.    (line  20)
+* string-replace:                        Regexp Functions.    (line 107)
+* string-upcase:                         String Functions.    (line  63)
+* string-upper-case-p:                   String Functions.    (line  54)
+* string<:                               Strings.             (line 126)
+* string=:                               Strings.             (line 108)
+* stringp:                               Strings.             (line  61)
+* structure:                             Module Definition.   (line  11)
+* subr-name:                             Functions.           (line  41)
+* subrp:                                 Functions.           (line  38)
+* substring:                             Strings.             (line  95)
+* symbol-hash:                           Hash Tables.         (line  59)
+* symbol-name:                           Symbol Attributes.   (line  12)
+* symbol-plist:                          Property Lists.      (line  50)
+* symbol-value:                          Variables.           (line  16)
+* symbolp:                               Symbols.             (line  12)
+* system:                                Shell Commands.      (line  13)
+* system-name:                           System Information.  (line  13)
+* table-bound-p:                         Hash Tables.         (line  38)
+* table-ref:                             Hash Tables.         (line  34)
+* table-set:                             Hash Tables.         (line  42)
+* table-unset:                           Hash Tables.         (line  46)
+* table-walk:                            Hash Tables.         (line  49)
+* tablep:                                Hash Tables.         (line  11)
+* tan:                                   Mathematical Functions.
+                                                              (line  20)
+* textdomain:                            i18n.                (line  29)
+* thread-delete:                         Deleting Threads.    (line  12)
+* thread-deleted-p:                      Deleting Threads.    (line  19)
+* thread-forbid:                         Manipulating Threads.
+                                                              (line  46)
+* thread-join:                           Manipulating Threads.
+                                                              (line  23)
+* thread-permit:                         Manipulating Threads.
+                                                              (line  49)
+* thread-suspend:                        Manipulating Threads.
+                                                              (line  13)
+* thread-suspended-p:                    Manipulating Threads.
+                                                              (line  38)
+* thread-wake:                           Manipulating Threads.
+                                                              (line  33)
+* thread-yield:                          Manipulating Threads.
+                                                              (line   7)
+* threadp:                               Creating Threads.    (line  11)
+* throw:                                 Catch and Throw.     (line  67)
+* time-:                                 Timestamps.          (line  45)
+* time->seconds:                         Timestamps.          (line  38)
+* time-later-p:                          Timestamps.          (line  29)
+* trace:                                 Debugging.           (line  35)
+* translate-string:                      String Functions.    (line   7)
+* truncate:                              Real Number Functions.
+                                                              (line  16)
+* unintern:                              Interning.           (line  50)
+* unless:                                Conditional Structures.
+                                                              (line  39)
+* unsetenv:                              Environment Variables.
+                                                              (line  23)
+* untrace:                               Debugging.           (line  43)
+* unwind-protect:                        Cleanup Forms.       (line  11)
+* upper-case-p:                          Characters.          (line  28)
+* useless-function:                      Descriptions.        (line  32)
+* user-full-name:                        User Information.    (line  16)
+* user-home-directory:                   User Information.    (line  26)
+* user-login-name:                       User Information.    (line   9)
+* vector:                                Vectors.             (line  23)
+* vectorp:                               Vectors.             (line  20)
+* when:                                  Conditional Structures.
+                                                              (line  30)
+* while:                                 Looping Structures.  (line  85)
+* with-fluids:                           Fluid Variables.     (line  30)
+* with-internal-definitions:             Definitions.         (line  62)
+* without-interrupts:                    Manipulating Threads.
+                                                              (line  52)
+* write:                                 Output Functions.    (line   7)
+* zerop:                                 Numeric Predicates.  (line  37)
+
+
+File: librep.info,  Node: Variable index,  Next: Concept index,  Prev: Function index,  Up: Top
+
+Variable index
+**************
+
+ [index ]
+* Menu:
+
+* after-gc-hook:                         Garbage Collection.  (line  36)
+* after-load-alist:                      Load Function.       (line  87)
+* backtrace-on-error:                    Errors.              (line  33)
+* command-line-args <1>:                 Command Line Options.
+                                                              (line  11)
+* command-line-args:                     Invocation.          (line  41)
+* date-vec-day:                          Parsing Dates.       (line  23)
+* date-vec-day-abbrev:                   Parsing Dates.       (line  20)
+* date-vec-epoch-time:                   Parsing Dates.       (line  48)
+* date-vec-hour:                         Parsing Dates.       (line  36)
+* date-vec-minute:                       Parsing Dates.       (line  39)
+* date-vec-month:                        Parsing Dates.       (line  29)
+* date-vec-month-abbrev:                 Parsing Dates.       (line  26)
+* date-vec-second:                       Parsing Dates.       (line  42)
+* date-vec-timezone:                     Parsing Dates.       (line  45)
+* date-vec-year:                         Parsing Dates.       (line  33)
+* debug-on-error:                        Errors.              (line  27)
+* default-directory:                     File Names.          (line 127)
+* dl-load-path:                          Load Function.       (line  76)
+* downcase-table:                        String Functions.    (line  24)
+* features:                              Features.            (line  16)
+* file-handler-alist:                    File Handlers.       (line  20)
+* flatten-table:                         String Functions.    (line  27)
+* format-hooks-alist:                    Formatted Output.    (line  93)
+* garbage-threshold:                     Garbage Collection.  (line  22)
+* grains-of-sand:                        Descriptions.        (line  10)
+* idle-garbage-threshold:                Garbage Collection.  (line  27)
+* lisp-lib-directory:                    Load Function.       (line  80)
+* load-filename:                         Load Function.       (line  58)
+* load-path:                             Load Function.       (line  62)
+* max-lisp-depth:                        Evaluation.          (line  36)
+* obarray:                               Obarrays.            (line  22)
+* operating-system:                      System Information.  (line   9)
+* print-escape:                          Output Functions.    (line  73)
+* print-length:                          Output Functions.    (line  89)
+* print-level:                           Output Functions.    (line  93)
+* process-environment:                   Process Objects.     (line  91)
+* remote-auto-backend-alist:             Remote Files.        (line  32)
+* remote-default-backend:                Remote Files.        (line  36)
+* remote-default-user:                   Remote Files.        (line  25)
+* remote-ftp-anon-passwd:                Remote Files.        (line  69)
+* remote-ftp-anon-users:                 Remote Files.        (line  65)
+* remote-ftp-display-progress:           Remote Files.        (line  62)
+* remote-ftp-show-messages:              Remote Files.        (line  58)
+* remote-host-user-alist:                Remote Files.        (line  21)
+* rep-build-id:                          System Information.  (line  18)
+* rep-version:                           System Information.  (line  26)
+* seconds-per-day:                       Timestamps.          (line  49)
+* standard-error:                        Output Streams.      (line  54)
+* standard-input:                        Input Streams.       (line  53)
+* standard-output:                       Output Streams.      (line  50)
+* upcase-table:                          String Functions.    (line  20)
+
+
+File: librep.info,  Node: Concept index,  Prev: Variable index,  Up: Top
+
+Concept index
+*************
+
+ [index ]
+* Menu:
+
+* Accessing list elements:               Accessing List Elements.
+                                                               (line  6)
+* Alists:                                Association Lists.    (line  6)
+* Anonymous functions:                   Anonymous Functions.  (line  6)
+* Arguments, command line:               Command Line Options. (line  6)
+* Arithmetic Functions:                  Arithmetic Functions. (line  6)
+* Array functions:                       Array Functions.      (line  6)
+* Arrays:                                Sequences.            (line  6)
+* Association lists:                     Association Lists.    (line  6)
+* Asynchronous processes:                Asynchronous Processes.
+                                                               (line  6)
+* Asynchronous timers:                   Timers.               (line  6)
+* Atom:                                  Cons Cells.           (line 40)
+* Autoload forms:                        Autoload Forms.       (line  6)
+* Autoloading:                           Autoloading.          (line  6)
+* Backquoting:                           Backquoting.          (line  6)
+* Beeping:                               Beeping.              (line  6)
+* Bitwise functions:                     Bitwise Functions.    (line  6)
+* Block structured definitions:          Definitions.          (line  6)
+* Boolean values:                        nil and t.            (line  6)
+* Boolean values, predicate functions:   Predicate Functions.  (line  6)
+* Bugs, reporting:                       Reporting bugs.       (line  6)
+* Building lists:                        Building Lists.       (line  6)
+* Calendar date and time:                Time and Date.        (line  6)
+* Calling functions:                     Calling Functions.    (line  6)
+* Catch and throw:                       Catch and Throw.      (line  6)
+* Characters:                            Characters.           (line  6)
+* Circular lists:                        Infinite Lists.       (line  6)
+* Cleanup forms:                         Cleanup Forms.        (line  6)
+* Command line options:                  Command Line Options. (line  6)
+* Comment styles:                        Comment Styles.       (line  6)
+* Comments:                              Read Syntax.          (line 13)
+* Comparison predicates:                 Comparison Predicates.
+                                                               (line  6)
+* Compilation functions:                 Compilation Functions.
+                                                               (line  6)
+* Compilation tips:                      Compilation Tips.     (line  6)
+* Compilation, disassembly of forms:     Disassembly.          (line  6)
+* Compiled Lisp:                         Compiled Lisp.        (line  6)
+* Compiler declarations:                 Compiler Declarations.
+                                                               (line  6)
+* Compiling macros:                      Compiling Macros.     (line  6)
+* Conditional structures:                Conditional Structures.
+                                                               (line  6)
+* Cons cells:                            Cons Cells.           (line  6)
+* Continuations:                         Continuations.        (line  6)
+* Control Structures:                    Control Structures.   (line  6)
+* Control structures, conditionals:      Conditional Structures.
+                                                               (line  6)
+* Control structures, looping:           Looping Structures.   (line  6)
+* Control structures, non-local exits:   Non-Local Exits.      (line  6)
+* Control structures, sequencing:        Sequencing Structures.
+                                                               (line  6)
+* Copying:                               Copying.              (line  6)
+* Creating file objects:                 Creating File Objects.
+                                                               (line  6)
+* Creating symbols:                      Creating Symbols.     (line  6)
+* Creating threads:                      Creating Threads.     (line  6)
+* Data type representation:              Data Type Representation.
+                                                               (line  6)
+* Data types:                            Data Types.           (line  6)
+* Data types, datums:                    Datums.               (line  6)
+* Data types, hash tables:               Hash Tables.          (line  6)
+* Data types, queues:                    Queues.               (line  6)
+* Data types, records:                   Records.              (line  6)
+* Data types, summary of:                Types Summary.        (line  6)
+* Date and time:                         Time and Date.        (line  6)
+* Date and time, timestamps:             Timestamps.           (line  6)
+* Dates, formatting as strings:          Formatting Dates.     (line  6)
+* Dates, parsing:                        Parsing Dates.        (line  6)
+* Datums:                                Datums.               (line  6)
+* Debugging:                             Debugging.            (line  6)
+* Declarations, compiler:                Compiler Declarations.
+                                                               (line  6)
+* Defining functions:                    Defining Functions.   (line  6)
+* Defining lisp subrs:                   Defining Lisp Subrs.  (line  6)
+* Defining macros:                       Defining Macros.      (line  6)
+* Defining variables:                    Defining Variables.   (line  6)
+* Definitions, block structured:         Definitions.          (line  6)
+* Deleting threads:                      Deleting Threads.     (line  6)
+* Descriptions:                          Descriptions.         (line  6)
+* Destroying file objects:               Destroying File Objects.
+                                                               (line  6)
+* Disassembly:                           Disassembly.          (line  6)
+* Distribution conditions:               Copying.              (line  6)
+* Dynamically loaded libraries:          Shared Libraries.     (line  6)
+* Embedding librep:                      librep Internals.     (line  6)
+* Environment variables:                 Environment Variables.
+                                                               (line  6)
+* Equality predicates:                   Equality Predicates.  (line  6)
+* Errors:                                Errors.               (line  6)
+* Escape sequences in strings:           Strings.              (line 17)
+* Evaluating Lisp forms:                 Evaluation.           (line  6)
+* Evaluation:                            Evaluation.           (line  6)
+* Executing rep scripts:                 Invocation.           (line 58)
+* Executing shell commands:              Shell Commands.       (line  6)
+* Expansion, of macros:                  Macro Expansion.      (line  6)
+* Features:                              Features.             (line  6)
+* File Handlers:                         File Handlers.        (line  6)
+* File handlers, remote files:           Remote Files.         (line  6)
+* File information:                      File Information.     (line  6)
+* File names:                            File Names.           (line  6)
+* File objects:                          File Objects.         (line  6)
+* File objects, creating:                Creating File Objects.
+                                                               (line  6)
+* File objects, destroying:              Destroying File Objects.
+                                                               (line  6)
+* File objects, functions:               Functions on File Objects.
+                                                               (line  6)
+* Files:                                 Files.                (line  6)
+* Files, closing:                        Destroying File Objects.
+                                                               (line  6)
+* Files, manipulating:                   Manipulating Files.   (line  6)
+* Files, manipulating directories:       Manipulating Directories.
+                                                               (line  6)
+* Files, opening:                        Creating File Objects.
+                                                               (line  6)
+* Files, remote:                         Remote Files.         (line  6)
+* Fluid variables:                       Fluid Variables.      (line  6)
+* Formatted output:                      Formatted Output.     (line  6)
+* Formatting dates:                      Formatting Dates.     (line  6)
+* Forms, autoload:                       Autoload Forms.       (line  6)
+* Forms, constant:                       Self-Evaluating Forms.
+                                                               (line  6)
+* Forms, function call:                  Function Call Forms.  (line  6)
+* Forms, macro call:                     Macro Call Forms.     (line  6)
+* Forms, self-evaluating:                Self-Evaluating Forms.
+                                                               (line  6)
+* Forms, special:                        Special Forms.        (line  6)
+* Forms, symbol:                         Symbol Forms.         (line  6)
+* Forms, variable:                       Symbol Forms.         (line  6)
+* Function call forms:                   Function Call Forms.  (line  6)
+* Function exits:                        Function Exits.       (line  6)
+* Functions:                             Functions.            (line  6)
+* Functions as hooks:                    Functions As Hooks.   (line  6)
+* Functions on File Objects:             Functions on File Objects.
+                                                               (line  6)
+* Functions, anonymous:                  Anonymous Functions.  (line  6)
+* Functions, block structured:           Definitions.          (line  6)
+* Functions, calling:                    Calling Functions.    (line  6)
+* Functions, compilation:                Compilation Functions.
+                                                               (line  6)
+* Functions, defining:                   Defining Functions.   (line  6)
+* Functions, descriptions of:            Descriptions.         (line  6)
+* Functions, input:                      Input Functions.      (line  6)
+* Functions, lambda expressions:         Lambda Expressions.   (line  6)
+* Functions, loading:                    Load Function.        (line  6)
+* Functions, local:                      Local Functions.      (line  6)
+* Functions, mapping:                    Mapping Functions.    (line  6)
+* Functions, output:                     Output Functions.     (line  6)
+* Garbage collection:                    Garbage Collection.   (line  6)
+* Garbage collection internals:          Garbage Collection Internals.
+                                                               (line  6)
+* Garbage collection, guardians:         Guardians.            (line  6)
+* Guardians:                             Guardians.            (line  6)
+* Hash tables:                           Hash Tables.          (line  6)
+* Hooks:                                 Hooks.                (line  6)
+* Hooks, functions as:                   Functions As Hooks.   (line  6)
+* Hooks, normal:                         Normal Hooks.         (line  6)
+* Implicitly Interpreting rep scripts:   Invocation.           (line 58)
+* Infinite lists:                        Infinite Lists.       (line  6)
+* Input and output:                      Streams.              (line  6)
+* Input functions:                       Input Functions.      (line  6)
+* Input streams:                         Input Streams.        (line  6)
+* Integer functions:                     Integer Functions.    (line  6)
+* Integers:                              Numbers.              (line  6)
+* Interface, C:                          librep Internals.     (line  6)
+* Internals:                             librep Internals.     (line  6)
+* Internals, data types:                 Data Type Representation.
+                                                               (line  6)
+* Internals, defining subrs:             Defining Lisp Subrs.  (line  6)
+* Internals, garbage collection:         Garbage Collection Internals.
+                                                               (line  6)
+* Internals, introduction to:            Intro To Internals.   (line  6)
+* Internals, useful functions:           Useful Functions.     (line  6)
+* Internationalisation:                  i18n.                 (line  6)
+* Interning:                             Interning.            (line  6)
+* Introduction:                          Introduction.         (line  6)
+* Introduction to librep internals:      Intro To Internals.   (line  6)
+* Introduction, Lisp:                    Intro.                (line  6)
+* Invocation:                            Invocation.           (line  6)
+* Keyword symbols:                       Keyword Symbols.      (line  6)
+* Lambda expressions:                    Lambda Expressions.   (line  6)
+* Libraries, shared:                     Shared Libraries.     (line  6)
+* librep Internals:                      librep Internals.     (line  6)
+* librep internals:                      librep Internals.     (line  6)
+* Licence:                               Copying.              (line  6)
+* Lisp forms, evaluating:                Evaluation.           (line  6)
+* Lisp, the rep dialect:                 The language.         (line  6)
+* List forms:                            List Forms.           (line  6)
+* List structure:                        List Structure.       (line  6)
+* Lists:                                 Lists.                (line  6)
+* Lists, accessing elements:             Accessing List Elements.
+                                                               (line  6)
+* Lists, association:                    Association Lists.    (line  6)
+* Lists, building:                       Building Lists.       (line  6)
+* Lists, circular:                       Infinite Lists.       (line  6)
+* Lists, mapping:                        Mapping Functions.    (line  6)
+* Lists, modifying:                      Modifying Lists.      (line  6)
+* Load function:                         Load Function.        (line  6)
+* Loading:                               Loading.              (line  6)
+* Loading programs:                      Loading.              (line  6)
+* Loading, on reference:                 Autoloading.          (line  6)
+* Local functions:                       Local Functions.      (line  6)
+* Local variables:                       Local Variables.      (line  6)
+* Looping structures:                    Looping Structures.   (line  6)
+* Macro call forms:                      Macro Call Forms.     (line  6)
+* Macro expansion:                       Macro Expansion.      (line  6)
+* Macros:                                Macros.               (line  6)
+* Macros, backquoting:                   Backquoting.          (line  6)
+* Macros, compiling:                     Compiling Macros.     (line  6)
+* Macros, defining:                      Defining Macros.      (line  6)
+* Manipulating files:                    Manipulating Files.   (line  6)
+* Manipulating Symbolic Links:           Manipulating Symlinks.
+                                                               (line  6)
+* Manipulating threads:                  Manipulating Threads. (line  6)
+* Manual notation:                       Notation.             (line  6)
+* Mapping functions:                     Mapping Functions.    (line  6)
+* Matching strings:                      Regexp Functions.     (line  6)
+* Mathematical functions:                Mathematical Functions.
+                                                               (line  6)
+* Messages:                              Messages.             (line  6)
+* Modifying lists:                       Modifying Lists.      (line  6)
+* Modules:                               Modules.              (line  6)
+* Modules, and special variables:        Modules and Special Variables.
+                                                               (line  6)
+* Modules, definition of:                Module Definition.    (line  6)
+* Modules, interfaces:                   Module Interfaces.    (line  6)
+* Modules, loading:                      Module Loading.       (line  6)
+* Mutexes:                               Mutexes.              (line  6)
+* Mutual exclusion devices:              Mutexes.              (line  6)
+* Names of files:                        File Names.           (line  6)
+* News:                                  News.                 (line  6)
+* nil and t:                             nil and t.            (line  6)
+* Non-local exits:                       Non-Local Exits.      (line  6)
+* Non-local exits, catch and throw:      Catch and Throw.      (line  6)
+* Non-local exits, cleanup forms:        Cleanup Forms.        (line  6)
+* Non-local exits, errors:               Errors.               (line  6)
+* Non-local exits, function exits:       Function Exits.       (line  6)
+* Normal hooks:                          Normal Hooks.         (line  6)
+* Notation:                              Notation.             (line  6)
+* Numbers:                               Numbers.              (line  6)
+* Numbers, arithmetic functions:         Arithmetic Functions. (line  6)
+* Numbers, bitwise functions:            Bitwise Functions.    (line  6)
+* Numbers, integer functions:            Integer Functions.    (line  6)
+* Numbers, mathematical functions:       Mathematical Functions.
+                                                               (line  6)
+* Numbers, predicates on:                Numeric Predicates.   (line  6)
+* Numbers, pseudo random:                Random Numbers.       (line  6)
+* Numbers, rational functions:           Rational Functions.   (line  6)
+* Numbers, real number functions:        Real Number Functions.
+                                                               (line  6)
+* Numeric predicates:                    Numeric Predicates.   (line  6)
+* Obarrays:                              Obarrays.             (line  6)
+* Options, command line:                 Command Line Options. (line  6)
+* Output functions:                      Output Functions.     (line  6)
+* Output streams:                        Output Streams.       (line  6)
+* Output, formatted:                     Formatted Output.     (line  6)
+* Parsing dates:                         Parsing Dates.        (line  6)
+* Predicate functions:                   Predicate Functions.  (line  6)
+* Predicates on numbers:                 Numeric Predicates.   (line  6)
+* Predicates, comparison:                Comparison Predicates.
+                                                               (line  6)
+* Predicates, equality:                  Equality Predicates.  (line  6)
+* Predicates, type:                      Type Predicates.      (line  6)
+* Printed representation:                Printed Representation.
+                                                               (line  6)
+* Process I/O:                           Process I/O.          (line  6)
+* Process information:                   Process Information.  (line  6)
+* Process objects:                       Process Objects.      (line  6)
+* Process states:                        Process States.       (line  6)
+* Processes:                             Processes.            (line  6)
+* Processes, asynchronous:               Asynchronous Processes.
+                                                               (line  6)
+* Processes, signalling:                 Signalling Processes. (line  6)
+* Processes, synchronous:                Synchronous Processes.
+                                                               (line  6)
+* Programs, loading:                     Loading.              (line  6)
+* Property lists:                        Property Lists.       (line  6)
+* Pseudo-random numbers:                 Random Numbers.       (line  6)
+* Queues:                                Queues.               (line  6)
+* Quoting:                               Quoting.              (line  6)
+* Random numbers:                        Random Numbers.       (line  6)
+* Rational functions:                    Rational Functions.   (line  6)
+* Read syntax:                           Read Syntax.          (line  6)
+* Read-eval-print loop:                  The REPL.             (line  6)
+* Reader, the Lisp:                      The Lisp Reader.      (line  6)
+* Reading directories:                   Manipulating Directories.
+                                                               (line  6)
+* Real number functions:                 Real Number Functions.
+                                                               (line  6)
+* Records:                               Records.              (line  6)
+* Regexp functions:                      Regexp Functions.     (line  6)
+* Regexp syntax:                         Regexp Syntax.        (line  6)
+* Regexps:                               Regular Expressions.  (line  6)
+* Regular expression syntax:             Regexp Syntax.        (line  6)
+* Regular expressions:                   Regular Expressions.  (line  6)
+* Remote files:                          Remote Files.         (line  6)
+* rep, the Lisp dialect:                 The language.         (line  6)
+* Reporting bugs:                        Reporting bugs.       (line  6)
+* Representation of data types:          Data Type Representation.
+                                                               (line  6)
+* Scope and extent:                      Scope and Extent.     (line  6)
+* Scripts, executing implicitly:         Invocation.           (line 58)
+* Self-evaluating forms:                 Self-Evaluating Forms.
+                                                               (line  6)
+* Sequence functions:                    Sequence Functions.   (line  6)
+* Sequences:                             Sequences.            (line  6)
+* Sequences, cons cells:                 Cons Cells.           (line  6)
+* Sequencing structures:                 Sequencing Structures.
+                                                               (line  6)
+* Setting variables:                     Setting Variables.    (line  6)
+* Shared libraries:                      Shared Libraries.     (line  6)
+* Shell commands, executing:             Shell Commands.       (line  6)
+* Signalling processes:                  Signalling Processes. (line  6)
+* Sleeping:                              Sleeping.             (line  6)
+* Special forms:                         Special Forms.        (line  6)
+* Streams:                               Streams.              (line  6)
+* Streams, formatted output:             Formatted Output.     (line  6)
+* Streams, input:                        Input Streams.        (line  6)
+* Streams, input functions:              Input Functions.      (line  6)
+* Streams, output:                       Output Streams.       (line  6)
+* Streams, output functions:             Output Functions.     (line  6)
+* String functions:                      String Functions.     (line  6)
+* String matching:                       Regexp Functions.     (line  6)
+* Strings, escape sequences:             Strings.              (line 17)
+* Style, comments:                       Comment Styles.       (line  6)
+* Subprocesses:                          Processes.            (line  6)
+* Subrs, defining:                       Defining Lisp Subrs.  (line  6)
+* Symbol attributes:                     Symbol Attributes.    (line  6)
+* Symbol forms:                          Symbol Forms.         (line  6)
+* Symbol syntax:                         Symbol Syntax.        (line  6)
+* Symbolic Links, manipulating:          Manipulating Symlinks.
+                                                               (line  6)
+* Symbols:                               Symbols.              (line  6)
+* Symbols, creating:                     Creating Symbols.     (line  6)
+* Symbols, interning:                    Interning.            (line  6)
+* Symbols, keywords:                     Keyword Symbols.      (line  6)
+* Symbols, obarrays:                     Obarrays.             (line  6)
+* Symbols, property lists:               Property Lists.       (line  6)
+* Synchronous processes:                 Synchronous Processes.
+                                                               (line  6)
+* Syntax of objects:                     Read Syntax.          (line  6)
+* Syntax of regexps:                     Regexp Syntax.        (line  6)
+* System information:                    System Information.   (line  6)
+* t:                                     nil and t.            (line  6)
+* The language:                          The language.         (line  6)
+* The Lisp reader:                       The Lisp Reader.      (line  6)
+* The REPL:                              The REPL.             (line  6)
+* Thread contexts:                       Thread Contexts.      (line  6)
+* Thread implementation notes:           Thread Implementation Notes.
+                                                               (line  6)
+* Threads:                               Threads.              (line  6)
+* Threads, creating:                     Creating Threads.     (line  6)
+* Threads, deleting:                     Deleting Threads.     (line  6)
+* Threads, manipulating:                 Manipulating Threads. (line  6)
+* Threads, mutexes:                      Mutexes.              (line  6)
+* Time and date:                         Time and Date.        (line  6)
+* Time, formatting as strings:           Formatting Dates.     (line  6)
+* Time, parsing:                         Parsing Dates.        (line  6)
+* Timers, asynchronous:                  Timers.               (line  6)
+* Timestamps:                            Timestamps.           (line  6)
+* Tips:                                  Tips.                 (line  6)
+* Tips, comment styles:                  Comment Styles.       (line  6)
+* Tips, compilation:                     Compilation Tips.     (line  6)
+* Type predicates:                       Type Predicates.      (line  6)
+* Types summary:                         Types Summary.        (line  6)
+* Useful functions:                      Useful Functions.     (line  6)
+* User information:                      User Information.     (line  6)
+* Variables:                             Variables.            (line  6)
+* Variables, defining:                   Defining Variables.   (line  6)
+* Variables, descriptions of:            Descriptions.         (line  6)
+* Variables, fluid:                      Fluid Variables.      (line  6)
+* Variables, local:                      Local Variables.      (line  6)
+* Variables, scope and extent of:        Scope and Extent.     (line  6)
+* Variables, setting:                    Setting Variables.    (line  6)
+* Variables, void:                       Void Variables.       (line  6)
+* Void variables:                        Void Variables.       (line  6)
+
+

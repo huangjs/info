@@ -1,0 +1,1228 @@
+This is gforth.info, produced by makeinfo version 4.2 from gforth.texi.
+
+This manual is for Gforth (version 0.6.2, August 25, 2003), a fast and
+portable implementation of the ANS Forth language
+
+   Copyright (C) 1995, 1996, 1997, 1998, 2000, 2003 Free Software
+Foundation, Inc.
+
+     Permission is granted to copy, distribute and/or modify this
+     document under the terms of the GNU Free Documentation License,
+     Version 1.1 or any later version published by the Free Software
+     Foundation; with no Invariant Sections, with the Front-Cover texts
+     being "A GNU Manual," and with the Back-Cover Texts as in (a)
+     below.  A copy of the license is included in the section entitled
+     "GNU Free Documentation License."
+
+     (a) The FSF's Back-Cover Text is: "You have freedom to copy and
+     modify this GNU Manual, like GNU software.  Copies published by
+     the Free Software Foundation raise funds for GNU development."
+   
+INFO-DIR-SECTION Software development
+START-INFO-DIR-ENTRY
+* Gforth: (gforth).             A fast interpreter for the Forth language.
+END-INFO-DIR-ENTRY
+
+
+File: gforth.info,  Node: floating-idef,  Next: floating-ambcond,  Prev: The optional Floating-Point word set,  Up: The optional Floating-Point word set
+
+Implementation Defined Options
+------------------------------
+
+format and range of floating point numbers:
+     System-dependent; the `double' type of C.
+
+results of `REPRESENT' when float is out of range:
+     System dependent; `REPRESENT' is implemented using the C library
+     function `ecvt()' and inherits its behaviour in this respect.
+
+rounding or truncation of floating-point numbers:
+     System dependent; the rounding behaviour is inherited from the
+     hosting C compiler. IEEE-FP-based (i.e., most) systems by default
+     round to nearest, and break ties by rounding to even (i.e., such
+     that the last bit of the mantissa is 0).
+
+size of floating-point stack:
+     `s" FLOATING-STACK" environment? drop .' gives the total size of
+     the floating-point stack (in floats). You can specify this on
+     startup with the command-line option `-f' (*note Invoking
+     Gforth::).
+
+width of floating-point stack:
+     `1 floats'.
+
+
+File: gforth.info,  Node: floating-ambcond,  Prev: floating-idef,  Up: The optional Floating-Point word set
+
+Ambiguous conditions
+--------------------
+
+`df@' or `df!' used with an address that is not double-float  aligned:
+     System-dependent. Typically results in a `-23 THROW' like other
+     alignment violations.
+
+`f@' or `f!' used with an address that is not float  aligned:
+     System-dependent. Typically results in a `-23 THROW' like other
+     alignment violations.
+
+floating-point result out of range:
+     System-dependent. Can result in a `-43 throw' (floating point
+     overflow), `-54 throw' (floating point underflow), `-41 throw'
+     (floating point inexact result), `-55 THROW' (Floating-point
+     unidentified fault), or can produce a special value representing,
+     e.g., Infinity.
+
+`sf@' or `sf!' used with an address that is not single-float  aligned:
+     System-dependent. Typically results in an alignment fault like
+     other alignment violations.
+
+`base' is not decimal (`REPRESENT', `F.', `FE.', `FS.'):
+     The floating-point number is converted into decimal nonetheless.
+
+Both arguments are equal to zero (`FATAN2'):
+     System-dependent. `FATAN2' is implemented using the C library
+     function `atan2()'.
+
+Using `FTAN' on an argument r1 where cos(r1) is zero:
+     System-dependent. Anyway, typically the cos of r1 will not be zero
+     because of small errors and the tan will be a very large (or very
+     small) but finite number.
+
+d cannot be presented precisely as a float in `D>F':
+     The result is rounded to the nearest float.
+
+dividing by zero:
+     Platform-dependent; can produce an Infinity, NaN, `-42 throw'
+     (floating point divide by zero) or `-55 throw' (Floating-point
+     unidentified fault).
+
+exponent too big for conversion (`DF!', `DF@', `SF!', `SF@'):
+     System dependent. On IEEE-FP based systems the number is converted
+     into an infinity.
+
+float<1 (`FACOSH'):
+     Platform-dependent; on IEEE-FP systems typically produces a NaN.
+
+float=<-1 (`FLNP1'):
+     Platform-dependent; on IEEE-FP systems typically produces a NaN
+     (or a negative infinity for float=-1).
+
+float=<0 (`FLN', `FLOG'):
+     Platform-dependent; on IEEE-FP systems typically produces a NaN
+     (or a negative infinity for float=0).
+
+float<0 (`FASINH', `FSQRT'):
+     Platform-dependent; for `fsqrt' this typically gives a NaN, for
+     `fasinh' some platforms produce a NaN, others a number (bug in the
+     C library?).
+
+|float|>1 (`FACOS', `FASIN', `FATANH'):
+     Platform-dependent; IEEE-FP systems typically produce a NaN.
+
+integer part of float cannot be represented by d in `F>D':
+     Platform-dependent; typically, some double number is produced and
+     no error is reported.
+
+string larger than pictured numeric output area (`f.', `fe.', `fs.'):
+     `Precision' characters of the numeric output area are used.  If
+     `precision' is too high, these words will smash the data or code
+     close to `here'.
+
+
+File: gforth.info,  Node: The optional Locals word set,  Next: The optional Memory-Allocation word set,  Prev: The optional Floating-Point word set,  Up: ANS conformance
+
+The optional Locals word set
+============================
+
+* Menu:
+
+* locals-idef::                 Implementation Defined Options
+* locals-ambcond::              Ambiguous Conditions
+
+
+File: gforth.info,  Node: locals-idef,  Next: locals-ambcond,  Prev: The optional Locals word set,  Up: The optional Locals word set
+
+Implementation Defined Options
+------------------------------
+
+maximum number of locals in a definition:
+     `s" #locals" environment? drop .'. Currently 15. This is a lower
+     bound, e.g., on a 32-bit machine there can be 41 locals of up to 8
+     characters. The number of locals in a definition is bounded by the
+     size of locals-buffer, which contains the names of the locals.
+
+
+File: gforth.info,  Node: locals-ambcond,  Prev: locals-idef,  Up: The optional Locals word set
+
+Ambiguous conditions
+--------------------
+
+executing a named local in interpretation state:
+     Locals have no interpretation semantics. If you try to perform the
+     interpretation semantics, you will get a `-14 throw' somewhere
+     (Interpreting a compile-only word). If you perform the compilation
+     semantics, the locals access will be compiled (irrespective of
+     state).
+
+name not defined by `VALUE' or `(LOCAL)' (`TO'):
+     `-32 throw' (Invalid name argument)
+
+
+File: gforth.info,  Node: The optional Memory-Allocation word set,  Next: The optional Programming-Tools word set,  Prev: The optional Locals word set,  Up: ANS conformance
+
+The optional Memory-Allocation word set
+=======================================
+
+* Menu:
+
+* memory-idef::                 Implementation Defined Options
+
+
+File: gforth.info,  Node: memory-idef,  Prev: The optional Memory-Allocation word set,  Up: The optional Memory-Allocation word set
+
+Implementation Defined Options
+------------------------------
+
+values and meaning of ior:
+     The iors returned by the file and memory allocation words are
+     intended as throw codes. They typically are in the range
+     -512--2047 of OS errors.  The mapping from OS error numbers to
+     iors is -512-errno.
+
+
+File: gforth.info,  Node: The optional Programming-Tools word set,  Next: The optional Search-Order word set,  Prev: The optional Memory-Allocation word set,  Up: ANS conformance
+
+The optional Programming-Tools word set
+=======================================
+
+* Menu:
+
+* programming-idef::            Implementation Defined Options
+* programming-ambcond::         Ambiguous Conditions
+
+
+File: gforth.info,  Node: programming-idef,  Next: programming-ambcond,  Prev: The optional Programming-Tools word set,  Up: The optional Programming-Tools word set
+
+Implementation Defined Options
+------------------------------
+
+ending sequence for input following `;CODE' and `CODE':
+     `END-CODE'
+
+manner of processing input following `;CODE' and `CODE':
+     The `ASSEMBLER' vocabulary is pushed on the search order stack, and
+     the input is processed by the text interpreter, (starting) in
+     interpret state.
+
+search order capability for `EDITOR' and `ASSEMBLER':
+     The ANS Forth search order word set.
+
+source and format of display by `SEE':
+     The source for `see' is the executable code used by the inner
+     interpreter.  The current `see' tries to output Forth source code
+     (and on some platforms, assembly code for primitives) as well as
+     possible.
+
+
+File: gforth.info,  Node: programming-ambcond,  Prev: programming-idef,  Up: The optional Programming-Tools word set
+
+Ambiguous conditions
+--------------------
+
+deleting the compilation word list (`FORGET'):
+     Not implemented (yet).
+
+fewer than u+1 items on the control-flow stack (`CS-PICK', `CS-ROLL'):
+     This typically results in an `abort"' with a descriptive error
+     message (may change into a `-22 throw' (Control structure mismatch)
+     in the future). You may also get a memory access error. If you are
+     unlucky, this ambiguous condition is not caught.
+
+name can't be found (`FORGET'):
+     Not implemented (yet).
+
+name not defined via `CREATE':
+     `;CODE' behaves like `DOES>' in this respect, i.e., it changes the
+     execution semantics of the last defined word no matter how it was
+     defined.
+
+`POSTPONE' applied to `[IF]':
+     After defining `: X POSTPONE [IF] ; IMMEDIATE'. `X' is equivalent
+     to `[IF]'.
+
+reaching the end of the input source before matching `[ELSE]' or `[THEN]':
+     Continue in the same state of conditional compilation in the next
+     outer input source. Currently there is no warning to the user
+     about this.
+
+removing a needed definition (`FORGET'):
+     Not implemented (yet).
+
+
+File: gforth.info,  Node: The optional Search-Order word set,  Prev: The optional Programming-Tools word set,  Up: ANS conformance
+
+The optional Search-Order word set
+==================================
+
+* Menu:
+
+* search-idef::                 Implementation Defined Options
+* search-ambcond::              Ambiguous Conditions
+
+
+File: gforth.info,  Node: search-idef,  Next: search-ambcond,  Prev: The optional Search-Order word set,  Up: The optional Search-Order word set
+
+Implementation Defined Options
+------------------------------
+
+maximum number of word lists in search order:
+     `s" wordlists" environment? drop .'. Currently 16.
+
+minimum search order:
+     `root root'.
+
+
+File: gforth.info,  Node: search-ambcond,  Prev: search-idef,  Up: The optional Search-Order word set
+
+Ambiguous conditions
+--------------------
+
+changing the compilation word list (during compilation):
+     The word is entered into the word list that was the compilation
+     word list at the start of the definition. Any changes to the name
+     field (e.g., `immediate') or the code field (e.g., when executing
+     `DOES>') are applied to the latest defined word (as reported by
+     `latest' or `latestxt'), if possible, irrespective of the
+     compilation word list.
+
+search order empty (`previous'):
+     `abort" Vocstack empty"'.
+
+too many word lists in search order (`also'):
+     `abort" Vocstack full"'.
+
+
+File: gforth.info,  Node: Standard vs Extensions,  Next: Model,  Prev: ANS conformance,  Up: Top
+
+Should I use Gforth extensions?
+*******************************
+
+   As you read through the rest of this manual, you will see
+documentation for Standard words, and documentation for some appealing
+Gforth extensions. You might ask yourself the question: "Should I
+restrict myself to the standard, or should I use the extensions?"
+
+   The answer depends on the goals you have for the program you are
+working on:
+
+   * Is it just for yourself or do you want to share it with others?
+
+   * If you want to share it, do the others all use Gforth?
+
+   * If it is just for yourself, do you want to restrict yourself to
+     Gforth?
+
+
+   If restricting the program to Gforth is ok, then there is no reason
+not to use extensions.  It is still a good idea to keep to the standard
+where it is easy, in case you want to reuse these parts in another
+program that you want to be portable.
+
+   If you want to be able to port the program to other Forth systems,
+there are the following points to consider:
+
+   * Most Forth systems that are being maintained support the ANS Forth
+     standard.  So if your program complies with the standard, it will
+     be portable among many systems.
+
+   * A number of the Gforth extensions can be implemented in ANS Forth
+     using public-domain files provided in the `compat/' directory.
+     These are mentioned in the text in passing.  There is no reason
+     not to use these extensions, your program will still be ANS Forth
+     compliant; just include the appropriate compat files with your
+     program.
+
+   * The tool `ans-report.fs' (*note ANS Report::) makes it easy to
+     analyse your program and determine what non-Standard words it
+     relies upon.  However, it does not check whether you use standard
+     words in a non-standard way.
+
+   * Some techniques are not standardized by ANS Forth, and are hard or
+     impossible to implement in a standard way, but can be implemented
+     in most Forth systems easily, and usually in similar ways (e.g.,
+     accessing word headers).  Forth has a rich historical precedent
+     for programmers taking advantage of implementation-dependent
+     features of their tools (for example, relying on a knowledge of
+     the dictionary structure). Sometimes these techniques are
+     necessary to extract every last bit of performance from the
+     hardware, sometimes they are just a programming shorthand.
+
+   * Does using a Gforth extension save more work than the porting this
+     part to other Forth systems (if any) will cost?
+
+   * Is the additional functionality worth the reduction in portability
+     and the additional porting problems?
+
+
+   In order to perform these consideratios, you need to know what's
+standard and what's not.  This manual generally states if something is
+non-standard, but the authoritative source is the standard document
+(http://www.taygeta.com/forth/dpans.html).  Appendix A of the Standard
+(RATIONALE) provides a valuable insight into the thought processes of
+the technical committee.
+
+   Note also that portability between Forth systems is not the only
+portability issue; there is also the issue of portability between
+different platforms (processor/OS combinations).
+
+
+File: gforth.info,  Node: Model,  Next: Integrating Gforth,  Prev: Standard vs Extensions,  Up: Top
+
+Model
+*****
+
+   This chapter has yet to be written. It will contain information, on
+which internal structures you can rely.
+
+
+File: gforth.info,  Node: Integrating Gforth,  Next: Emacs and Gforth,  Prev: Model,  Up: Top
+
+Integrating Gforth into C programs
+**********************************
+
+   This is not yet implemented.
+
+   Several people like to use Forth as scripting language for
+applications that are otherwise written in C, C++, or some other
+language.
+
+   The Forth system ATLAST provides facilities for embedding it into
+applications; unfortunately it has several disadvantages: most
+importantly, it is not based on ANS Forth, and it is apparently dead
+(i.e., not developed further and not supported). The facilities
+provided by Gforth in this area are inspired by ATLAST's facilities, so
+making the switch should not be hard.
+
+   We also tried to design the interface such that it can easily be
+implemented by other Forth systems, so that we may one day arrive at a
+standardized interface. Such a standard interface would allow you to
+replace the Forth system without having to rewrite C code.
+
+   You embed the Gforth interpreter by linking with the library
+`libgforth.a' (give the compiler the option `-lgforth').  All global
+symbols in this library that belong to the interface, have the prefix
+`forth_'. (Global symbols that are used internally have the prefix
+`gforth_').
+
+   You can include the declarations of Forth types and the functions and
+variables of the interface with `#include <forth.h>'.
+
+   Types.
+
+   Variables.
+
+   Data and FP Stack pointer. Area sizes.
+
+   functions.
+
+   forth_init(imagefile) forth_evaluate(string) exceptions?
+forth_goto(address) (or forth_execute(xt)?)  forth_continue() (a
+corountining mechanism)
+
+   Adding primitives.
+
+   No checking.
+
+   Signals?
+
+   Accessing the Stacks
+
+
+File: gforth.info,  Node: Emacs and Gforth,  Next: Image Files,  Prev: Integrating Gforth,  Up: Top
+
+Emacs and Gforth
+****************
+
+   Gforth comes with `gforth.el', an improved version of `forth.el' by
+Goran Rydqvist (included in the TILE package). The improvements are:
+
+   * A better handling of indentation.
+
+   * A custom hilighting engine for Forth-code.
+
+   * Comment paragraph filling (`M-q')
+
+   * Commenting (`C-x \') and uncommenting (`C-u C-x \') of regions
+
+   * Removal of debugging tracers (`C-x ~', *note Debugging::).
+
+   * Support of the `info-lookup' feature for looking up the
+     documentation of a word.
+
+   * Support for reading and writing blocks files.
+
+   To get a basic description of these features, enter Forth mode and
+type `C-h m'.
+
+   In addition, Gforth supports Emacs quite well: The source code
+locations given in error messages, debugging output (from `~~') and
+failed assertion messages are in the right format for Emacs'
+compilation mode (*note Running Compilations under Emacs:
+(emacs)Compilation.) so the source location corresponding to an error
+or other message is only a few keystrokes away (`C-x `' for the next
+error, `C-c C-c' for the error under the cursor).
+
+   Moreover, for words documented in this manual, you can look up the
+glossary entry quickly by using `C-h TAB' (`info-lookup-symbol', *note
+Documentation Commands: (emacs)Documentation.).  This feature requires
+Emacs 20.3 or later and does not work for words containing `:'.
+
+* Menu:
+
+* Installing gforth.el::        Making Emacs aware of Forth.
+* Emacs Tags::                  Viewing the source of a word in Emacs.
+* Hilighting::                  Making Forth code look prettier.
+* Auto-Indentation::            Customizing auto-indentation.
+* Blocks Files::                Reading and writing blocks files.
+
+
+File: gforth.info,  Node: Installing gforth.el,  Next: Emacs Tags,  Prev: Emacs and Gforth,  Up: Emacs and Gforth
+
+Installing gforth.el
+====================
+
+   To make the features from `gforth.el' available in Emacs, add the
+following lines to your `.emacs' file:
+
+     (autoload 'forth-mode "gforth.el")
+     (setq auto-mode-alist (cons '("\\.fs\\'" . forth-mode)
+     			    auto-mode-alist))
+     (autoload 'forth-block-mode "gforth.el")
+     (setq auto-mode-alist (cons '("\\.fb\\'" . forth-block-mode)
+     			    auto-mode-alist))
+     (add-hook 'forth-mode-hook (function (lambda ()
+        ;; customize variables here:
+        (setq forth-indent-level 4)
+        (setq forth-minor-indent-level 2)
+        (setq forth-hilight-level 3)
+        ;;; ...
+     )))
+
+
+File: gforth.info,  Node: Emacs Tags,  Next: Hilighting,  Prev: Installing gforth.el,  Up: Emacs and Gforth
+
+Emacs Tags
+==========
+
+   If you `require' `etags.fs', a new `TAGS' file will be produced
+(*note Tags Tables: (emacs)Tags.) that contains the definitions of all
+words defined afterwards. You can then find the source for a word using
+`M-.'. Note that Emacs can use several tags files at the same time
+(e.g., one for the Gforth sources and one for your program, *note
+Selecting a Tags Table: (emacs)Select Tags Table.). The TAGS file for
+the preloaded words is `$(datadir)/gforth/$(VERSION)/TAGS' (e.g.,
+`/usr/local/share/gforth/0.2.0/TAGS').  To get the best behaviour with
+`etags.fs', you should avoid putting definitions both before and after
+`require' etc., otherwise you will see the same file visited several
+times by commands like `tags-search'.
+
+
+File: gforth.info,  Node: Hilighting,  Next: Auto-Indentation,  Prev: Emacs Tags,  Up: Emacs and Gforth
+
+Hilighting
+==========
+
+   `gforth.el' comes with a custom source hilighting engine.  When you
+open a file in `forth-mode', it will be completely parsed, assigning
+faces to keywords, comments, strings etc.  While you edit the file,
+modified regions get parsed and updated on-the-fly.
+
+   Use the variable `forth-hilight-level' to change the level of
+decoration from 0 (no hilighting at all) to 3 (the default).  Even if
+you set the hilighting level to 0, the parser will still work in the
+background, collecting information about whether regions of text are
+"compiled" or "interpreted".  Those information are required for
+auto-indentation to work properly.  Set `forth-disable-parser' to
+non-nil if your computer is too slow to handle parsing.  This will have
+an impact on the smartness of the auto-indentation engine, though.
+
+   Sometimes Forth sources define new features that should be hilighted,
+new control structures, defining-words etc.  You can use the variable
+`forth-custom-words' to make `forth-mode' hilight additional words and
+constructs.  See the docstring of `forth-words' for details (in Emacs,
+type `C-h v forth-words').
+
+   `forth-custom-words' is meant to be customized in your `.emacs'
+file.  To customize hilighing in a file-specific manner, set
+`forth-local-words' in a local-variables section at the end of your
+source file (*note Variables: (emacs)Local Variables in Files.).
+
+   Example:
+     0 [IF]
+        Local Variables:
+        forth-local-words:
+           ((("t:") definition-starter (font-lock-keyword-face . 1)
+             "[ \t\n]" t name (font-lock-function-name-face . 3))
+            ((";t") definition-ender (font-lock-keyword-face . 1)))
+        End:
+     [THEN]
+
+
+File: gforth.info,  Node: Auto-Indentation,  Next: Blocks Files,  Prev: Hilighting,  Up: Emacs and Gforth
+
+Auto-Indentation
+================
+
+   `forth-mode' automatically tries to indent lines in a smart way,
+whenever you type <TAB> or break a line with `C-m'.
+
+   Simple customization can be achieved by setting `forth-indent-level'
+and `forth-minor-indent-level' in your `.emacs' file. For historical
+reasons `gforth.el' indents per default by multiples of 4 columns.  To
+use the more traditional 3-column indentation, add the following lines
+to your `.emacs':
+
+     (add-hook 'forth-mode-hook (function (lambda ()
+        ;; customize variables here:
+        (setq forth-indent-level 3)
+        (setq forth-minor-indent-level 1)
+     )))
+
+   If you want indentation to recognize non-default words, customize it
+by setting `forth-custom-indent-words' in your `.emacs'.  See the
+docstring of `forth-indent-words' for details (in Emacs, type `C-h v
+forth-indent-words').
+
+   To customize indentation in a file-specific manner, set
+`forth-local-indent-words' in a local-variables section at the end of
+your source file (*note Variables: (emacs)Local Variables in Files.).
+
+   Example:
+     0 [IF]
+        Local Variables:
+        forth-local-indent-words:
+           ((("t:") (0 . 2) (0 . 2))
+            ((";t") (-2 . 0) (0 . -2)))
+        End:
+     [THEN]
+
+
+File: gforth.info,  Node: Blocks Files,  Prev: Auto-Indentation,  Up: Emacs and Gforth
+
+Blocks Files
+============
+
+   `forth-mode' Autodetects blocks files by checking whether the length
+of the first line exceeds 1023 characters.  It then tries to convert
+the file into normal text format.  When you save the file, it will be
+written to disk as normal stream-source file.
+
+   If you want to write blocks files, use `forth-blocks-mode'.  It
+inherits all the features from `forth-mode', plus some additions:
+
+   * Files are written to disk in blocks file format.
+
+   * Screen numbers are displayed in the mode line (enumerated beginning
+     with the value of `forth-block-base')
+
+   * Warnings are displayed when lines exceed 64 characters.
+
+   * The beginning of the currently edited block is marked with an
+     overlay-arrow.
+
+   There are some restrictions you should be aware of.  When you open a
+blocks file that contains tabulator or newline characters, these
+characters will be translated into spaces when the file is written back
+to disk.  If tabs or newlines are encountered during blocks file
+reading, an error is output to the echo area. So have a look at the
+`*Messages*' buffer, when Emacs' bell rings during reading.
+
+   Please consult the docstring of `forth-blocks-mode' for more
+information by typing `C-h v forth-blocks-mode').
+
+
+File: gforth.info,  Node: Image Files,  Next: Engine,  Prev: Emacs and Gforth,  Up: Top
+
+Image Files
+***********
+
+   An image file is a file containing an image of the Forth dictionary,
+i.e., compiled Forth code and data residing in the dictionary.  By
+convention, we use the extension `.fi' for image files.
+
+* Menu:
+
+* Image Licensing Issues::      Distribution terms for images.
+* Image File Background::       Why have image files?
+* Non-Relocatable Image Files::  don't always work.
+* Data-Relocatable Image Files::  are better.
+* Fully Relocatable Image Files::  better yet.
+* Stack and Dictionary Sizes::  Setting the default sizes for an image.
+* Running Image Files::         `gforth -i file' or file.
+* Modifying the Startup Sequence::  and turnkey applications.
+
+
+File: gforth.info,  Node: Image Licensing Issues,  Next: Image File Background,  Prev: Image Files,  Up: Image Files
+
+Image Licensing Issues
+======================
+
+   An image created with `gforthmi' (*note gforthmi::) or `savesystem'
+(*note Non-Relocatable Image Files::) includes the original image;
+i.e., according to copyright law it is a derived work of the original
+image.
+
+   Since Gforth is distributed under the GNU GPL, the newly created
+image falls under the GNU GPL, too. In particular, this means that if
+you distribute the image, you have to make all of the sources for the
+image available, including those you wrote.  For details see *Note GNU
+General Public License (Section 3): Copying.
+
+   If you create an image with `cross' (*note cross.fs::), the image
+contains only code compiled from the sources you gave it; if none of
+these sources is under the GPL, the terms discussed above do not apply
+to the image. However, if your image needs an engine (a gforth binary)
+that is under the GPL, you should make sure that you distribute both in
+a way that is at most a _mere aggregation_, if you don't want the terms
+of the GPL to apply to the image.
+
+
+File: gforth.info,  Node: Image File Background,  Next: Non-Relocatable Image Files,  Prev: Image Licensing Issues,  Up: Image Files
+
+Image File Background
+=====================
+
+   Gforth consists not only of primitives (in the engine), but also of
+definitions written in Forth. Since the Forth compiler itself belongs to
+those definitions, it is not possible to start the system with the
+engine and the Forth source alone. Therefore we provide the Forth code
+as an image file in nearly executable form. When Gforth starts up, a C
+routine loads the image file into memory, optionally relocates the
+addresses, then sets up the memory (stacks etc.) according to
+information in the image file, and (finally) starts executing Forth
+code.
+
+   The image file variants represent different compromises between the
+goals of making it easy to generate image files and making them
+portable.
+
+   Win32Forth 3.4 and Mitch Bradley's `cforth' use relocation at
+run-time. This avoids many of the complications discussed below (image
+files are data relocatable without further ado), but costs performance
+(one addition per memory access).
+
+   By contrast, the Gforth loader performs relocation at image load
+time. The loader also has to replace tokens that represent primitive
+calls with the appropriate code-field addresses (or code addresses in
+the case of direct threading).
+
+   There are three kinds of image files, with different degrees of
+relocatability: non-relocatable, data-relocatable, and fully relocatable
+image files.
+
+   These image file variants have several restrictions in common; they
+are caused by the design of the image file loader:
+
+   * There is only one segment; in particular, this means, that an
+     image file cannot represent `ALLOCATE'd memory chunks (and
+     pointers to them). The contents of the stacks are not represented,
+     either.
+
+   * The only kinds of relocation supported are: adding the same offset
+     to all cells that represent data addresses; and replacing special
+     tokens with code addresses or with pieces of machine code.
+
+     If any complex computations involving addresses are performed, the
+     results cannot be represented in the image file. Several
+     applications that use such computations come to mind:
+        - Hashing addresses (or data structures which contain
+          addresses) for table lookup. If you use Gforth's `table's or
+          `wordlist's for this purpose, you will have no problem,
+          because the hash tables are recomputed automatically when the
+          system is started. If you use your own hash tables, you will
+          have to do something similar.
+
+        - There's a cute implementation of doubly-linked lists that uses
+          `XOR'ed addresses. You could represent such lists as
+          singly-linked in the image file, and restore the
+          doubly-linked representation on startup.(1)
+
+        - The code addresses of run-time routines like `docol:' cannot
+          be represented in the image file (because their tokens would
+          be replaced by machine code in direct threaded
+          implementations). As a workaround, compute these addresses at
+          run-time with `>code-address' from the executions tokens of
+          appropriate words (see the definitions of `docol:' and
+          friends in `kernel/getdoers.fs').
+
+        - On many architectures addresses are represented in machine
+          code in some shifted or mangled form. You cannot put `CODE'
+          words that contain absolute addresses in this form in a
+          relocatable image file. Workarounds are representing the
+          address in some relative form (e.g., relative to the CFA,
+          which is present in some register), or loading the address
+          from a place where it is stored in a non-mangled form.
+
+   ---------- Footnotes ----------
+
+   (1) In my opinion, though, you should think thrice before using a
+doubly-linked list (whatever implementation).
+
+
+File: gforth.info,  Node: Non-Relocatable Image Files,  Next: Data-Relocatable Image Files,  Prev: Image File Background,  Up: Image Files
+
+Non-Relocatable Image Files
+===========================
+
+   These files are simple memory dumps of the dictionary. They are
+specific to the executable (i.e., `gforth' file) they were created
+with. What's worse, they are specific to the place on which the
+dictionary resided when the image was created. Now, there is no
+guarantee that the dictionary will reside at the same place the next
+time you start Gforth, so there's no guarantee that a non-relocatable
+image will work the next time (Gforth will complain instead of crashing,
+though).
+
+   You can create a non-relocatable image file with
+
+`savesystem'       "name" -         gforth       ``savesystem''
+
+
+File: gforth.info,  Node: Data-Relocatable Image Files,  Next: Fully Relocatable Image Files,  Prev: Non-Relocatable Image Files,  Up: Image Files
+
+Data-Relocatable Image Files
+============================
+
+   These files contain relocatable data addresses, but fixed code
+addresses (instead of tokens). They are specific to the executable
+(i.e., `gforth' file) they were created with. For direct threading on
+some architectures (e.g., the i386), data-relocatable images do not
+work. You get a data-relocatable image, if you use `gforthmi' with a
+Gforth binary that is not doubly indirect threaded (*note Fully
+Relocatable Image Files::).
+
+
+File: gforth.info,  Node: Fully Relocatable Image Files,  Next: Stack and Dictionary Sizes,  Prev: Data-Relocatable Image Files,  Up: Image Files
+
+Fully Relocatable Image Files
+=============================
+
+   These image files have relocatable data addresses, and tokens for
+code addresses. They can be used with different binaries (e.g., with and
+without debugging) on the same machine, and even across machines with
+the same data formats (byte order, cell size, floating point format).
+However, they are usually specific to the version of Gforth they were
+created with. The files `gforth.fi' and `kernl*.fi' are fully
+relocatable.
+
+   There are two ways to create a fully relocatable image file:
+
+* Menu:
+
+* gforthmi::                    The normal way
+* cross.fs::                    The hard way
+
+
+File: gforth.info,  Node: gforthmi,  Next: cross.fs,  Prev: Fully Relocatable Image Files,  Up: Fully Relocatable Image Files
+
+`gforthmi'
+----------
+
+   You will usually use `gforthmi'. If you want to create an image file
+that contains everything you would load by invoking Gforth with `gforth
+options', you simply say:
+     gforthmi file options
+
+   E.g., if you want to create an image `asm.fi' that has the file
+`asm.fs' loaded in addition to the usual stuff, you could do it like
+this:
+
+     gforthmi asm.fi asm.fs
+
+   `gforthmi' is implemented as a sh script and works like this: It
+produces two non-relocatable images for different addresses and then
+compares them. Its output reflects this: first you see the output (if
+any) of the two Gforth invocations that produce the non-relocatable
+image files, then you see the output of the comparing program: It
+displays the offset used for data addresses and the offset used for
+code addresses; moreover, for each cell that cannot be represented
+correctly in the image files, it displays a line like this:
+
+          78DC         BFFFFA50         BFFFFA40
+
+   This means that at offset $78dc from `forthstart', one input image
+contains $bffffa50, and the other contains $bffffa40. Since these cells
+cannot be represented correctly in the output image, you should examine
+these places in the dictionary and verify that these cells are dead
+(i.e., not read before they are written).
+
+   If you insert the option `--application' in front of the image file
+name, you will get an image that uses the `--appl-image' option instead
+of the `--image-file' option (*note Invoking Gforth::). When you
+execute such an image on Unix (by typing the image name as command),
+the Gforth engine will pass all options to the image instead of trying
+to interpret them as engine options.
+
+   If you type `gforthmi' with no arguments, it prints some usage
+instructions.
+
+   There are a few wrinkles: After processing the passed options, the
+words `savesystem' and `bye' must be visible. A special doubly indirect
+threaded version of the `gforth' executable is used for creating the
+non-relocatable images; you can pass the exact filename of this
+executable through the environment variable `GFORTHD' (default:
+`gforth-ditc'); if you pass a version that is not doubly indirect
+threaded, you will not get a fully relocatable image, but a
+data-relocatable image (because there is no code address offset). The
+normal `gforth' executable is used for creating the relocatable image;
+you can pass the exact filename of this executable through the
+environment variable `GFORTH'.
+
+
+File: gforth.info,  Node: cross.fs,  Prev: gforthmi,  Up: Fully Relocatable Image Files
+
+`cross.fs'
+----------
+
+   You can also use `cross', a batch compiler that accepts a Forth-like
+programming language (*note Cross Compiler::).
+
+   `cross' allows you to create image files for machines with different
+data sizes and data formats than the one used for generating the image
+file. You can also use it to create an application image that does not
+contain a Forth compiler. These features are bought with restrictions
+and inconveniences in programming. E.g., addresses have to be stored in
+memory with special words (`A!', `A,', etc.) in order to make the code
+relocatable.
+
+
+File: gforth.info,  Node: Stack and Dictionary Sizes,  Next: Running Image Files,  Prev: Fully Relocatable Image Files,  Up: Image Files
+
+Stack and Dictionary Sizes
+==========================
+
+   If you invoke Gforth with a command line flag for the size (*note
+Invoking Gforth::), the size you specify is stored in the dictionary.
+If you save the dictionary with `savesystem' or create an image with
+`gforthmi', this size will become the default for the resulting image
+file. E.g., the following will create a fully relocatable version of
+`gforth.fi' with a 1MB dictionary:
+
+     gforthmi gforth.fi -m 1M
+
+   In other words, if you want to set the default size for the
+dictionary and the stacks of an image, just invoke `gforthmi' with the
+appropriate options when creating the image.
+
+   Note: For cache-friendly behaviour (i.e., good performance), you
+should make the sizes of the stacks modulo, say, 2K, somewhat
+different. E.g., the default stack sizes are: data: 16k (mod 2k=0); fp:
+15.5k (mod 2k=1.5k); return: 15k(mod 2k=1k); locals: 14.5k (mod
+2k=0.5k).
+
+
+File: gforth.info,  Node: Running Image Files,  Next: Modifying the Startup Sequence,  Prev: Stack and Dictionary Sizes,  Up: Image Files
+
+Running Image Files
+===================
+
+   You can invoke Gforth with an image file image instead of the
+default `gforth.fi' with the `-i' flag (*note Invoking Gforth::):
+     gforth -i image
+
+   If your operating system supports starting scripts with a line of the
+form `#! ...', you just have to type the image file name to start
+Gforth with this image file (note that the file extension `.fi' is just
+a convention). I.e., to run Gforth with the image file image, you can
+just type image instead of `gforth -i image'.  This works because every
+`.fi' file starts with a line of this format:
+
+     #! /usr/local/bin/gforth-0.4.0 -i
+
+   The file and pathname for the Gforth engine specified on this line is
+the specific Gforth executable that it was built against; i.e. the value
+of the environment variable `GFORTH' at the time that `gforthmi' was
+executed.
+
+   You can make use of the same shell capability to make a Forth source
+file into an executable. For example, if you place this text in a file:
+
+     #! /usr/local/bin/gforth
+     
+     ." Hello, world" CR
+     bye
+
+and then make the file executable (chmod +x in Unix), you can run it
+directly from the command line. The sequence `#!' is used in two ways;
+firstly, it is recognised as a "magic sequence" by the operating
+system(1) secondly it is treated as a comment character by Gforth.
+Because of the second usage, a space is required between `#!' and the
+path to the executable (moreover, some Unixes require the sequence `#!
+/').
+
+   The disadvantage of this latter technique, compared with using
+`gforthmi', is that it is slightly slower; the Forth source code is
+compiled on-the-fly, each time the program is invoked.
+
+`#!'       -         gforth       ``hash-bang''
+   An alias for `\'
+
+   ---------- Footnotes ----------
+
+   (1) The Unix kernel actually recognises two types of files:
+executable files and files of data, where the data is processed by an
+interpreter that is specified on the "interpreter line" - the first
+line of the file, starting with the sequence #!. There may be a small
+limit (e.g., 32) on the number of characters that may be specified on
+the interpreter line.
+
+
+File: gforth.info,  Node: Modifying the Startup Sequence,  Prev: Running Image Files,  Up: Image Files
+
+Modifying the Startup Sequence
+==============================
+
+   You can add your own initialization to the startup sequence through
+the deferred word `'cold'. `'cold' is invoked just before the
+image-specific command line processing (i.e., loading files and
+evaluating (`-e') strings) starts.
+
+   A sequence for adding your initialization usually looks like this:
+
+     :noname
+         Defers 'cold \ do other initialization stuff (e.g., rehashing wordlists)
+         ... \ your stuff
+     ; IS 'cold
+
+   You can make a turnkey image by letting `'cold' execute a word (your
+turnkey application) that never returns; instead, it exits Gforth via
+`bye' or `throw'.
+
+   You can access the (image-specific) command-line arguments through
+the variables `argc' and `argv'. `arg' provides convenient access to
+`argv'.
+
+   If `'cold' exits normally, Gforth processes the command-line
+arguments as files to be loaded and strings to be evaluated.  Therefore,
+`'cold' should remove the arguments it has used in this case.
+
+`'cold'       -         gforth       ``tick-cold''
+
+`argc'       - addr         gforth       ``argc''
+   `Variable' - the number of command-line arguments (including the
+command name).
+
+`argv'       - addr         gforth       ``argv''
+   `Variable' - a pointer to a vector of pointers to the command-line
+arguments (including the command-name). Each argument is represented as
+a C-style string.
+
+`arg'       n - addr count         gforth       ``arg''
+   Return the string for the nth command-line argument.
+
+
+File: gforth.info,  Node: Engine,  Next: Cross Compiler,  Prev: Image Files,  Up: Top
+
+Engine
+******
+
+   Reading this chapter is not necessary for programming with Gforth. It
+may be helpful for finding your way in the Gforth sources.
+
+   The ideas in this section have also been published in the following
+papers: Bernd Paysan, `ANS fig/GNU/??? Forth' (in German), Forth-Tagung
+'93; M. Anton Ertl, `A Portable Forth Engine
+(http://www.complang.tuwien.ac.at/papers/ertl93.ps.Z)', EuroForth '93;
+M. Anton Ertl, `Threaded code variations and optimizations (extended
+version) (http://www.complang.tuwien.ac.at/papers/ertl02.ps.gz)',
+Forth-Tagung '02.
+
+* Menu:
+
+* Portability::
+* Threading::
+* Primitives::
+* Performance::
+
+
+File: gforth.info,  Node: Portability,  Next: Threading,  Prev: Engine,  Up: Engine
+
+Portability
+===========
+
+   An important goal of the Gforth Project is availability across a wide
+range of personal machines. fig-Forth, and, to a lesser extent, F83,
+achieved this goal by manually coding the engine in assembly language
+for several then-popular processors. This approach is very
+labor-intensive and the results are short-lived due to progress in
+computer architecture.
+
+   Others have avoided this problem by coding in C, e.g., Mitch Bradley
+(cforth), Mikael Patel (TILE) and Dirk Zoller (pfe). This approach is
+particularly popular for UNIX-based Forths due to the large variety of
+architectures of UNIX machines. Unfortunately an implementation in C
+does not mix well with the goals of efficiency and with using
+traditional techniques: Indirect or direct threading cannot be expressed
+in C, and switch threading, the fastest technique available in C, is
+significantly slower. Another problem with C is that it is very
+cumbersome to express double integer arithmetic.
+
+   Fortunately, there is a portable language that does not have these
+limitations: GNU C, the version of C processed by the GNU C compiler
+(*note Extensions to the C Language Family: (gcc.info)C Extensions.).
+Its labels as values feature (*note Labels as Values: (gcc.info)Labels
+as Values.) makes direct and indirect threading possible, its `long
+long' type (*note Double-Word Integers: (gcc.info)Long Long.)
+corresponds to Forth's double numbers on many systems.  GNU C is freely
+available on all important (and many unimportant) UNIX machines, VMS,
+80386s running MS-DOS, the Amiga, and the Atari ST, so a Forth written
+in GNU C can run on all these machines.
+
+   Writing in a portable language has the reputation of producing code
+that is slower than assembly. For our Forth engine we repeatedly looked
+at the code produced by the compiler and eliminated most
+compiler-induced inefficiencies by appropriate changes in the source
+code.
+
+   However, register allocation cannot be portably influenced by the
+programmer, leading to some inefficiencies on register-starved
+machines. We use explicit register declarations (*note Variables in
+Specified Registers: (gcc.info)Explicit Reg Vars.) to improve the speed
+on some machines. They are turned on by using the configuration flag
+`--enable-force-reg' (`gcc' switch `-DFORCE_REG'). Unfortunately, this
+feature not only depends on the machine, but also on the compiler
+version: On some machines some compiler versions produce incorrect code
+when certain explicit register declarations are used. So by default
+`-DFORCE_REG' is not used.
+
+
+File: gforth.info,  Node: Threading,  Next: Primitives,  Prev: Portability,  Up: Engine
+
+Threading
+=========
+
+   GNU C's labels as values extension (available since `gcc-2.0', *note
+Labels as Values: (gcc.info)Labels as Values.)  makes it possible to
+take the address of label by writing `&&label'.  This address can then
+be used in a statement like `goto *address'. I.e., `goto *&&x' is the
+same as `goto x'.
+
+   With this feature an indirect threaded `NEXT' looks like:
+     cfa = *ip++;
+     ca = *cfa;
+     goto *ca;
+   For those unfamiliar with the names: `ip' is the Forth instruction
+pointer; the `cfa' (code-field address) corresponds to ANS Forths
+execution token and points to the code field of the next word to be
+executed; The `ca' (code address) fetched from there points to some
+executable code, e.g., a primitive or the colon definition handler
+`docol'.
+
+   Direct threading is even simpler:
+     ca = *ip++;
+     goto *ca;
+
+   Of course we have packaged the whole thing neatly in macros called
+`NEXT' and `NEXT1' (the part of `NEXT' after fetching the cfa).
+
+* Menu:
+
+* Scheduling::
+* Direct or Indirect Threaded?::
+* Dynamic Superinstructions::
+* DOES>::
+
+
+File: gforth.info,  Node: Scheduling,  Next: Direct or Indirect Threaded?,  Prev: Threading,  Up: Threading
+
+Scheduling
+----------
+
+   There is a little complication: Pipelined and superscalar processors,
+i.e., RISC and some modern CISC machines can process independent
+instructions while waiting for the results of an instruction. The
+compiler usually reorders (schedules) the instructions in a way that
+achieves good usage of these delay slots. However, on our first tries
+the compiler did not do well on scheduling primitives. E.g., for `+'
+implemented as
+     n=sp[0]+sp[1];
+     sp++;
+     sp[0]=n;
+     NEXT;
+   the `NEXT' comes strictly after the other code, i.e., there is
+nearly no scheduling. After a little thought the problem becomes clear:
+The compiler cannot know that `sp' and `ip' point to different
+addresses (and the version of `gcc' we used would not know it even if
+it was possible), so it could not move the load of the cfa above the
+store to the TOS. Indeed the pointers could be the same, if code on or
+very near the top of stack were executed. In the interest of speed we
+chose to forbid this probably unused "feature" and helped the compiler
+in scheduling: `NEXT' is divided into several parts: `NEXT_P0',
+`NEXT_P1' and `NEXT_P2'). `+' now looks like:
+     NEXT_P0;
+     n=sp[0]+sp[1];
+     sp++;
+     NEXT_P1;
+     sp[0]=n;
+     NEXT_P2;
+
+   There are various schemes that distribute the different operations of
+NEXT between these parts in several ways; in general, different schemes
+perform best on different processors.  We use a scheme for most
+architectures that performs well for most processors of this
+architecture; in the future we may switch to benchmarking and chosing
+the scheme on installation time.
+
+
+File: gforth.info,  Node: Direct or Indirect Threaded?,  Next: Dynamic Superinstructions,  Prev: Scheduling,  Up: Threading
+
+Direct or Indirect Threaded?
+----------------------------
+
+   Threaded forth code consists of references to primitives (simple
+machine code routines like `+') and to non-primitives (e.g., colon
+definitions, variables, constants); for a specific class of
+non-primitives (e.g., variables) there is one code routine (e.g.,
+`dovar'), but each variable needs a separate reference to its data.
+
+   Traditionally Forth has been implemented as indirect threaded code,
+because this allows to use only one cell to reference a non-primitive
+(basically you point to the data, and find the code address there).
+
+   However, threaded code in Gforth (since 0.6.0) uses two cells for
+non-primitives, one for the code address, and one for the data address;
+the data pointer is an immediate argument for the virtual machine
+instruction represented by the code address.  We call this
+_primitive-centric_ threaded code, because all code addresses point to
+simple primitives.  E.g., for a variable, the code address is for `lit'
+(also used for integer literals like `99').
+
+   Primitive-centric threaded code allows us to use (faster) direct
+threading as dispatch method, completely portably (direct threaded code
+in Gforth before 0.6.0 required architecture-specific code).  It also
+eliminates the performance problems related to I-cache consistency that
+386 implementations have with direct threaded code, and allows
+additional optimizations.
+
+   There is a catch, however: the XT parameter of `execute' can occupy
+only one cell, so how do we pass non-primitives with their code _and_
+data addresses to them?  Our answer is to use indirect threaded
+dispatch for `execute' and other words that use a single-cell xt.  So,
+normal threaded code in colon definitions uses direct threading, and
+`execute' and similar words, which dispatch to xts on the data stack,
+use indirect threaded code.  We call this _hybrid direct/indirect_
+threaded code.
+
+   The engines `gforth' and `gforth-fast' use hybrid direct/indirect
+threaded code.  This means that with these engines you cannot use `,'
+to compile an xt.  Instead, you have to use `compile,'.
+
+   If you want to compile xts with `,', use `gforth-itc'.  This engine
+uses plain old indirect threaded code.  It still compiles in a
+primitive-centric style, so you cannot use `compile,' instead of `,'
+(e.g., for producing tables of xts with `] word1 word2 ... [').  If you
+want to do that, you have to use `gforth-itc' and execute `' , is
+compile,'.  Your program can check if it is running on a hybrid
+direct/indirect threaded engine or a pure indirect threaded engine with
+`threading-method' (*note Threading Words::).
+

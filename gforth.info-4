@@ -1,0 +1,1294 @@
+This is gforth.info, produced by makeinfo version 4.2 from gforth.texi.
+
+This manual is for Gforth (version 0.6.2, August 25, 2003), a fast and
+portable implementation of the ANS Forth language
+
+   Copyright (C) 1995, 1996, 1997, 1998, 2000, 2003 Free Software
+Foundation, Inc.
+
+     Permission is granted to copy, distribute and/or modify this
+     document under the terms of the GNU Free Documentation License,
+     Version 1.1 or any later version published by the Free Software
+     Foundation; with no Invariant Sections, with the Front-Cover texts
+     being "A GNU Manual," and with the Back-Cover Texts as in (a)
+     below.  A copy of the license is included in the section entitled
+     "GNU Free Documentation License."
+
+     (a) The FSF's Back-Cover Text is: "You have freedom to copy and
+     modify this GNU Manual, like GNU software.  Copies published by
+     the Free Software Foundation raise funds for GNU development."
+   
+INFO-DIR-SECTION Software development
+START-INFO-DIR-ENTRY
+* Gforth: (gforth).             A fast interpreter for the Forth language.
+END-INFO-DIR-ENTRY
+
+
+File: gforth.info,  Node: Data stack,  Next: Floating point stack,  Prev: Stack Manipulation,  Up: Stack Manipulation
+
+Data stack
+----------
+
+`drop'       w -        core       ``drop''
+
+`nip'       w1 w2 - w2        core-ext       ``nip''
+
+`dup'       w - w w        core       ``dupe''
+
+`over'       w1 w2 - w1 w2 w1        core       ``over''
+
+`tuck'       w1 w2 - w2 w1 w2        core-ext       ``tuck''
+
+`swap'       w1 w2 - w2 w1        core       ``swap''
+
+`pick'       u - w        core-ext       ``pick''
+   Actually the stack effect is ` x0 ... xu u -- x0 ... xu x0 '.
+
+`rot'       w1 w2 w3 - w2 w3 w1        core       ``rote''
+
+`-rot'       w1 w2 w3 - w3 w1 w2        gforth       ``not-rote''
+
+`?dup'       w - w        core       ``question-dupe''
+   Actually the stack effect is: `( w -- 0 | w w )'.  It performs a
+`dup' if w is nonzero.
+
+`roll'       x0 x1 .. xn n - x1 .. xn x0         core-ext       ``roll''
+
+`2drop'       w1 w2 -        core       ``two-drop''
+
+`2nip'       w1 w2 w3 w4 - w3 w4        gforth       ``two-nip''
+
+`2dup'       w1 w2 - w1 w2 w1 w2        core       ``two-dupe''
+
+`2over'       w1 w2 w3 w4 - w1 w2 w3 w4 w1 w2        core       ``two-over''
+
+`2tuck'       w1 w2 w3 w4 - w3 w4 w1 w2 w3 w4        gforth       ``two-tuck''
+
+`2swap'       w1 w2 w3 w4 - w3 w4 w1 w2        core       ``two-swap''
+
+`2rot'       w1 w2 w3 w4 w5 w6 - w3 w4 w5 w6 w1 w2        double-ext       ``two-rote''
+
+
+File: gforth.info,  Node: Floating point stack,  Next: Return stack,  Prev: Data stack,  Up: Stack Manipulation
+
+Floating point stack
+--------------------
+
+   Whilst every sane Forth has a separate floating-point stack, it is
+not strictly required; an ANS Forth system could theoretically keep
+floating-point numbers on the data stack. As an additional difficulty,
+you don't know how many cells a floating-point number takes. It is
+reportedly possible to write words in a way that they work also for a
+unified stack model, but we do not recommend trying it. Instead, just
+say that your program has an environmental dependency on a separate
+floating-point stack.
+
+`floating-stack'       - n         environment       ``floating-stack''
+   N is non-zero, showing that Gforth maintains a separate
+floating-point stack of depth N.
+
+`fdrop'       r -        float       ``f-drop''
+
+`fnip'       r1 r2 - r2        gforth       ``f-nip''
+
+`fdup'       r - r r        float       ``f-dupe''
+
+`fover'       r1 r2 - r1 r2 r1        float       ``f-over''
+
+`ftuck'       r1 r2 - r2 r1 r2        gforth       ``f-tuck''
+
+`fswap'       r1 r2 - r2 r1        float       ``f-swap''
+
+`fpick'       u - r        gforth       ``fpick''
+   Actually the stack effect is ` r0 ... ru u -- r0 ... ru r0 '.
+
+`frot'       r1 r2 r3 - r2 r3 r1        float       ``f-rote''
+
+
+File: gforth.info,  Node: Return stack,  Next: Locals stack,  Prev: Floating point stack,  Up: Stack Manipulation
+
+Return stack
+------------
+
+   A Forth system is allowed to keep local variables on the return
+stack. This is reasonable, as local variables usually eliminate the
+need to use the return stack explicitly. So, if you want to produce a
+standard compliant program and you are using local variables in a word,
+forget about return stack manipulations in that word (refer to the
+standard document for the exact rules).
+
+`>r'       w - R:w        core       ``to-r''
+
+`r>'       R:w - w        core       ``r-from''
+
+`r@'       - w ; R: w - w         core       ``r-fetch''
+
+`rdrop'       R:w -        gforth       ``rdrop''
+
+`2>r'       d - R:d        core-ext       ``two-to-r''
+
+`2r>'       R:d - d        core-ext       ``two-r-from''
+
+`2r@'       R:d - R:d d        core-ext       ``two-r-fetch''
+
+`2rdrop'       R:d -        gforth       ``two-r-drop''
+
+
+File: gforth.info,  Node: Locals stack,  Next: Stack pointer manipulation,  Prev: Return stack,  Up: Stack Manipulation
+
+Locals stack
+------------
+
+   Gforth uses an extra locals stack.  It is described, along with the
+reasons for its existence, in *Note Locals implementation::.
+
+
+File: gforth.info,  Node: Stack pointer manipulation,  Prev: Locals stack,  Up: Stack Manipulation
+
+Stack pointer manipulation
+--------------------------
+
+`sp0'       - a-addr         gforth       ``sp0''
+   `User' variable - initial value of the data stack pointer.
+
+`sp@'       - a-addr        gforth       ``sp-fetch''
+
+`sp!'       a-addr -        gforth       ``sp-store''
+
+`fp0'       - a-addr         gforth       ``fp0''
+   `User' variable - initial value of the floating-point stack pointer.
+
+`fp@'       - f-addr        gforth       ``fp-fetch''
+
+`fp!'       f-addr -        gforth       ``fp-store''
+
+`rp0'       - a-addr         gforth       ``rp0''
+   `User' variable - initial value of the return stack pointer.
+
+`rp@'       - a-addr        gforth       ``rp-fetch''
+
+`rp!'       a-addr -        gforth       ``rp-store''
+
+`lp0'       - a-addr         gforth       ``lp0''
+   `User' variable - initial value of the locals stack pointer.
+
+`lp@'       - addr         gforth       ``lp-fetch''
+
+`lp!'       c-addr -        gforth       ``lp-store''
+
+
+File: gforth.info,  Node: Memory,  Next: Control Structures,  Prev: Stack Manipulation,  Up: Words
+
+Memory
+======
+
+* Menu:
+
+* Memory model::
+* Dictionary allocation::
+* Heap Allocation::
+* Memory Access::
+* Address arithmetic::
+* Memory Blocks::
+
+   In addition to the standard Forth memory allocation words, there is
+also a garbage collector
+(http://www.complang.tuwien.ac.at/forth/garbage-collection.zip).
+
+
+File: gforth.info,  Node: Memory model,  Next: Dictionary allocation,  Prev: Memory,  Up: Memory
+
+ANS Forth and Gforth memory models
+----------------------------------
+
+   ANS Forth considers a Forth system as consisting of several address
+spaces, of which only "data space" is managed and accessible with the
+memory words.  Memory not necessarily in data space includes the
+stacks, the code (called code space) and the headers (called name
+space). In Gforth everything is in data space, but the code for the
+primitives is usually read-only.
+
+   Data space is divided into a number of areas: The (data space
+portion of the) dictionary(1), the heap, and a number of
+system-allocated buffers.
+
+   In ANS Forth data space is also divided into contiguous regions.  You
+can only use address arithmetic within a contiguous region, not between
+them.  Usually each allocation gives you one contiguous region, but the
+dictionary allocation words have additional rules (*note Dictionary
+allocation::).
+
+   Gforth provides one big address space, and address arithmetic can be
+performed between any addresses. However, in the dictionary headers or
+code are interleaved with data, so almost the only contiguous data space
+regions there are those described by ANS Forth as contiguous; but you
+can be sure that the dictionary is allocated towards increasing
+addresses even between contiguous regions.  The memory order of
+allocations in the heap is platform-dependent (and possibly different
+from one run to the next).
+
+   ---------- Footnotes ----------
+
+   (1) Sometimes, the term "dictionary" is used to refer to the search
+data structure embodied in word lists and headers, because it is used
+for looking up names, just as you would in a conventional dictionary.
+
+
+File: gforth.info,  Node: Dictionary allocation,  Next: Heap Allocation,  Prev: Memory model,  Up: Memory
+
+Dictionary allocation
+---------------------
+
+   Dictionary allocation is a stack-oriented allocation scheme, i.e., if
+you want to deallocate X, you also deallocate everything allocated
+after X.
+
+   The allocations using the words below are contiguous and grow the
+region towards increasing addresses.  Other words that allocate
+dictionary memory of any kind (i.e., defining words including
+`:noname') end the contiguous region and start a new one.
+
+   In ANS Forth only `create'd words are guaranteed to produce an
+address that is the start of the following contiguous region.  In
+particular, the cell allocated by `variable' is not guaranteed to be
+contiguous with following `allot'ed memory.
+
+   You can deallocate memory by using `allot' with a negative argument
+(with some restrictions, see `allot'). For larger deallocations use
+`marker'.
+
+`here'       - addr         core       ``here''
+   Return the address of the next free location in data space.
+
+`unused'       - u         core-ext       ``unused''
+   Return the amount of free space remaining (in address units) in the
+region addressed by `here'.
+
+`allot'       n -         core       ``allot''
+   Reserve n address units of data space without initialization. n is a
+signed number, passing a negative n releases memory.  In ANS Forth you
+can only deallocate memory from the current contiguous region in this
+way.  In Gforth you can deallocate anything in this way but named words.
+The system does not check this restriction.
+
+`c,'       c -         core       ``c-comma''
+   Reserve data space for one char and store c in the space.
+
+`f,'       f -         gforth       ``f,''
+   Reserve data space for one floating-point number and store f in the
+space.
+
+`,'       w -         core       ``comma''
+   Reserve data space for one cell and store w in the space.
+
+`2,'       w1 w2 -         gforth       ``2,''
+   Reserve data space for two cells and store the double w1 w2 there,
+w2 first (lower address).
+
+   Memory accesses have to be aligned (*note Address arithmetic::). So
+of course you should allocate memory in an aligned way, too. I.e.,
+before allocating allocating a cell, `here' must be cell-aligned, etc.
+The words below align `here' if it is not already.  Basically it is
+only already aligned for a type, if the last allocation was a multiple
+of the size of this type and if `here' was aligned for this type before.
+
+   After freshly `create'ing a word, `here' is `align'ed in ANS Forth
+(`maxalign'ed in Gforth).
+
+`align'       -         core       ``align''
+   If the data-space pointer is not aligned, reserve enough space to
+align it.
+
+`falign'       -         float       ``f-align''
+   If the data-space pointer is not float-aligned, reserve enough space
+to align it.
+
+`sfalign'       -         float-ext       ``s-f-align''
+   If the data-space pointer is not single-float-aligned, reserve
+enough space to align it.
+
+`dfalign'       -         float-ext       ``d-f-align''
+   If the data-space pointer is not double-float-aligned, reserve
+enough space to align it.
+
+`maxalign'       -         gforth       ``maxalign''
+   Align data-space pointer for all alignment requirements.
+
+`cfalign'       -         gforth       ``cfalign''
+   Align data-space pointer for code field requirements (i.e., such
+that the corresponding body is maxaligned).
+
+
+File: gforth.info,  Node: Heap Allocation,  Next: Memory Access,  Prev: Dictionary allocation,  Up: Memory
+
+Heap allocation
+---------------
+
+   Heap allocation supports deallocation of allocated memory in any
+order. Dictionary allocation is not affected by it (i.e., it does not
+end a contiguous region). In Gforth, these words are implemented using
+the standard C library calls malloc(), free() and resize().
+
+   The memory region produced by one invocation of `allocate' or
+`resize' is internally contiguous.  There is no contiguity between such
+a region and any other region (including others allocated from the
+heap).
+
+`allocate'       u - a-addr wior        memory       ``allocate''
+   Allocate u address units of contiguous data space. The initial
+contents of the data space is undefined. If the allocation is
+successful, a-addr is the start address of the allocated region and wior
+is 0. If the allocation fails, a-addr is undefined and wior is a
+non-zero I/O result code.
+
+`free'       a-addr - wior        memory       ``free''
+   Return the region of data space starting at a-addr to the system.
+The region must originally have been obtained using `allocate' or
+`resize'. If the operational is successful, wior is 0.  If the
+operation fails, wior is a non-zero I/O result code.
+
+`resize'       a-addr1 u - a-addr2 wior        memory       ``resize''
+   Change the size of the allocated area at a-addr1 to u address units,
+possibly moving the contents to a different area. a-addr2 is the
+address of the resulting area.  If the operation is successful, wior is
+0.  If the operation fails, wior is a non-zero I/O result code. If
+a-addr1 is 0, Gforth's (but not the Standard) `resize' `allocate's u
+address units.
+
+
+File: gforth.info,  Node: Memory Access,  Next: Address arithmetic,  Prev: Heap Allocation,  Up: Memory
+
+Memory Access
+-------------
+
+`@'       a-addr - w        core       ``fetch''
+   w is the cell stored at a_addr.
+
+`!'       w a-addr -        core       ``store''
+   Store w into the cell at a-addr.
+
+`+!'       n a-addr -        core       ``plus-store''
+   Add n to the cell at a-addr.
+
+`c@'       c-addr - c        core       ``c-fetch''
+   c is the char stored at c_addr.
+
+`c!'       c c-addr -        core       ``c-store''
+   Store c into the char at c-addr.
+
+`2@'       a-addr - w1 w2        core       ``two-fetch''
+   w2 is the content of the cell stored at a-addr, w1 is the content of
+the next cell.
+
+`2!'       w1 w2 a-addr -        core       ``two-store''
+   Store w2 into the cell at c-addr and w1 into the next cell.
+
+`f@'       f-addr - r        float       ``f-fetch''
+   r is the float at address f-addr.
+
+`f!'       r f-addr -        float       ``f-store''
+   Store r into the float at address f-addr.
+
+`sf@'       sf-addr - r        float-ext       ``s-f-fetch''
+   Fetch the single-precision IEEE floating-point value r from the
+address sf-addr.
+
+`sf!'       r sf-addr -        float-ext       ``s-f-store''
+   Store r as single-precision IEEE floating-point value to the address
+sf-addr.
+
+`df@'       df-addr - r        float-ext       ``d-f-fetch''
+   Fetch the double-precision IEEE floating-point value r from the
+address df-addr.
+
+`df!'       r df-addr -        float-ext       ``d-f-store''
+   Store r as double-precision IEEE floating-point value to the address
+df-addr.
+
+
+File: gforth.info,  Node: Address arithmetic,  Next: Memory Blocks,  Prev: Memory Access,  Up: Memory
+
+Address arithmetic
+------------------
+
+   Address arithmetic is the foundation on which you can build data
+structures like arrays, records (*note Structures::) and objects (*note
+Object-oriented Forth::).
+
+   ANS Forth does not specify the sizes of the data types. Instead, it
+offers a number of words for computing sizes and doing address
+arithmetic. Address arithmetic is performed in terms of address units
+(aus); on most systems the address unit is one byte. Note that a
+character may have more than one au, so `chars' is no noop (on
+platforms where it is a noop, it compiles to nothing).
+
+   The basic address arithmetic words are `+' and `-'.  E.g., if you
+have the address of a cell, perform `1 cells +', and you will have the
+address of the next cell.
+
+   In ANS Forth you can perform address arithmetic only within a
+contiguous region, i.e., if you have an address into one region, you
+can only add and subtract such that the result is still within the
+region; you can only subtract or compare addresses from within the same
+contiguous region.  Reasons: several contiguous regions can be arranged
+in memory in any way; on segmented systems addresses may have unusual
+representations, such that address arithmetic only works within a
+region.  Gforth provides a few more guarantees (linear address space,
+dictionary grows upwards), but in general I have found it easy to stay
+within contiguous regions (exception: computing and comparing to the
+address just beyond the end of an array).
+
+   ANS Forth also defines words for aligning addresses for specific
+types. Many computers require that accesses to specific data types must
+only occur at specific addresses; e.g., that cells may only be accessed
+at addresses divisible by 4. Even if a machine allows unaligned
+accesses, it can usually perform aligned accesses faster.
+
+   For the performance-conscious: alignment operations are usually only
+necessary during the definition of a data structure, not during the
+(more frequent) accesses to it.
+
+   ANS Forth defines no words for character-aligning addresses. This is
+not an oversight, but reflects the fact that addresses that are not
+char-aligned have no use in the standard and therefore will not be
+created.
+
+   ANS Forth guarantees that addresses returned by `CREATE'd words are
+cell-aligned; in addition, Gforth guarantees that these addresses are
+aligned for all purposes.
+
+   Note that the ANS Forth word `char' has nothing to do with address
+arithmetic.
+
+`chars'       n1 - n2         core       ``chars''
+   n2 is the number of address units of n1 chars.""
+
+`char+'       c-addr1 - c-addr2        core       ``char-plus''
+   `1 chars +'.
+
+`cells'       n1 - n2        core       ``cells''
+    n2 is the number of address units of n1 cells.
+
+`cell+'       a-addr1 - a-addr2        core       ``cell-plus''
+   `1 cells +'
+
+`cell'       - u         gforth       ``cell''
+   `Constant' - `1 cells'
+
+`aligned'       c-addr - a-addr        core       ``aligned''
+    a-addr is the first aligned address greater than or equal to c-addr.
+
+`floats'       n1 - n2        float       ``floats''
+   n2 is the number of address units of n1 floats.
+
+`float+'       f-addr1 - f-addr2        float       ``float-plus''
+   `1 floats +'.
+
+`float'       - u         gforth       ``float''
+   `Constant' - the number of address units corresponding to a
+floating-point number.
+
+`faligned'       c-addr - f-addr        float       ``f-aligned''
+    f-addr is the first float-aligned address greater than or equal to
+c-addr.
+
+`sfloats'       n1 - n2        float-ext       ``s-floats''
+   n2 is the number of address units of n1 single-precision IEEE
+floating-point numbers.
+
+`sfloat+'       sf-addr1 - sf-addr2         float-ext       ``s-float-plus''
+   `1 sfloats +'.
+
+`sfaligned'       c-addr - sf-addr        float-ext       ``s-f-aligned''
+   sf-addr is the first single-float-aligned address greater than or
+equal to c-addr.
+
+`dfloats'       n1 - n2        float-ext       ``d-floats''
+   n2 is the number of address units of n1 double-precision IEEE
+floating-point numbers.
+
+`dfloat+'       df-addr1 - df-addr2         float-ext       ``d-float-plus''
+   `1 dfloats +'.
+
+`dfaligned'       c-addr - df-addr        float-ext       ``d-f-aligned''
+   df-addr is the first double-float-aligned address greater than or
+equal to c-addr.
+
+`maxaligned'       addr1 - addr2         gforth       ``maxaligned''
+   addr2 is the first address after addr1 that satisfies all alignment
+restrictions.  maxaligned"
+
+`cfaligned'       addr1 - addr2         gforth       ``cfaligned''
+   addr2 is the first address after addr1 that is aligned for a code
+field (i.e., such that the corresponding body is maxaligned).
+
+`ADDRESS-UNIT-BITS'       - n         environment       ``ADDRESS-UNIT-BITS''
+   Size of one address unit, in bits.
+
+
+File: gforth.info,  Node: Memory Blocks,  Prev: Address arithmetic,  Up: Memory
+
+Memory Blocks
+-------------
+
+   Memory blocks often represent character strings; For ways of storing
+character strings in memory see *Note String Formats::.  For other
+string-processing words see *Note Displaying characters and strings::.
+
+   A few of these words work on address unit blocks.  In that case, you
+usually have to insert `CHARS' before the word when working on
+character strings.  Most words work on character blocks, and expect a
+char-aligned address.
+
+   When copying characters between overlapping memory regions, use
+`chars move' or choose carefully between `cmove' and `cmove>'.
+
+`move'       c-from c-to ucount -        core       ``move''
+   Copy the contents of ucount aus at c-from to c-to. `move' works
+correctly even if the two areas overlap.
+
+`erase'       addr u -         core-ext       ``erase''
+   Clear all bits in u aus starting at addr.
+
+`cmove'       c-from c-to u -        string       ``c-move''
+   Copy the contents of ucount characters from data space at c-from to
+c-to. The copy proceeds `char'-by-`char' from low address to high
+address; i.e., for overlapping areas it is safe if c-to=<c-from.
+
+`cmove>'       c-from c-to u -        string       ``c-move-up''
+   Copy the contents of ucount characters from data space at c-from to
+c-to. The copy proceeds `char'-by-`char' from high address to low
+address; i.e., for overlapping areas it is safe if c-to>=c-from.
+
+`fill'       c-addr u c -        core       ``fill''
+   Store c in u chars starting at c-addr.
+
+`blank'       c-addr u -         string       ``blank''
+   Store the space character into u chars starting at c-addr.
+
+`compare'       c-addr1 u1 c-addr2 u2 - n        string       ``compare''
+   Compare two strings lexicographically. If they are equal, n is 0; if
+the first string is smaller, n is -1; if the first string is larger, n
+is 1. Currently this is based on the machine's character comparison. In
+the future, this may change to consider the current locale and its
+collation order.
+
+`str='       c-addr1 u1 c-addr2 u2 - f         gforth       ``str=''
+
+`str<'       c-addr1 u1 c-addr2 u2 - f         gforth       ``str<''
+
+`string-prefix?'       c-addr1 u1 c-addr2 u2 - f         gforth       ``string-prefix?''
+   Is C-ADDR2 U2 a prefix of C-ADDR1 U1?
+
+`search'       c-addr1 u1 c-addr2 u2 - c-addr3 u3 flag         string       ``search''
+   Search the string specified by c-addr1, u1 for the string specified
+by c-addr2, u2. If flag is true: match was found at c-addr3 with u3
+characters remaining. If flag is false: no match was found; c-addr3, u3
+are equal to c-addr1, u1.
+
+`-trailing'       c_addr u1 - c_addr u2         string       ``dash-trailing''
+   Adjust the string specified by c-addr, u1 to remove all trailing
+spaces. u2 is the length of the modified string.
+
+`/string'       c-addr1 u1 n - c-addr2 u2        string       ``slash-string''
+   Adjust the string specified by c-addr1, u1 to remove n characters
+from the start of the string.
+
+`bounds'       addr u - addr+u addr         gforth       ``bounds''
+   Given a memory block represented by starting address addr and length
+u in aus, produce the end address addr+u and the start address in the
+right order for `u+do' or `?do'.
+
+
+File: gforth.info,  Node: Control Structures,  Next: Defining Words,  Prev: Memory,  Up: Words
+
+Control Structures
+==================
+
+   Control structures in Forth cannot be used interpretively, only in a
+colon definition(1). We do not like this limitation, but have not seen
+a satisfying way around it yet, although many schemes have been
+proposed.
+
+* Menu:
+
+* Selection::                   IF ... ELSE ... ENDIF
+* Simple Loops::                BEGIN ...
+* Counted Loops::               DO
+* Arbitrary control structures::
+* Calls and returns::
+* Exception Handling::
+
+   ---------- Footnotes ----------
+
+   (1) To be precise, they have no interpretation semantics (*note
+Interpretation and Compilation Semantics::).
+
+
+File: gforth.info,  Node: Selection,  Next: Simple Loops,  Prev: Control Structures,  Up: Control Structures
+
+Selection
+---------
+
+     flag
+     IF
+       code
+     ENDIF
+
+If flag is non-zero (as far as `IF' etc. are concerned, a cell with any
+bit set represents truth) code is executed.
+
+     flag
+     IF
+       code1
+     ELSE
+       code2
+     ENDIF
+
+   If FLAG is true, code1 is executed, otherwise code2 is executed.
+
+   You can use `THEN' instead of `ENDIF'. Indeed, `THEN' is standard,
+and `ENDIF' is not, although it is quite popular. We recommend using
+`ENDIF', because it is less confusing for people who also know other
+languages (and is not prone to reinforcing negative prejudices against
+Forth in these people). Adding `ENDIF' to a system that only supplies
+`THEN' is simple:
+     : ENDIF   POSTPONE then ; immediate
+
+   [According to `Webster's New Encyclopedic Dictionary', "then (adv.)"
+has the following meanings:
+
+     ... 2b: following next after in order ... 3d: as a necessary
+     consequence (if you were there, then you saw them).
+   Forth's `THEN' has the meaning 2b, whereas `THEN' in Pascal and many
+other programming languages has the meaning 3d.]
+
+   Gforth also provides the words `?DUP-IF' and `?DUP-0=-IF', so you
+can avoid using `?dup'. Using these alternatives is also more efficient
+than using `?dup'. Definitions in ANS Forth for `ENDIF', `?DUP-IF' and
+`?DUP-0=-IF' are provided in `compat/control.fs'.
+
+     n
+     CASE
+       n1 OF code1 ENDOF
+       n2 OF code2 ENDOF
+       ...
+       ( n ) default-code ( n )
+     ENDCASE
+
+   Executes the first codei, where the ni is equal to n.  If no ni
+matches, the optional default-code is executed. The optional default
+case can be added by simply writing the code after the last `ENDOF'. It
+may use n, which is on top of the stack, but must not consume it.
+
+   Programming style note: To keep the code understandable, you should
+ensure that on all paths through a selection construct the stack is
+changed in the same way (wrt. number and types of stack items consumed
+and pushed).
+
+
+File: gforth.info,  Node: Simple Loops,  Next: Counted Loops,  Prev: Selection,  Up: Control Structures
+
+Simple Loops
+------------
+
+     BEGIN
+       code1
+       flag
+     WHILE
+       code2
+     REPEAT
+
+   code1 is executed and flag is computed. If it is true, code2 is
+executed and the loop is restarted; If flag is false, execution
+continues after the `REPEAT'.
+
+     BEGIN
+       code
+       flag
+     UNTIL
+
+   code is executed. The loop is restarted if `flag' is false.
+
+   Programming style note: To keep the code understandable, a complete
+iteration of the loop should not change the number and types of the
+items on the stacks.
+
+     BEGIN
+       code
+     AGAIN
+
+   This is an endless loop.
+
+
+File: gforth.info,  Node: Counted Loops,  Next: Arbitrary control structures,  Prev: Simple Loops,  Up: Control Structures
+
+Counted Loops
+-------------
+
+   The basic counted loop is:
+     limit start
+     ?DO
+       body
+     LOOP
+
+   This performs one iteration for every integer, starting from start
+and up to, but excluding limit. The counter, or index, can be accessed
+with `i'. For example, the loop:
+     10 0 ?DO
+       i .
+     LOOP
+
+prints `0 1 2 3 4 5 6 7 8 9'
+
+   The index of the innermost loop can be accessed with `i', the index
+of the next loop with `j', and the index of the third loop with `k'.
+
+`i'       R:n - R:n n        core       ``i''
+
+`j'       R:n R:d1 - n R:n R:d1        core       ``j''
+
+`k'       R:n R:d1 R:d2 - n R:n R:d1 R:d2        gforth       ``k''
+
+   The loop control data are kept on the return stack, so there are some
+restrictions on mixing return stack accesses and counted loop words. In
+particuler, if you put values on the return stack outside the loop, you
+cannot read them inside the loop(1). If you put values on the return
+stack within a loop, you have to remove them before the end of the loop
+and before accessing the index of the loop.
+
+   There are several variations on the counted loop:
+
+   * `LEAVE' leaves the innermost counted loop immediately; execution
+     continues after the associated `LOOP' or `NEXT'. For example:
+
+          10 0 ?DO  i DUP . 3 = IF LEAVE THEN LOOP
+     prints `0 1 2 3'
+
+   * `UNLOOP' prepares for an abnormal loop exit, e.g., via `EXIT'.
+     `UNLOOP' removes the loop control parameters from the return stack
+     so `EXIT' can get to its return address. For example:
+
+          : demo 10 0 ?DO i DUP . 3 = IF UNLOOP EXIT THEN LOOP ." Done" ;
+     prints `0 1 2 3'
+
+   * If start is greater than limit, a `?DO' loop is entered (and
+     `LOOP' iterates until they become equal by wrap-around
+     arithmetic). This behaviour is usually not what you want.
+     Therefore, Gforth offers `+DO' and `U+DO' (as replacements for
+     `?DO'), which do not enter the loop if start is greater than
+     limit; `+DO' is for signed loop parameters, `U+DO' for unsigned
+     loop parameters.
+
+   * `?DO' can be replaced by `DO'. `DO' always enters the loop,
+     independent of the loop parameters. Do not use `DO', even if you
+     know that the loop is entered in any case. Such knowledge tends to
+     become invalid during maintenance of a program, and then the `DO'
+     will make trouble.
+
+   * `LOOP' can be replaced with `n +LOOP'; this updates the index by n
+     instead of by 1. The loop is terminated when the border between
+     limit-1 and limit is crossed. E.g.:
+
+          4 0 +DO  i .  2 +LOOP
+
+     prints `0 2'
+
+          4 1 +DO  i .  2 +LOOP
+
+     prints `1 3'
+
+   * The behaviour of `n +LOOP' is peculiar when n is negative:
+
+          -1 0 ?DO  i .  -1 +LOOP
+
+     prints `0 -1'
+
+          0 0 ?DO  i .  -1 +LOOP
+     prints nothing.
+
+     Therefore we recommend avoiding `n +LOOP' with negative n. One
+     alternative is `u -LOOP', which reduces the index by u each
+     iteration. The loop is terminated when the border between limit+1
+     and limit is crossed. Gforth also provides `-DO' and `U-DO' for
+     down-counting loops. E.g.:
+
+          -2 0 -DO  i .  1 -LOOP
+
+     prints `0 -1'
+
+          -1 0 -DO  i .  1 -LOOP
+
+     prints `0'
+
+          0 0 -DO  i .  1 -LOOP
+
+     prints nothing.
+
+
+   Unfortunately, `+DO', `U+DO', `-DO', `U-DO' and `-LOOP' are not
+defined in ANS Forth. However, an implementation for these words that
+uses only standard words is provided in `compat/loops.fs'.
+
+   Another counted loop is:
+     n
+     FOR
+       body
+     NEXT
+   This is the preferred loop of native code compiler writers who are
+too lazy to optimize `?DO' loops properly. This loop structure is not
+defined in ANS Forth. In Gforth, this loop iterates n+1 times; `i'
+produces values starting with n and ending with 0. Other Forth systems
+may behave differently, even if they support `FOR' loops. To avoid
+problems, don't use `FOR' loops.
+
+   ---------- Footnotes ----------
+
+   (1) well, not in a way that is portable.
+
+
+File: gforth.info,  Node: Arbitrary control structures,  Next: Calls and returns,  Prev: Counted Loops,  Up: Control Structures
+
+Arbitrary control structures
+----------------------------
+
+   ANS Forth permits and supports using control structures in a
+non-nested way. Information about incomplete control structures is
+stored on the control-flow stack. This stack may be implemented on the
+Forth data stack, and this is what we have done in Gforth.
+
+   An orig entry represents an unresolved forward branch, a dest entry
+represents a backward branch target. A few words are the basis for
+building any control structure possible (except control structures that
+need storage, like calls, coroutines, and backtracking).
+
+`IF'       compilation - orig ; run-time f -         core       ``IF''
+
+`AHEAD'       compilation - orig ; run-time -         tools-ext       ``AHEAD''
+
+`THEN'       compilation orig - ; run-time -         core       ``THEN''
+
+`BEGIN'       compilation - dest ; run-time -         core       ``BEGIN''
+
+`UNTIL'       compilation dest - ; run-time f -         core       ``UNTIL''
+
+`AGAIN'       compilation dest - ; run-time -         core-ext       ``AGAIN''
+
+`CS-PICK'       ... u - ... destu         tools-ext       ``c-s-pick''
+
+`CS-ROLL'       destu/origu .. dest0/orig0 u - .. dest0/orig0 destu/origu         tools-ext       ``c-s-roll''
+
+   The Standard words `CS-PICK' and `CS-ROLL' allow you to manipulate
+the control-flow stack in a portable way. Without them, you would need
+to know how many stack items are occupied by a control-flow entry (many
+systems use one cell. In Gforth they currently take three, but this may
+change in the future).
+
+   Some standard control structure words are built from these words:
+
+`ELSE'       compilation orig1 - orig2 ; run-time f -         core       ``ELSE''
+
+`WHILE'       compilation dest - orig dest ; run-time f -         core       ``WHILE''
+
+`REPEAT'       compilation orig dest - ; run-time -         core       ``REPEAT''
+
+Gforth adds some more control-structure words:
+
+`ENDIF'       compilation orig - ; run-time -         gforth       ``ENDIF''
+
+`?DUP-IF'       compilation - orig ; run-time n - n|         gforth       ``question-dupe-if''
+   This is the preferred alternative to the idiom "`?DUP IF'", since it
+can be better handled by tools like stack checkers. Besides, it's
+faster.
+
+`?DUP-0=-IF'       compilation - orig ; run-time n - n|         gforth       ``question-dupe-zero-equals-if''
+
+Counted loop words constitute a separate group of words:
+
+`?DO'       compilation - do-sys ; run-time w1 w2 - | loop-sys         core-ext       ``question-do''
+
+`+DO'       compilation - do-sys ; run-time n1 n2 - | loop-sys         gforth       ``plus-do''
+
+`U+DO'       compilation - do-sys ; run-time u1 u2 - | loop-sys         gforth       ``u-plus-do''
+
+`-DO'       compilation - do-sys ; run-time n1 n2 - | loop-sys         gforth       ``minus-do''
+
+`U-DO'       compilation - do-sys ; run-time u1 u2 - | loop-sys         gforth       ``u-minus-do''
+
+`DO'       compilation - do-sys ; run-time w1 w2 - loop-sys         core       ``DO''
+
+`FOR'       compilation - do-sys ; run-time u - loop-sys         gforth       ``FOR''
+
+`LOOP'       compilation do-sys - ; run-time loop-sys1 - | loop-sys2         core       ``LOOP''
+
+`+LOOP'       compilation do-sys - ; run-time loop-sys1 n - | loop-sys2         core       ``plus-loop''
+
+`-LOOP'       compilation do-sys - ; run-time loop-sys1 u - | loop-sys2         gforth       ``minus-loop''
+
+`NEXT'       compilation do-sys - ; run-time loop-sys1 - | loop-sys2         gforth       ``NEXT''
+
+`LEAVE'       compilation - ; run-time loop-sys -         core       ``LEAVE''
+
+`?LEAVE'       compilation - ; run-time f | f loop-sys -         gforth       ``question-leave''
+
+`unloop'       R:w1 R:w2 -        core       ``unloop''
+
+`DONE'       compilation orig - ; run-time -         gforth       ``DONE''
+
+   The standard does not allow using `CS-PICK' and `CS-ROLL' on do-sys.
+Gforth allows it, but it's your job to ensure that for every `?DO' etc.
+there is exactly one `UNLOOP' on any path through the definition
+(`LOOP' etc. compile an `UNLOOP' on the fall-through path). Also, you
+have to ensure that all `LEAVE's are resolved (by using one of the
+loop-ending words or `DONE').
+
+Another group of control structure words are:
+
+`case'       compilation  - case-sys ; run-time  -         core-ext       ``case''
+
+`endcase'       compilation case-sys - ; run-time x -         core-ext       ``end-case''
+
+`of'       compilation  - of-sys ; run-time x1 x2 - |x1         core-ext       ``of''
+
+`endof'       compilation case-sys1 of-sys - case-sys2 ; run-time  -         core-ext       ``end-of''
+
+   case-sys and of-sys cannot be processed using `CS-PICK' and
+`CS-ROLL'.
+
+Programming Style
+.................
+
+   In order to ensure readability we recommend that you do not create
+arbitrary control structures directly, but define new control structure
+words for the control structure you want and use these words in your
+program. For example, instead of writing:
+
+     BEGIN
+       ...
+     IF [ 1 CS-ROLL ]
+       ...
+     AGAIN THEN
+
+we recommend defining control structure words, e.g.,
+
+     : WHILE ( DEST -- ORIG DEST )
+      POSTPONE IF
+      1 CS-ROLL ; immediate
+     
+     : REPEAT ( orig dest -- )
+      POSTPONE AGAIN
+      POSTPONE THEN ; immediate
+
+and then using these to create the control structure:
+
+     BEGIN
+       ...
+     WHILE
+       ...
+     REPEAT
+
+   That's much easier to read, isn't it? Of course, `REPEAT' and
+`WHILE' are predefined, so in this example it would not be necessary to
+define them.
+
+
+File: gforth.info,  Node: Calls and returns,  Next: Exception Handling,  Prev: Arbitrary control structures,  Up: Control Structures
+
+Calls and returns
+-----------------
+
+   A definition can be called simply be writing the name of the
+definition to be called. Normally a definition is invisible during its
+own definition. If you want to write a directly recursive definition,
+you can use `recursive' to make the current definition visible, or
+`recurse' to call the current definition directly.
+
+`recursive'       compilation - ; run-time -         gforth       ``recursive''
+   Make the current definition visible, enabling it to call itself
+recursively.
+
+`recurse'       compilation - ; run-time ?? - ??         core       ``recurse''
+   Call the current definition.
+
+     Programming style note: I prefer using `recursive' to `recurse',
+     because calling the definition by name is more descriptive (if the
+     name is well-chosen) than the somewhat cryptic `recurse'.  E.g.,
+     in a quicksort implementation, it is much better to read (and
+     think) "now sort the partitions" than to read "now do a recursive
+     call".
+
+   For mutual recursion, use `Defer'red words, like this:
+
+     Defer foo
+     
+     : bar ( ... -- ... )
+      ... foo ... ;
+     
+     :noname ( ... -- ... )
+      ... bar ... ;
+     IS foo
+
+   Deferred words are discussed in more detail in *Note Deferred
+words::.
+
+   The current definition returns control to the calling definition when
+the end of the definition is reached or `EXIT' is encountered.
+
+`EXIT'       compilation - ; run-time nest-sys -         core       ``EXIT''
+   Return to the calling definition; usually used as a way of forcing
+an early return from a definition. Before `EXIT'ing you must clean up
+the return stack and `UNLOOP' any outstanding `?DO'...`LOOP's.
+
+`;s'       R:w -        gforth       ``semis''
+   The primitive compiled by `EXIT'.
+
+
+File: gforth.info,  Node: Exception Handling,  Prev: Calls and returns,  Up: Control Structures
+
+Exception Handling
+------------------
+
+   If a word detects an error condition that it cannot handle, it can
+`throw' an exception.  In the simplest case, this will terminate your
+program, and report an appropriate error.
+
+`throw'       y1 .. ym nerror - y1 .. ym / z1 .. zn error         exception       ``throw''
+   If nerror is 0, drop it and continue.  Otherwise, transfer control
+to the next dynamically enclosing exception handler, reset the stacks
+accordingly, and push nerror.
+
+   `Throw' consumes a cell-sized error number on the stack. There are
+some predefined error numbers in ANS Forth (see `errors.fs').  In
+Gforth (and most other systems) you can use the iors produced by various
+words as error numbers (e.g., a typical use of `allocate' is `allocate
+throw').  Gforth also provides the word `exception' to define your own
+error numbers (with decent error reporting); an ANS Forth version of
+this word (but without the error messages) is available in
+`compat/except.fs'.  And finally, you can use your own error numbers
+(anything outside the range -4095..0), but won't get nice error
+messages, only numbers.  For example, try:
+
+     -10 throw                    \ ANS defined
+     -267 throw                   \ system defined
+     s" my error" exception throw \ user defined
+     7 throw                      \ arbitrary number
+
+`exception'       addr u - n         gforth       ``exception''
+   N is a previously unused `throw' value in the range (-4095...-256).
+Consecutive calls to `exception' return consecutive decreasing numbers.
+Gforth uses the string ADDR U as an error message.
+
+   A common idiom to `THROW' a specific error if a flag is true is this:
+
+     `( flag ) 0<> errno and throw'
+
+   Your program can provide exception handlers to catch exceptions.  An
+exception handler can be used to correct the problem, or to clean up
+some data structures and just throw the exception to the next exception
+handler.  Note that `throw' jumps to the dynamically innermost
+exception handler.  The system's exception handler is outermost, and
+just prints an error and restarts command-line interpretation (or, in
+batch mode (i.e., while processing the shell command line), leaves
+Gforth).
+
+   The ANS Forth way to catch exceptions is `catch':
+
+`catch'       ... xt - ... n         exception       ``catch''
+
+   The most common use of exception handlers is to clean up the state
+when an error happens.  E.g.,
+
+     base  >r hex \ actually the hex should be inside foo, or we h
+     ['] foo catch ( nerror|0 )
+     r> base !
+     ( nerror|0 ) throw \ pass it on
+
+   A use of `catch' for handling the error `myerror' might look like
+this:
+
+     ['] foo catch
+     CASE
+       myerror OF ... ( do something about it ) ENDOF
+       dup throw \ default: pass other errors on, do nothing on non-errors
+     ENDCASE
+
+   Having to wrap the code into a separate word is often cumbersome,
+therefore Gforth provides an alternative syntax:
+
+     TRY
+       code1
+     RECOVER     \ optional
+       code2 \ optional
+     ENDTRY
+
+   This performs Code1.  If code1 completes normally, execution
+continues after the `endtry'.  If Code1 throws, the stacks are reset to
+the state during `try', the throw value is pushed on the data stack,
+and execution constinues at code2, and finally falls through the
+`endtry' into the following code.
+
+`try'       compilation  - orig ; run-time  -         gforth       ``try''
+
+`recover'       compilation  orig1 - orig2 ; run-time  -         gforth       ``recover''
+
+`endtry'       compilation  orig - ; run-time  -         gforth       ``endtry''
+
+   The cleanup example from above in this syntax:
+
+     base  >r TRY
+       hex foo \ now the hex is placed correctly
+       0       \ value for throw
+     RECOVER ENDTRY
+     r> base ! throw
+
+   And here's the error handling example:
+
+     TRY
+       foo
+     RECOVER
+       CASE
+         myerror OF ... ( do something about it ) ENDOF
+         throw \ pass other errors on
+       ENDCASE
+     ENDTRY
+
+   Programming style note: As usual, you should ensure that the stack
+depth is statically known at the end: either after the `throw' for
+passing on errors, or after the `ENDTRY' (or, if you use `catch', after
+the end of the selection construct for handling the error).
+
+   There are two alternatives to `throw': `Abort"' is conditional and
+you can provide an error message.  `Abort' just produces an "Aborted"
+error.
+
+   The problem with these words is that exception handlers cannot
+differentiate between different `abort"'s; they just look like `-2
+throw' to them (the error message cannot be accessed by standard
+programs).  Similar `abort' looks like `-1 throw' to exception handlers.
+
+`ABORT"'       compilation 'ccc"' - ; run-time f -         core,exception-ext       ``abort-quote''
+   If any bit of f is non-zero, perform the function of `-2 throw',
+displaying the string ccc if there is no exception frame on the
+exception stack.
+
+`abort'       ?? - ??         core,exception-ext       ``abort''
+   `-1 throw'.
+
+
+File: gforth.info,  Node: Defining Words,  Next: Interpretation and Compilation Semantics,  Prev: Control Structures,  Up: Words
+
+Defining Words
+==============
+
+   Defining words are used to extend Forth by creating new entries in
+the dictionary.
+
+* Menu:
+
+* CREATE::
+* Variables::                   Variables and user variables
+* Constants::
+* Values::                      Initialised variables
+* Colon Definitions::
+* Anonymous Definitions::       Definitions without names
+* Supplying names::             Passing definition names as strings
+* User-defined Defining Words::
+* Deferred words::              Allow forward references
+* Aliases::
+
+
+File: gforth.info,  Node: CREATE,  Next: Variables,  Prev: Defining Words,  Up: Defining Words
+
+`CREATE'
+--------
+
+   Defining words are used to create new entries in the dictionary. The
+simplest defining word is `CREATE'. `CREATE' is used like this:
+
+     CREATE new-word1
+
+   `CREATE' is a parsing word, i.e., it takes an argument from the
+input stream (`new-word1' in our example).  It generates a dictionary
+entry for `new-word1'. When `new-word1' is executed, all that it does
+is leave an address on the stack. The address represents the value of
+the data space pointer (`HERE') at the time that `new-word1' was
+defined. Therefore, `CREATE' is a way of associating a name with the
+address of a region of memory.
+
+`Create'       "name" -         core       ``Create''
+
+   Note that in ANS Forth guarantees only for `create' that its body is
+in dictionary data space (i.e., where `here', `allot' etc. work, *note
+Dictionary allocation::).  Also, in ANS Forth only `create'd words can
+be modified with `does>' (*note User-defined Defining Words::).  And in
+ANS Forth `>body' can only be applied to `create'd words.
+
+   By extending this example to reserve some memory in data space, we
+end up with something like a variable. Here are two different ways to do
+it:
+
+     CREATE new-word2 1 cells allot  \ reserve 1 cell - initial value undefined
+     CREATE new-word3 4 ,            \ reserve 1 cell and initialise it (to 4)
+
+   The variable can be examined and modified using `@' ("fetch") and
+`!' ("store") like this:
+
+     new-word2 @ .      \ get address, fetch from it and display
+     1234 new-word2 !   \ new value, get address, store to it
+
+   A similar mechanism can be used to create arrays. For example, an
+80-character text input buffer:
+
+     CREATE text-buf 80 chars allot
+     
+     text-buf 0 chars c@ \ the 1st character (offset 0)
+     text-buf 3 chars c@ \ the 4th character (offset 3)
+
+   You can build arbitrarily complex data structures by allocating
+appropriate areas of memory. For further discussions of this, and to
+learn about some Gforth tools that make it easier, *Note Structures::.
+
+
+File: gforth.info,  Node: Variables,  Next: Constants,  Prev: CREATE,  Up: Defining Words
+
+Variables
+---------
+
+   The previous section showed how a sequence of commands could be used
+to generate a variable.  As a final refinement, the whole code sequence
+can be wrapped up in a defining word (pre-empting the subject of the
+next section), making it easier to create new variables:
+
+     : myvariableX ( "name" -- a-addr ) CREATE 1 cells allot ;
+     : myvariable0 ( "name" -- a-addr ) CREATE 0 , ;
+     
+     myvariableX foo \ variable foo starts off with an unknown value
+     myvariable0 joe \ whilst joe is initialised to 0
+     
+     45 3 * foo !   \ set foo to 135
+     1234 joe !     \ set joe to 1234
+     3 joe +!       \ increment joe by 3.. to 1237
+
+   Not surprisingly, there is no need to define `myvariable', since
+Forth already has a definition `Variable'. ANS Forth does not guarantee
+that a `Variable' is initialised when it is created (i.e., it may
+behave like `myvariableX'). In contrast, Gforth's `Variable'
+initialises the variable to 0 (i.e., it behaves exactly like
+`myvariable0'). Forth also provides `2Variable' and `fvariable' for
+double and floating-point variables, respectively - they are
+initialised to 0. and 0e in Gforth. If you use a `Variable' to store a
+boolean, you can use `on' and `off' to toggle its state.
+
+`Variable'       "name" -         core       ``Variable''
+
+`2Variable'       "name" -         double       ``two-variable''
+
+`fvariable'       "name" -         float       ``f-variable''
+
+   The defining word `User' behaves in the same way as `Variable'.  The
+difference is that it reserves space in user (data) space rather than
+normal data space. In a Forth system that has a multi-tasker, each task
+has its own set of user variables.
+
+`User'       "name" -         gforth       ``User''
+

@@ -1,0 +1,1540 @@
+This is gforth.info, produced by makeinfo version 4.2 from gforth.texi.
+
+This manual is for Gforth (version 0.6.2, August 25, 2003), a fast and
+portable implementation of the ANS Forth language
+
+   Copyright (C) 1995, 1996, 1997, 1998, 2000, 2003 Free Software
+Foundation, Inc.
+
+     Permission is granted to copy, distribute and/or modify this
+     document under the terms of the GNU Free Documentation License,
+     Version 1.1 or any later version published by the Free Software
+     Foundation; with no Invariant Sections, with the Front-Cover texts
+     being "A GNU Manual," and with the Back-Cover Texts as in (a)
+     below.  A copy of the license is included in the section entitled
+     "GNU Free Documentation License."
+
+     (a) The FSF's Back-Cover Text is: "You have freedom to copy and
+     modify this GNU Manual, like GNU software.  Copies published by
+     the Free Software Foundation raise funds for GNU development."
+   
+INFO-DIR-SECTION Software development
+START-INFO-DIR-ENTRY
+* Gforth: (gforth).             A fast interpreter for the Forth language.
+END-INFO-DIR-ENTRY
+
+
+File: gforth.info,  Node: Designing the stack effect Tutorial,  Next: Local Variables Tutorial,  Prev: Factoring Tutorial,  Up: Tutorial
+
+Designing the stack effect
+==========================
+
+   In other languages you can use an arbitrary order of parameters for a
+function; and since there is only one result, you don't have to deal
+with the order of results, either.
+
+   In Forth (and other stack-based languages, e.g., PostScript) the
+parameter and result order of a definition is important and should be
+designed well.  The general guideline is to design the stack effect such
+that the word is simple to use in most cases, even if that complicates
+the implementation of the word.  Some concrete rules are:
+
+   * Words consume all of their parameters (e.g., `.').
+
+   * If there is a convention on the order of parameters (e.g., from
+     mathematics or another programming language), stick with it (e.g.,
+     `-').
+
+   * If one parameter usually requires only a short computation (e.g.,
+     it is a constant), pass it on the top of the stack.  Conversely,
+     parameters that usually require a long sequence of code to compute
+     should be passed as the bottom (i.e., first) parameter.  This
+     makes the code easier to read, because reader does not need to
+     keep track of the bottom item through a long sequence of code (or,
+     alternatively, through stack manipulations). E.g., `!' (store,
+     *note Memory::) expects the address on top of the stack because it
+     is usually simpler to compute than the stored value (often the
+     address is just a variable).
+
+   * Similarly, results that are usually consumed quickly should be
+     returned on the top of stack, whereas a result that is often used
+     in long computations should be passed as bottom result.  E.g., the
+     file words like `open-file' return the error code on the top of
+     stack, because it is usually consumed quickly by `throw';
+     moreover, the error code has to be checked before doing anything
+     with the other results.
+
+
+   These rules are just general guidelines, don't lose sight of the
+overall goal to make the words easy to use.  E.g., if the convention
+rule conflicts with the computation-length rule, you might decide in
+favour of the convention if the word will be used rarely, and in favour
+of the computation-length rule if the word will be used frequently
+(because with frequent use the cost of breaking the computation-length
+rule would be quite high, and frequent use makes it easier to remember
+an unconventional order).
+
+
+File: gforth.info,  Node: Local Variables Tutorial,  Next: Conditional execution Tutorial,  Prev: Designing the stack effect Tutorial,  Up: Tutorial
+
+Local Variables
+===============
+
+   You can define local variables (_locals_) in a colon definition:
+
+     : swap { a b -- b a }
+       b a ;
+     1 2 swap .s 2drop
+
+   (If your Forth system does not support this syntax, include
+`compat/anslocals.fs' first).
+
+   In this example `{ a b -- b a }' is the locals definition; it takes
+two cells from the stack, puts the top of stack in `b' and the next
+stack element in `a'.  `--' starts a comment ending with `}'.  After
+the locals definition, using the name of the local will push its value
+on the stack.  You can leave the comment part (`-- b a') away:
+
+     : swap ( x1 x2 -- x2 x1 )
+       { a b } b a ;
+
+   In Gforth you can have several locals definitions, anywhere in a
+colon definition; in contrast, in a standard program you can have only
+one locals definition per colon definition, and that locals definition
+must be outside any controll structure.
+
+   With locals you can write slightly longer definitions without running
+into stack trouble.  However, I recommend trying to write colon
+definitions without locals for exercise purposes to help you gain the
+essential factoring skills.
+
+Assignment:
+     Rewrite your definitions until now with locals
+
+   Reference: *Note Locals::.
+
+
+File: gforth.info,  Node: Conditional execution Tutorial,  Next: Flags and Comparisons Tutorial,  Prev: Local Variables Tutorial,  Up: Tutorial
+
+Conditional execution
+=====================
+
+   In Forth you can use control structures only inside colon
+definitions.  An `if'-structure looks like this:
+
+     : abs ( n1 -- +n2 )
+         dup 0 < if
+             negate
+         endif ;
+     5 abs .
+     -5 abs .
+
+   `if' takes a flag from the stack.  If the flag is non-zero (true),
+the following code is performed, otherwise execution continues after the
+`endif' (or `else').  `<' compares the top two stack elements and
+prioduces a flag:
+
+     1 2 < .
+     2 1 < .
+     1 1 < .
+
+   Actually the standard name for `endif' is `then'.  This tutorial
+presents the examples using `endif', because this is often less
+confusing for people familiar with other programming languages where
+`then' has a different meaning.  If your system does not have `endif',
+define it with
+
+     : endif postpone then ; immediate
+
+   You can optionally use an `else'-part:
+
+     : min ( n1 n2 -- n )
+       2dup < if
+         drop
+       else
+         nip
+       endif ;
+     2 3 min .
+     3 2 min .
+
+Assignment:
+     Write `min' without `else'-part (hint: what's the definition of
+     `nip'?).
+
+   Reference: *Note Selection::.
+
+
+File: gforth.info,  Node: Flags and Comparisons Tutorial,  Next: General Loops Tutorial,  Prev: Conditional execution Tutorial,  Up: Tutorial
+
+Flags and Comparisons
+=====================
+
+   In a false-flag all bits are clear (0 when interpreted as integer).
+In a canonical true-flag all bits are set (-1 as a twos-complement
+signed integer); in many contexts (e.g., `if') any non-zero value is
+treated as true flag.
+
+     false .
+     true .
+     true hex u. decimal
+
+   Comparison words produce canonical flags:
+
+     1 1 = .
+     1 0= .
+     0 1 < .
+     0 0 < .
+     -1 1 u< . \ type error, u< interprets -1 as large unsigned number
+     -1 1 < .
+
+   Gforth supports all combinations of the prefixes `0 u d d0 du f f0'
+(or none) and the comparisons `= <> < > <= >='.  Only a part of these
+combinations are standard (for details see the standard, *Note Numeric
+comparison::, *Note Floating Point:: or *Note Word Index::).
+
+   You can use `and or xor invert' can be used as operations on
+canonical flags.  Actually they are bitwise operations:
+
+     1 2 and .
+     1 2 or .
+     1 3 xor .
+     1 invert .
+
+   You can convert a zero/non-zero flag into a canonical flag with
+`0<>' (and complement it on the way with `0=').
+
+     1 0= .
+     1 0<> .
+
+   You can use the all-bits-set feature of canonical flags and the
+bitwise operation of the Boolean operations to avoid `if's:
+
+     : foo ( n1 -- n2 )
+       0= if
+         14
+       else
+         0
+       endif ;
+     0 foo .
+     1 foo .
+     
+     : foo ( n1 -- n2 )
+       0= 14 and ;
+     0 foo .
+     1 foo .
+
+Assignment:
+     Write `min' without `if'.
+
+   For reference, see *Note Boolean Flags::, *Note Numeric
+comparison::, and *Note Bitwise operations::.
+
+
+File: gforth.info,  Node: General Loops Tutorial,  Next: Counted loops Tutorial,  Prev: Flags and Comparisons Tutorial,  Up: Tutorial
+
+General Loops
+=============
+
+   The endless loop is the most simple one:
+
+     : endless ( -- )
+       0 begin
+         dup . 1+
+       again ;
+     endless
+
+   Terminate this loop by pressing `Ctrl-C' (in Gforth).  `begin' does
+nothing at run-time, `again' jumps back to `begin'.
+
+   A loop with one exit at any place looks like this:
+
+     : log2 ( +n1 -- n2 )
+     \ logarithmus dualis of n1>0, rounded down to the next integer
+       assert( dup 0> )
+       2/ 0 begin
+         over 0> while
+           1+ swap 2/ swap
+       repeat
+       nip ;
+     7 log2 .
+     8 log2 .
+
+   At run-time `while' consumes a flag; if it is 0, execution continues
+behind the `repeat'; if the flag is non-zero, execution continues
+behind the `while'.  `Repeat' jumps back to `begin', just like `again'.
+
+   In Forth there are many combinations/abbreviations, like `1+'.
+However, `2/' is not one of them; it shifts its argument right by one
+bit (arithmetic shift right):
+
+     -5 2 / .
+     -5 2/ .
+
+   `assert(' is no standard word, but you can get it on systems other
+then Gforth by including `compat/assert.fs'.  You can see what it does
+by trying
+
+     0 log2 .
+
+   Here's a loop with an exit at the end:
+
+     : log2 ( +n1 -- n2 )
+     \ logarithmus dualis of n1>0, rounded down to the next integer
+       assert( dup 0 > )
+       -1 begin
+         1+ swap 2/ swap
+         over 0 <=
+       until
+       nip ;
+
+   `Until' consumes a flag; if it is non-zero, execution continues at
+the `begin', otherwise after the `until'.
+
+Assignment:
+     Write a definition for computing the greatest common divisor.
+
+   Reference: *Note Simple Loops::.
+
+
+File: gforth.info,  Node: Counted loops Tutorial,  Next: Recursion Tutorial,  Prev: General Loops Tutorial,  Up: Tutorial
+
+Counted loops
+=============
+
+     : ^ ( n1 u -- n )
+     \ n = the uth power of u1
+       1 swap 0 u+do
+         over *
+       loop
+       nip ;
+     3 2 ^ .
+     4 3 ^ .
+
+   `U+do' (from `compat/loops.fs', if your Forth system doesn't have
+it) takes two numbers of the stack `( u3 u4 -- )', and then performs
+the code between `u+do' and `loop' for `u3-u4' times (or not at all, if
+`u3-u4<0').
+
+   You can see the stack effect design rules at work in the stack
+effect of the loop start words: Since the start value of the loop is
+more frequently constant than the end value, the start value is passed
+on the top-of-stack.
+
+   You can access the counter of a counted loop with `i':
+
+     : fac ( u -- u! )
+       1 swap 1+ 1 u+do
+         i *
+       loop ;
+     5 fac .
+     7 fac .
+
+   There is also `+do', which expects signed numbers (important for
+deciding whether to enter the loop).
+
+Assignment:
+     Write a definition for computing the nth Fibonacci number.
+
+   You can also use increments other than 1:
+
+     : up2 ( n1 n2 -- )
+       +do
+         i .
+       2 +loop ;
+     10 0 up2
+     
+     : down2 ( n1 n2 -- )
+       -do
+         i .
+       2 -loop ;
+     0 10 down2
+
+   Reference: *Note Counted Loops::.
+
+
+File: gforth.info,  Node: Recursion Tutorial,  Next: Leaving definitions or loops Tutorial,  Prev: Counted loops Tutorial,  Up: Tutorial
+
+Recursion
+=========
+
+   Usually the name of a definition is not visible in the definition;
+but earlier definitions are usually visible:
+
+     1 0 / . \ "Floating-point unidentified fault" in Gforth on most platforms
+     : / ( n1 n2 -- n )
+       dup 0= if
+         -10 throw \ report division by zero
+       endif
+       /           \ old version
+     ;
+     1 0 /
+
+   For recursive definitions you can use `recursive' (non-standard) or
+`recurse':
+
+     : fac1 ( n -- n! ) recursive
+      dup 0> if
+        dup 1- fac1 *
+      else
+        drop 1
+      endif ;
+     7 fac1 .
+     
+     : fac2 ( n -- n! )
+      dup 0> if
+        dup 1- recurse *
+      else
+        drop 1
+      endif ;
+     8 fac2 .
+
+Assignment:
+     Write a recursive definition for computing the nth Fibonacci
+     number.
+
+   Reference (including indirect recursion): *Note Calls and returns::.
+
+
+File: gforth.info,  Node: Leaving definitions or loops Tutorial,  Next: Return Stack Tutorial,  Prev: Recursion Tutorial,  Up: Tutorial
+
+Leaving definitions or loops
+============================
+
+   `EXIT' exits the current definition right away.  For every counted
+loop that is left in this way, an `UNLOOP' has to be performed before
+the `EXIT':
+
+     : ...
+      ... u+do
+        ... if
+          ... unloop exit
+        endif
+        ...
+      loop
+      ... ;
+
+   `LEAVE' leaves the innermost counted loop right away:
+
+     : ...
+      ... u+do
+        ... if
+          ... leave
+        endif
+        ...
+      loop
+      ... ;
+
+   Reference: *Note Calls and returns::, *Note Counted Loops::.
+
+
+File: gforth.info,  Node: Return Stack Tutorial,  Next: Memory Tutorial,  Prev: Leaving definitions or loops Tutorial,  Up: Tutorial
+
+Return Stack
+============
+
+   In addition to the data stack Forth also has a second stack, the
+return stack; most Forth systems store the return addresses of
+procedure calls there (thus its name).  Programmers can also use this
+stack:
+
+     : foo ( n1 n2 -- )
+      .s
+      >r .s
+      r@ .
+      >r .s
+      r@ .
+      r> .
+      r@ .
+      r> . ;
+     1 2 foo
+
+   `>r' takes an element from the data stack and pushes it onto the
+return stack; conversely, `r>' moves an elementm from the return to the
+data stack; `r@' pushes a copy of the top of the return stack on the
+return stack.
+
+   Forth programmers usually use the return stack for storing data
+temporarily, if using the data stack alone would be too complex, and
+factoring and locals are not an option:
+
+     : 2swap ( x1 x2 x3 x4 -- x3 x4 x1 x2 )
+      rot >r rot r> ;
+
+   The return address of the definition and the loop control parameters
+of counted loops usually reside on the return stack, so you have to take
+all items, that you have pushed on the return stack in a colon
+definition or counted loop, from the return stack before the definition
+or loop ends.  You cannot access items that you pushed on the return
+stack outside some definition or loop within the definition of loop.
+
+   If you miscount the return stack items, this usually ends in a crash:
+
+     : crash ( n -- )
+       >r ;
+     5 crash
+
+   You cannot mix using locals and using the return stack (according to
+the standard; Gforth has no problem).  However, they solve the same
+problems, so this shouldn't be an issue.
+
+Assignment:
+     Can you rewrite any of the definitions you wrote until now in a
+     better way using the return stack?
+
+   Reference: *Note Return stack::.
+
+
+File: gforth.info,  Node: Memory Tutorial,  Next: Characters and Strings Tutorial,  Prev: Return Stack Tutorial,  Up: Tutorial
+
+Memory
+======
+
+   You can create a global variable `v' with
+
+     variable v ( -- addr )
+
+   `v' pushes the address of a cell in memory on the stack.  This cell
+was reserved by `variable'.  You can use `!' (store) to store values
+into this cell and `@' (fetch) to load the value from the stack into
+memory:
+
+     v .
+     5 v ! .s
+     v @ .
+
+   You can see a raw dump of memory with `dump':
+
+     v 1 cells .s dump
+
+   `Cells ( n1 -- n2 )' gives you the number of bytes (or, more
+generally, address units (aus)) that `n1 cells' occupy.  You can also
+reserve more memory:
+
+     create v2 20 cells allot
+     v2 20 cells dump
+
+   creates a word `v2' and reserves 20 uninitialized cells; the address
+pushed by `v2' points to the start of these 20 cells.  You can use
+address arithmetic to access these cells:
+
+     3 v2 5 cells + !
+     v2 20 cells dump
+
+   You can reserve and initialize memory with `,':
+
+     create v3
+       5 , 4 , 3 , 2 , 1 ,
+     v3 @ .
+     v3 cell+ @ .
+     v3 2 cells + @ .
+     v3 5 cells dump
+
+Assignment:
+     Write a definition `vsum ( addr u -- n )' that computes the sum of
+     `u' cells, with the first of these cells at `addr', the next one
+     at `addr cell+' etc.
+
+   You can also reserve memory without creating a new word:
+
+     here 10 cells allot .
+     here .
+
+   `Here' pushes the start address of the memory area.  You should
+store it somewhere, or you will have a hard time finding the memory area
+again.
+
+   `Allot' manages dictionary memory.  The dictionary memory contains
+the system's data structures for words etc. on Gforth and most other
+Forth systems.  It is managed like a stack: You can free the memory that
+you have just `allot'ed with
+
+     -10 cells allot
+     here .
+
+   Note that you cannot do this if you have created a new word in the
+meantime (because then your `allot'ed memory is no longer on the top of
+the dictionary "stack").
+
+   Alternatively, you can use `allocate' and `free' which allow freeing
+memory in any order:
+
+     10 cells allocate throw .s
+     20 cells allocate throw .s
+     swap
+     free throw
+     free throw
+
+   The `throw's deal with errors (e.g., out of memory).
+
+   And there is also a garbage collector
+(http://www.complang.tuwien.ac.at/forth/garbage-collection.zip), which
+eliminates the need to `free' memory explicitly.
+
+   Reference: *Note Memory::.
+
+
+File: gforth.info,  Node: Characters and Strings Tutorial,  Next: Alignment Tutorial,  Prev: Memory Tutorial,  Up: Tutorial
+
+Characters and Strings
+======================
+
+   On the stack characters take up a cell, like numbers.  In memory they
+have their own size (one 8-bit byte on most systems), and therefore
+require their own words for memory access:
+
+     create v4
+       104 c, 97 c, 108 c, 108 c, 111 c,
+     v4 4 chars + c@ .
+     v4 5 chars dump
+
+   The preferred representation of strings on the stack is `addr
+u-count', where `addr' is the address of the first character and
+`u-count' is the number of characters in the string.
+
+     v4 5 type
+
+   You get a string constant with
+
+     s" hello, world" .s
+     type
+
+   Make sure you have a space between `s"' and the string; `s"' is a
+normal Forth word and must be delimited with white space (try what
+happens when you remove the space).
+
+   However, this interpretive use of `s"' is quite restricted: the
+string exists only until the next call of `s"' (some Forth systems keep
+more than one of these strings, but usually they still have a limited
+lifetime).
+
+     s" hello," s" world" .s
+     type
+     type
+
+   You can also use `s"' in a definition, and the resulting strings
+then live forever (well, for as long as the definition):
+
+     : foo s" hello," s" world" ;
+     foo .s
+     type
+     type
+
+Assignment:
+     `Emit ( c -- )' types `c' as character (not a number).  Implement
+     `type ( addr u -- )'.
+
+   Reference: *Note Memory Blocks::.
+
+
+File: gforth.info,  Node: Alignment Tutorial,  Next: Files Tutorial,  Prev: Characters and Strings Tutorial,  Up: Tutorial
+
+Alignment
+=========
+
+   On many processors cells have to be aligned in memory, if you want to
+access them with `@' and `!' (and even if the processor does not
+require alignment, access to aligned cells is faster).
+
+   `Create' aligns `here' (i.e., the place where the next allocation
+will occur, and that the `create'd word points to).  Likewise, the
+memory produced by `allocate' starts at an aligned address.  Adding a
+number of `cells' to an aligned address produces another aligned
+address.
+
+   However, address arithmetic involving `char+' and `chars' can create
+an address that is not cell-aligned.  `Aligned ( addr -- a-addr )'
+produces the next aligned address:
+
+     v3 char+ aligned .s @ .
+     v3 char+ .s @ .
+
+   Similarly, `align' advances `here' to the next aligned address:
+
+     create v5 97 c,
+     here .
+     align here .
+     1000 ,
+
+   Note that you should use aligned addresses even if your processor
+does not require them, if you want your program to be portable.
+
+   Reference: *Note Address arithmetic::.
+
+
+File: gforth.info,  Node: Files Tutorial,  Next: Interpretation and Compilation Semantics and Immediacy Tutorial,  Prev: Alignment Tutorial,  Up: Tutorial
+
+Files
+=====
+
+   This section gives a short introduction into how to use files inside
+Forth. It's broken up into five easy steps:
+
+  1. Opened an ASCII text file for input
+
+  2. Opened a file for output
+
+  3. Read input file until string matched (or some other condition
+     matched)
+
+  4. Wrote some lines from input ( modified or not) to output
+
+  5. Closed the files.
+
+Open file for input
+-------------------
+
+     s" foo.in"  r/o open-file throw Value fd-in
+
+Create file for output
+----------------------
+
+     s" foo.out" w/o create-file throw Value fd-out
+
+   The available file modes are r/o for read-only access, r/w for
+read-write access, and w/o for write-only access. You could open both
+files with r/w, too, if you like. All file words return error codes; for
+most applications, it's best to pass there error codes with `throw' to
+the outer error handler.
+
+   If you want words for opening and assigning, define them as follows:
+
+     0 Value fd-in
+     0 Value fd-out
+     : open-input ( addr u -- )  r/o open-file throw to fd-in ;
+     : open-output ( addr u -- )  w/o create-file throw to fd-out ;
+
+   Usage example:
+
+     s" foo.in" open-input
+     s" foo.out" open-output
+
+Scan file for a particular line
+-------------------------------
+
+     256 Constant max-line
+     Create line-buffer  max-line 2 + allot
+     
+     : scan-file ( addr u -- )
+       begin
+           line-buffer max-line fd-in read-line throw
+       while
+              >r 2dup line-buffer r> compare 0=
+          until
+       else
+          drop
+       then
+       2drop ;
+
+   `read-line ( addr u1 fd -- u2 flag ior )' reads up to u1 bytes into
+the buffer at addr, and returns the number of bytes read, a flag that is
+false when the end of file is reached, and an error code.
+
+   `compare ( addr1 u1 addr2 u2 -- n )' compares two strings and
+returns zero if both strings are equal. It returns a positive number if
+the first string is lexically greater, a negative if the second string
+is lexically greater.
+
+   We haven't seen this loop here; it has two exits. Since the `while'
+exits with the number of bytes read on the stack, we have to clean up
+that separately; that's after the `else'.
+
+   Usage example:
+
+     s" The text I search is here" scan-file
+
+Copy input to output
+--------------------
+
+     : copy-file ( -- )
+       begin
+           line-buffer max-line fd-in read-line throw
+       while
+           line-buffer swap fd-out write-file throw
+       repeat ;
+
+Close files
+-----------
+
+     fd-in close-file throw
+     fd-out close-file throw
+
+   Likewise, you can put that into definitions, too:
+
+     : close-input ( -- )  fd-in close-file throw ;
+     : close-output ( -- )  fd-out close-file throw ;
+
+Assignment:
+     How could you modify `copy-file' so that it copies until a second
+     line is matched? Can you write a program that extracts a section
+     of a text file, given the line that starts and the line that
+     terminates that section?
+
+
+File: gforth.info,  Node: Interpretation and Compilation Semantics and Immediacy Tutorial,  Next: Execution Tokens Tutorial,  Prev: Files Tutorial,  Up: Tutorial
+
+Interpretation and Compilation Semantics and Immediacy
+======================================================
+
+   When a word is compiled, it behaves differently from being
+interpreted.  E.g., consider `+':
+
+     1 2 + .
+     : foo + ;
+
+   These two behaviours are known as compilation and interpretation
+semantics.  For normal words (e.g., `+'), the compilation semantics is
+to append the interpretation semantics to the currently defined word
+(`foo' in the example above).  I.e., when `foo' is executed later, the
+interpretation semantics of `+' (i.e., adding two numbers) will be
+performed.
+
+   However, there are words with non-default compilation semantics,
+e.g., the control-flow words like `if'.  You can use `immediate' to
+change the compilation semantics of the last defined word to be equal to
+the interpretation semantics:
+
+     : [FOO] ( -- )
+      5 . ; immediate
+     
+     [FOO]
+     : bar ( -- )
+       [FOO] ;
+     bar
+     see bar
+
+   Two conventions to mark words with non-default compilation semnatics
+are names with brackets (more frequently used) and to write them all in
+upper case (less frequently used).
+
+   In Gforth (and many other systems) you can also remove the
+interpretation semantics with `compile-only' (the compilation semantics
+is derived from the original interpretation semantics):
+
+     : flip ( -- )
+      6 . ; compile-only \ but not immediate
+     flip
+     
+     : flop ( -- )
+      flip ;
+     flop
+
+   In this example the interpretation semantics of `flop' is equal to
+the original interpretation semantics of `flip'.
+
+   The text interpreter has two states: in interpret state, it performs
+the interpretation semantics of words it encounters; in compile state,
+it performs the compilation semantics of these words.
+
+   Among other things, `:' switches into compile state, and `;'
+switches back to interpret state.  They contain the factors `]' (switch
+to compile state) and `[' (switch to interpret state), that do nothing
+but switch the state.
+
+     : xxx ( -- )
+       [ 5 . ]
+     ;
+     
+     xxx
+     see xxx
+
+   These brackets are also the source of the naming convention mentioned
+above.
+
+   Reference: *Note Interpretation and Compilation Semantics::.
+
+
+File: gforth.info,  Node: Execution Tokens Tutorial,  Next: Exceptions Tutorial,  Prev: Interpretation and Compilation Semantics and Immediacy Tutorial,  Up: Tutorial
+
+Execution Tokens
+================
+
+   `' word' gives you the execution token (XT) of a word.  The XT is a
+cell representing the interpretation semantics of a word.  You can
+execute this semantics with `execute':
+
+     ' + .s
+     1 2 rot execute .
+
+   The XT is similar to a function pointer in C.  However, parameter
+passing through the stack makes it a little more flexible:
+
+     : map-array ( ... addr u xt -- ... )
+     \ executes xt ( ... x -- ... ) for every element of the array starting
+     \ at addr and containing u elements
+       { xt }
+       cells over + swap ?do
+         i @ xt execute
+       1 cells +loop ;
+     
+     create a 3 , 4 , 2 , -1 , 4 ,
+     a 5 ' . map-array .s
+     0 a 5 ' + map-array .
+     s" max-n" environment? drop .s
+     a 5 ' min map-array .
+
+   You can use map-array with the XTs of words that consume one element
+more than they produce.  In theory you can also use it with other XTs,
+but the stack effect then depends on the size of the array, which is
+hard to understand.
+
+   Since XTs are cell-sized, you can store them in memory and manipulate
+them on the stack like other cells.  You can also compile the XT into a
+word with `compile,':
+
+     : foo1 ( n1 n2 -- n )
+        [ ' + compile, ] ;
+     see foo
+
+   This is non-standard, because `compile,' has no compilation
+semantics in the standard, but it works in good Forth systems.  For the
+broken ones, use
+
+     : [compile,] compile, ; immediate
+     
+     : foo1 ( n1 n2 -- n )
+        [ ' + ] [compile,] ;
+     see foo
+
+   `'' is a word with default compilation semantics; it parses the next
+word when its interpretation semantics are executed, not during
+compilation:
+
+     : foo ( -- xt )
+       ' ;
+     see foo
+     : bar ( ... "word" -- ... )
+       ' execute ;
+     see bar
+     1 2 bar + .
+
+   You often want to parse a word during compilation and compile its XT
+so it will be pushed on the stack at run-time.  `[']' does this:
+
+     : xt-+ ( -- xt )
+       ['] + ;
+     see xt-+
+     1 2 xt-+ execute .
+
+   Many programmers tend to see `'' and the word it parses as one unit,
+and expect it to behave like `[']' when compiled, and are confused by
+the actual behaviour.  If you are, just remember that the Forth system
+just takes `'' as one unit and has no idea that it is a parsing word
+(attempts to convenience programmers in this issue have usually
+resulted in even worse pitfalls, see `State'-smartness--Why it is evil
+and How to Exorcise it
+(http://www.complang.tuwien.ac.at/papers/ertl98.ps.gz)).
+
+   Note that the state of the interpreter does not come into play when
+creating and executing XTs.  I.e., even when you execute `'' in compile
+state, it still gives you the interpretation semantics.  And whatever
+that state is, `execute' performs the semantics represented by the XT
+(i.e., for XTs produced with `'' the interpretation semantics).
+
+   Reference: *Note Tokens for Words::.
+
+
+File: gforth.info,  Node: Exceptions Tutorial,  Next: Defining Words Tutorial,  Prev: Execution Tokens Tutorial,  Up: Tutorial
+
+Exceptions
+==========
+
+   `throw ( n -- )' causes an exception unless n is zero.
+
+     100 throw .s
+     0 throw .s
+
+   `catch ( ... xt -- ... n )' behaves similar to `execute', but it
+catches exceptions and pushes the number of the exception on the stack
+(or 0, if the xt executed without exception).  If there was an
+exception, the stacks have the same depth as when entering `catch':
+
+     .s
+     3 0 ' / catch .s
+     3 2 ' / catch .s
+
+Assignment:
+     Try the same with `execute' instead of `catch'.
+
+   `Throw' always jumps to the dynamically next enclosing `catch', even
+if it has to leave several call levels to achieve this:
+
+     : foo 100 throw ;
+     : foo1 foo ." after foo" ;
+     : bar ['] foo1 catch ;
+     bar .
+
+   It is often important to restore a value upon leaving a definition,
+even if the definition is left through an exception.  You can ensure
+this like this:
+
+     : ...
+        save-x
+        ['] word-changing-x catch ( ... n )
+        restore-x
+        ( ... n ) throw ;
+
+   Gforth provides an alternative syntax in addition to `catch': `try
+... recover ... endtry'.  If the code between `try' and `recover' has
+an exception, the stack depths are restored, the exception number is
+pushed on the stack, and the code between `recover' and `endtry' is
+performed.  E.g., the definition for `catch' is
+
+     : catch ( x1 .. xn xt -- y1 .. ym 0 / z1 .. zn error ) \ exception
+       try
+         execute 0
+       recover
+         nip
+       endtry ;
+
+   The equivalent to the restoration code above is
+
+     : ...
+       save-x
+       try
+         word-changing-x 0
+       recover endtry
+       restore-x
+       throw ;
+
+   This works if `word-changing-x' does not change the stack depth,
+otherwise you should add some code between `recover' and `endtry' to
+balance the stack.
+
+   Reference: *Note Exception Handling::.
+
+
+File: gforth.info,  Node: Defining Words Tutorial,  Next: Arrays and Records Tutorial,  Prev: Exceptions Tutorial,  Up: Tutorial
+
+Defining Words
+==============
+
+   `:', `create', and `variable' are definition words: They define
+other words.  `Constant' is another definition word:
+
+     5 constant foo
+     foo .
+
+   You can also use the prefixes `2' (double-cell) and `f' (floating
+point) with `variable' and `constant'.
+
+   You can also define your own defining words.  E.g.:
+
+     : variable ( "name" -- )
+       create 0 , ;
+
+   You can also define defining words that create words that do
+something other than just producing their address:
+
+     : constant ( n "name" -- )
+       create ,
+     does> ( -- n )
+       ( addr ) @ ;
+     
+     5 constant foo
+     foo .
+
+   The definition of `constant' above ends at the `does>'; i.e.,
+`does>' replaces `;', but it also does something else: It changes the
+last defined word such that it pushes the address of the body of the
+word and then performs the code after the `does>' whenever it is called.
+
+   In the example above, `constant' uses `,' to store 5 into the body
+of `foo'.  When `foo' executes, it pushes the address of the body onto
+the stack, then (in the code after the `does>') fetches the 5 from
+there.
+
+   The stack comment near the `does>' reflects the stack effect of the
+defined word, not the stack effect of the code after the `does>' (the
+difference is that the code expects the address of the body that the
+stack comment does not show).
+
+   You can use these definition words to do factoring in cases that
+involve (other) definition words.  E.g., a field offset is always added
+to an address.  Instead of defining
+
+     2 cells constant offset-field1
+
+   and using this like
+
+     ( addr ) offset-field1 +
+
+   you can define a definition word
+
+     : simple-field ( n "name" -- )
+       create ,
+     does> ( n1 -- n1+n )
+       ( addr ) @ + ;
+
+   Definition and use of field offsets now look like this:
+
+     2 cells simple-field field1
+     create mystruct 4 cells allot
+     mystruct .s field1 .s drop
+
+   If you want to do something with the word without performing the code
+after the `does>', you can access the body of a `create'd word with
+`>body ( xt -- addr )':
+
+     : value ( n "name" -- )
+       create ,
+     does> ( -- n1 )
+       @ ;
+     : to ( n "name" -- )
+       ' >body ! ;
+     
+     5 value foo
+     foo .
+     7 to foo
+     foo .
+
+Assignment:
+     Define `defer ( "name" -- )', which creates a word that stores an
+     XT (at the start the XT of `abort'), and upon execution `execute's
+     the XT.  Define `is ( xt "name" -- )' that stores `xt' into
+     `name', a word defined with `defer'.  Indirect recursion is one
+     application of `defer'.
+
+   Reference: *Note User-defined Defining Words::.
+
+
+File: gforth.info,  Node: Arrays and Records Tutorial,  Next: POSTPONE Tutorial,  Prev: Defining Words Tutorial,  Up: Tutorial
+
+Arrays and Records
+==================
+
+   Forth has no standard words for defining data structures such as
+arrays and records (structs in C terminology), but you can build them
+yourself based on address arithmetic.  You can also define words for
+defining arrays and records (*note Defining Words: Defining Words
+Tutorial.).
+
+   One of the first projects a Forth newcomer sets out upon when
+learning about defining words is an array defining word (possibly for
+n-dimensional arrays).  Go ahead and do it, I did it, too; you will
+learn something from it.  However, don't be disappointed when you later
+learn that you have little use for these words (inappropriate use would
+be even worse).  I have not yet found a set of useful array words yet;
+the needs are just too diverse, and named, global arrays (the result of
+naive use of defining words) are often not flexible enough (e.g.,
+consider how to pass them as parameters).  Another such project is a set
+of words to help dealing with strings.
+
+   On the other hand, there is a useful set of record words, and it has
+been defined in `compat/struct.fs'; these words are predefined in
+Gforth.  They are explained in depth elsewhere in this manual (see
+*note Structures::).  The `simple-field' example above is simplified
+variant of fields in this package.
+
+
+File: gforth.info,  Node: POSTPONE Tutorial,  Next: Literal Tutorial,  Prev: Arrays and Records Tutorial,  Up: Tutorial
+
+`POSTPONE'
+==========
+
+   You can compile the compilation semantics (instead of compiling the
+interpretation semantics) of a word with `POSTPONE':
+
+     : MY-+ ( Compilation: -- ; Run-time of compiled code: n1 n2 -- n )
+      POSTPONE + ; immediate
+     : foo ( n1 n2 -- n )
+      MY-+ ;
+     1 2 foo .
+     see foo
+
+   During the definition of `foo' the text interpreter performs the
+compilation semantics of `MY-+', which performs the compilation
+semantics of `+', i.e., it compiles `+' into `foo'.
+
+   This example also displays separate stack comments for the
+compilation semantics and for the stack effect of the compiled code.
+For words with default compilation semantics these stack effects are
+usually not displayed; the stack effect of the compilation semantics is
+always `( -- )' for these words, the stack effect for the compiled code
+is the stack effect of the interpretation semantics.
+
+   Note that the state of the interpreter does not come into play when
+performing the compilation semantics in this way.  You can also perform
+it interpretively, e.g.:
+
+     : foo2 ( n1 n2 -- n )
+      [ MY-+ ] ;
+     1 2 foo .
+     see foo
+
+   However, there are some broken Forth systems where this does not
+always work, and therefore this practice was been declared non-standard
+in 1999.
+
+   Here is another example for using `POSTPONE':
+
+     : MY-- ( Compilation: -- ; Run-time of compiled code: n1 n2 -- n )
+      POSTPONE negate POSTPONE + ; immediate compile-only
+     : bar ( n1 n2 -- n )
+       MY-- ;
+     2 1 bar .
+     see bar
+
+   You can define `ENDIF' in this way:
+
+     : ENDIF ( Compilation: orig -- )
+       POSTPONE then ; immediate
+
+Assignment:
+     Write `MY-2DUP' that has compilation semantics equivalent to
+     `2dup', but compiles `over over'.
+
+
+File: gforth.info,  Node: Literal Tutorial,  Next: Advanced macros Tutorial,  Prev: POSTPONE Tutorial,  Up: Tutorial
+
+`Literal'
+=========
+
+   You cannot `POSTPONE' numbers:
+
+     : [FOO] POSTPONE 500 ; immediate
+
+   Instead, you can use `LITERAL (compilation: n --; run-time: -- n )':
+
+     : [FOO] ( compilation: --; run-time: -- n )
+       500 POSTPONE literal ; immediate
+     
+     : flip [FOO] ;
+     flip .
+     see flip
+
+   `LITERAL' consumes a number at compile-time (when it's compilation
+semantics are executed) and pushes it at run-time (when the code it
+compiled is executed).  A frequent use of `LITERAL' is to compile a
+number computed at compile time into the current word:
+
+     : bar ( -- n )
+       [ 2 2 + ] literal ;
+     see bar
+
+Assignment:
+     Write `]L' which allows writing the example above as `: bar ( -- n
+     ) [ 2 2 + ]L ;'
+
+
+File: gforth.info,  Node: Advanced macros Tutorial,  Next: Compilation Tokens Tutorial,  Prev: Literal Tutorial,  Up: Tutorial
+
+Advanced macros
+===============
+
+   Reconsider `map-array' from *Note Execution Tokens: Execution Tokens
+Tutorial.  It frequently performs `execute', a relatively expensive
+operation in some Forth implementations.  You can use `compile,' and
+`POSTPONE' to eliminate these `execute's and produce a word that
+contains the word to be performed directly:
+
+     : compile-map-array ( compilation: xt -- ; run-time: ... addr u -- ... )
+     \ at run-time, execute xt ( ... x -- ... ) for each element of the
+     \ array beginning at addr and containing u elements
+       { xt }
+       POSTPONE cells POSTPONE over POSTPONE + POSTPONE swap POSTPONE ?do
+         POSTPONE i POSTPONE @ xt compile,
+       1 cells POSTPONE literal POSTPONE +loop ;
+     
+     : sum-array ( addr u -- n )
+      0 rot rot [ ' + compile-map-array ] ;
+     see sum-array
+     a 5 sum-array .
+
+   You can use the full power of Forth for generating the code; here's
+an example where the code is generated in a loop:
+
+     : compile-vmul-step ( compilation: n --; run-time: n1 addr1 -- n2 addr2 )
+     \ n2=n1+(addr1)*n, addr2=addr1+cell
+       POSTPONE tuck POSTPONE @
+       POSTPONE literal POSTPONE * POSTPONE +
+       POSTPONE swap POSTPONE cell+ ;
+     
+     : compile-vmul ( compilation: addr1 u -- ; run-time: addr2 -- n )
+     \ n=v1*v2 (inner product), where the v_i are represented as addr_i u
+       0 postpone literal postpone swap
+       [ ' compile-vmul-step compile-map-array ]
+       postpone drop ;
+     see compile-vmul
+     
+     : a-vmul ( addr -- n )
+     \ n=a*v, where v is a vector that's as long as a and starts at addr
+      [ a 5 compile-vmul ] ;
+     see a-vmul
+     a a-vmul .
+
+   This example uses `compile-map-array' to show off, but you could
+also use `map-array' instead (try it now!).
+
+   You can use this technique for efficient multiplication of large
+matrices.  In matrix multiplication, you multiply every line of one
+matrix with every column of the other matrix.  You can generate the code
+for one line once, and use it for every column.  The only downside of
+this technique is that it is cumbersome to recover the memory consumed
+by the generated code when you are done (and in more complicated cases
+it is not possible portably).
+
+
+File: gforth.info,  Node: Compilation Tokens Tutorial,  Next: Wordlists and Search Order Tutorial,  Prev: Advanced macros Tutorial,  Up: Tutorial
+
+Compilation Tokens
+==================
+
+   This section is Gforth-specific.  You can skip it.
+
+   `' word compile,' compiles the interpretation semantics.  For words
+with default compilation semantics this is the same as performing the
+compilation semantics.  To represent the compilation semantics of other
+words (e.g., words like `if' that have no interpretation semantics),
+Gforth has the concept of a compilation token (CT, consisting of two
+cells), and words `comp'' and `[comp']'.  You can perform the
+compilation semantics represented by a CT with `execute':
+
+     : foo2 ( n1 n2 -- n )
+        [ comp' + execute ] ;
+     see foo
+
+   You can compile the compilation semantics represented by a CT with
+`postpone,':
+
+     : foo3 ( -- )
+       [ comp' + postpone, ] ;
+     see foo3
+
+   `[ comp' word postpone, ]' is equivalent to `POSTPONE word'.
+`comp'' is particularly useful for words that have no interpretation
+semantics:
+
+     ' if
+     comp' if .s 2drop
+
+   Reference: *Note Tokens for Words::.
+
+
+File: gforth.info,  Node: Wordlists and Search Order Tutorial,  Prev: Compilation Tokens Tutorial,  Up: Tutorial
+
+Wordlists and Search Order
+==========================
+
+   The dictionary is not just a memory area that allows you to allocate
+memory with `allot', it also contains the Forth words, arranged in
+several wordlists.  When searching for a word in a wordlist,
+conceptually you start searching at the youngest and proceed towards
+older words (in reality most systems nowadays use hash-tables); i.e., if
+you define a word with the same name as an older word, the new word
+shadows the older word.
+
+   Which wordlists are searched in which order is determined by the
+search order.  You can display the search order with `order'.  It
+displays first the search order, starting with the wordlist searched
+first, then it displays the wordlist that will contain newly defined
+words.
+
+   You can create a new, empty wordlist with `wordlist ( -- wid )':
+
+     wordlist constant mywords
+
+   `Set-current ( wid -- )' sets the wordlist that will contain newly
+defined words (the _current_ wordlist):
+
+     mywords set-current
+     order
+
+   Gforth does not display a name for the wordlist in `mywords' because
+this wordlist was created anonymously with `wordlist'.
+
+   You can get the current wordlist with `get-current ( -- wid)'.  If
+you want to put something into a specific wordlist without overall
+effect on the current wordlist, this typically looks like this:
+
+     get-current mywords set-current ( wid )
+     create someword
+     ( wid ) set-current
+
+   You can write the search order with `set-order ( wid1 .. widn n --
+)' and read it with `get-order ( -- wid1 .. widn n )'.  The first
+searched wordlist is topmost.
+
+     get-order mywords swap 1+ set-order
+     order
+
+   Yes, the order of wordlists in the output of `order' is reversed
+from stack comments and the output of `.s' and thus unintuitive.
+
+Assignment:
+     Define `>order ( wid -- )' with adds `wid' as first searched
+     wordlist to the search order.  Define `previous ( -- )', which
+     removes the first searched wordlist from the search order.
+     Experiment with boundary conditions (you will see some crashes or
+     situations that are hard or impossible to leave).
+
+   The search order is a powerful foundation for providing features
+similar to Modula-2 modules and C++ namespaces.  However, trying to
+modularize programs in this way has disadvantages for debugging and
+reuse/factoring that overcome the advantages in my experience (I don't
+do huge projects, though).  These disadvantages are not so clear in
+other languages/programming environments, because these languages are
+not so strong in debugging and reuse.
+
+   Reference: *Note Word Lists::.
+
+
+File: gforth.info,  Node: Introduction,  Next: Words,  Prev: Tutorial,  Up: Top
+
+An Introduction to ANS Forth
+****************************
+
+   The difference of this chapter from the Tutorial (*note Tutorial::)
+is that it is slower-paced in its examples, but uses them to dive deep
+into explaining Forth internals (not covered by the Tutorial).  Apart
+from that, this chapter covers far less material.  It is suitable for
+reading without using a computer.
+
+   The primary purpose of this manual is to document Gforth. However,
+since Forth is not a widely-known language and there is a lack of
+up-to-date teaching material, it seems worthwhile to provide some
+introductory material.  For other sources of Forth-related information,
+see *Note Forth-related information::.
+
+   The examples in this section should work on any ANS Forth; the
+output shown was produced using Gforth. Each example attempts to
+reproduce the exact output that Gforth produces. If you try out the
+examples (and you should), what you should type is shown `like this'
+and Gforth's response is shown `like this'. The single exception is
+that, where the example shows <RET> it means that you should press the
+"carriage return" key. Unfortunately, some output formats for this
+manual cannot show the difference between `this' and `this' which will
+make trying out the examples harder (but not impossible).
+
+   Forth is an unusual language. It provides an interactive development
+environment which includes both an interpreter and compiler. Forth
+programming style encourages you to break a problem down into many
+small fragments ("factoring"), and then to develop and test each
+fragment interactively. Forth advocates assert that breaking the
+edit-compile-test cycle used by conventional programming languages can
+lead to great productivity improvements.
+
+* Menu:
+
+* Introducing the Text Interpreter::
+* Stacks and Postfix notation::
+* Your first definition::
+* How does that work?::
+* Forth is written in Forth::
+* Review - elements of a Forth system::
+* Where to go next::
+* Exercises::
+
+
+File: gforth.info,  Node: Introducing the Text Interpreter,  Next: Stacks and Postfix notation,  Prev: Introduction,  Up: Introduction
+
+Introducing the Text Interpreter
+================================
+
+   When you invoke the Forth image, you will see a startup banner
+printed and nothing else (if you have Gforth installed on your system,
+try invoking it now, by typing `gforth<RET>'). Forth is now running its
+command line interpreter, which is called the "Text Interpreter" (also
+known as the "Outer Interpreter").  (You will learn a lot about the
+text interpreter as you read through this chapter, for more detail
+*note The Text Interpreter::).
+
+   Although it's not obvious, Forth is actually waiting for your input.
+Type a number and press the <RET> key:
+
+     45<RET>  ok
+
+   Rather than give you a prompt to invite you to input something, the
+text interpreter prints a status message after it has processed a line
+of input. The status message in this case ("` ok'" followed by
+carriage-return) indicates that the text interpreter was able to process
+all of your input successfully. Now type something illegal:
+
+     qwer341<RET>
+     :1: Undefined word
+     qwer341
+     ^^^^^^^
+     $400D2BA8 Bounce
+     $400DBDA8 no.extensions
+
+   The exact text, other than the "Undefined word" may differ slightly
+on your system, but the effect is the same; when the text interpreter
+detects an error, it discards any remaining text on a line, resets
+certain internal state and prints an error message. For a detailed
+description of error messages see *Note Error messages::.
+
+   The text interpreter waits for you to press carriage-return, and then
+processes your input line. Starting at the beginning of the line, it
+breaks the line into groups of characters separated by spaces. For each
+group of characters in turn, it makes two attempts to do something:
+
+   * It tries to treat it as a command. It does this by searching a
+     "name dictionary". If the group of characters matches an entry in
+     the name dictionary, the name dictionary provides the text
+     interpreter with information that allows the text interpreter
+     perform some actions. In Forth jargon, we say that the group of
+     characters names a "word", that the dictionary search returns an
+     "execution token (xt)" corresponding to the "definition" of the
+     word, and that the text interpreter executes the xt. Often, the
+     terms "word" and "definition" are used interchangeably.
+
+   * If the text interpreter fails to find a match in the name
+     dictionary, it tries to treat the group of characters as a number
+     in the current number base (when you start up Forth, the current
+     number base is base 10). If the group of characters legitimately
+     represents a number, the text interpreter pushes the number onto a
+     stack (we'll learn more about that in the next section).
+
+   If the text interpreter is unable to do either of these things with
+any group of characters, it discards the group of characters and the
+rest of the line, then prints an error message. If the text interpreter
+reaches the end of the line without error, it prints the status message
+"` ok'" followed by carriage-return.
+
+   This is the simplest command we can give to the text interpreter:
+
+     <RET>  ok
+
+   The text interpreter did everything we asked it to do (nothing)
+without an error, so it said that everything is "` ok'". Try a slightly
+longer command:
+
+     12 dup fred dup<RET>
+     :1: Undefined word
+     12 dup fred dup
+            ^^^^
+     $400D2BA8 Bounce
+     $400DBDA8 no.extensions
+
+   When you press the carriage-return key, the text interpreter starts
+to work its way along the line:
+
+   * When it gets to the space after the `2', it takes the group of
+     characters `12' and looks them up in the name dictionary(1). There
+     is no match for this group of characters in the name dictionary,
+     so it tries to treat them as a number. It is able to do this
+     successfully, so it puts the number, 12, "on the stack" (whatever
+     that means).
+
+   * The text interpreter resumes scanning the line and gets the next
+     group of characters, `dup'. It looks it up in the name dictionary
+     and (you'll have to take my word for this) finds it, and executes
+     the word `dup' (whatever that means).
+
+   * Once again, the text interpreter resumes scanning the line and
+     gets the group of characters `fred'. It looks them up in the name
+     dictionary, but can't find them. It tries to treat them as a
+     number, but they don't represent any legal number.
+
+   At this point, the text interpreter gives up and prints an error
+message. The error message shows exactly how far the text interpreter
+got in processing the line. In particular, it shows that the text
+interpreter made no attempt to do anything with the final character
+group, `dup', even though we have good reason to believe that the text
+interpreter would have no problem looking that word up and executing it
+a second time.
+
+   ---------- Footnotes ----------
+
+   (1) We can't tell if it found them or not, but assume for now that
+it did not
+

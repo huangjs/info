@@ -1,0 +1,1808 @@
+This is gforth.info, produced by makeinfo version 4.2 from gforth.texi.
+
+This manual is for Gforth (version 0.6.2, August 25, 2003), a fast and
+portable implementation of the ANS Forth language
+
+   Copyright (C) 1995, 1996, 1997, 1998, 2000, 2003 Free Software
+Foundation, Inc.
+
+     Permission is granted to copy, distribute and/or modify this
+     document under the terms of the GNU Free Documentation License,
+     Version 1.1 or any later version published by the Free Software
+     Foundation; with no Invariant Sections, with the Front-Cover texts
+     being "A GNU Manual," and with the Back-Cover Texts as in (a)
+     below.  A copy of the license is included in the section entitled
+     "GNU Free Documentation License."
+
+     (a) The FSF's Back-Cover Text is: "You have freedom to copy and
+     modify this GNU Manual, like GNU software.  Copies published by
+     the Free Software Foundation raise funds for GNU development."
+   
+INFO-DIR-SECTION Software development
+START-INFO-DIR-ENTRY
+* Gforth: (gforth).             A fast interpreter for the Forth language.
+END-INFO-DIR-ENTRY
+
+
+File: gforth.info,  Node: Concept Index,  Prev: Word Index,  Up: Top
+
+Concept and Word Index
+**********************
+
+   Not all entries listed in this index are present verbatim in the
+text. This index also duplicates, in abbreviated form, all of the words
+listed in the Word Index (only the names are listed for the words here).
+
+* Menu:
+
+* !:                                     Memory Access.
+* ", stack item type:                    Notation.
+* #:                                     Formatted numeric output.
+* #!:                                    Running Image Files.
+* #>:                                    Formatted numeric output.
+* #>>:                                   Formatted numeric output.
+* #s:                                    Formatted numeric output.
+* #tib:                                  The Text Interpreter.
+* $-prefix for hexadecimal numbers:      Number Conversion.
+* $?:                                    Passing Commands to the OS.
+* %-prefix for binary numbers:           Number Conversion.
+* %align:                                Structure Glossary.
+* %alignment:                            Structure Glossary.
+* %alloc:                                Structure Glossary.
+* %allocate:                             Structure Glossary.
+* %allot:                                Structure Glossary.
+* %size:                                 Structure Glossary.
+* &-prefix for decimal numbers:          Number Conversion.
+* ' <1>:                                 The OOF base class.
+* ':                                     Execution token.
+* '-prefix for character strings:        Number Conversion.
+* 'cold:                                 Modifying the Startup Sequence.
+* (:                                     Comments.
+* (local):                               ANS Forth locals.
+* ):                                     Assertions.
+* *:                                     Single precision.
+* */:                                    Mixed precision.
+* */mod:                                 Mixed precision.
+* +:                                     Single precision.
+* +!:                                    Memory Access.
+* +DO:                                   Arbitrary control structures.
+* +load:                                 Blocks.
+* +LOOP:                                 Arbitrary control structures.
+* +thru:                                 Blocks.
+* ,:                                     Dictionary allocation.
+* -:                                     Single precision.
+* -, tutorial:                           Stack-Effect Comments Tutorial.
+* -->:                                   Blocks.
+* -appl-image, command-line option:      Invoking Gforth.
+* -application, gforthmi option:         gforthmi.
+* -clear-dictionary, command-line option: Invoking Gforth.
+* -d, command-line option:               Invoking Gforth.
+* -data-stack-size, command-line option: Invoking Gforth.
+* -debug, command-line option:           Invoking Gforth.
+* -DFORCE_REG:                           Portability.
+* -dictionary-size, command-line option: Invoking Gforth.
+* -die-on-signal, command-line-option:   Invoking Gforth.
+* -DO:                                   Arbitrary control structures.
+* -DUSE_FTOS:                            TOS Optimization.
+* -DUSE_NO_FTOS:                         TOS Optimization.
+* -DUSE_NO_TOS:                          TOS Optimization.
+* -DUSE_TOS:                             TOS Optimization.
+* -dynamic command-line option:          Dynamic Superinstructions.
+* -dynamic, command-line option:         Invoking Gforth.
+* -enable-force-reg, configuration flag: Portability.
+* -f, command-line option:               Invoking Gforth.
+* -fp-stack-size, command-line option:   Invoking Gforth.
+* -h, command-line option:               Invoking Gforth.
+* -help, command-line option:            Invoking Gforth.
+* -i, command-line option:               Invoking Gforth.
+* -i, invoke image file:                 Running Image Files.
+* -image file, invoke image file:        Running Image Files.
+* -image-file, command-line option:      Invoking Gforth.
+* -l, command-line option:               Invoking Gforth.
+* -locals-stack-size, command-line option: Invoking Gforth.
+* -LOOP:                                 Arbitrary control structures.
+* -m, command-line option:               Invoking Gforth.
+* -no-dynamic command-line option:       Dynamic Superinstructions.
+* -no-dynamic, command-line option:      Invoking Gforth.
+* -no-offset-im, command-line option:    Invoking Gforth.
+* -no-super command-line option:         Dynamic Superinstructions.
+* -no-super, command-line option:        Invoking Gforth.
+* -offset-image, command-line option:    Invoking Gforth.
+* -p, command-line option:               Invoking Gforth.
+* -path, command-line option:            Invoking Gforth.
+* -print-metrics, command-line option:   Invoking Gforth.
+* -r, command-line option:               Invoking Gforth.
+* -return-stack-size, command-line option: Invoking Gforth.
+* -rot:                                  Data stack.
+* -ss-greedy, command-line option:       Invoking Gforth.
+* -ss-min-..., command-line options:     Invoking Gforth.
+* -ss-number, command-line option:       Invoking Gforth.
+* -trailing:                             Memory Blocks.
+* -v, command-line option:               Invoking Gforth.
+* -version, command-line option:         Invoking Gforth.
+* .:                                     Simple numeric output.
+* .":                                    Displaying characters and strings.
+* .", how it works:                      How does that work?.
+* .(:                                    Displaying characters and strings.
+* .\":                                   Displaying characters and strings.
+* .debugline:                            Debugging.
+* .emacs:                                Installing gforth.el.
+* .fi files:                             Image Files.
+* .gforth-history:                       Command-line editing.
+* .id:                                   Name token.
+* .name:                                 Name token.
+* .path:                                 General Search Paths.
+* .r:                                    Simple numeric output.
+* .s:                                    Examining.
+* /:                                     Single precision.
+* /does-handler:                         Threading Words.
+* /mod:                                  Single precision.
+* /string:                               Memory Blocks.
+* 0<:                                    Numeric comparison.
+* 0<=:                                   Numeric comparison.
+* 0<>:                                   Numeric comparison.
+* 0=:                                    Numeric comparison.
+* 0>:                                    Numeric comparison.
+* 0>=:                                   Numeric comparison.
+* 1+:                                    Single precision.
+* 1-:                                    Single precision.
+* 1/f:                                   Floating Point.
+* 2!:                                    Memory Access.
+* 2*:                                    Bitwise operations.
+* 2,:                                    Dictionary allocation.
+* 2/:                                    Bitwise operations.
+* 2>r:                                   Return stack.
+* 2@:                                    Memory Access.
+* 2Constant:                             Constants.
+* 2drop:                                 Data stack.
+* 2dup:                                  Data stack.
+* 2Literal:                              Literals.
+* 2nip:                                  Data stack.
+* 2over:                                 Data stack.
+* 2r>:                                   Return stack.
+* 2r@:                                   Return stack.
+* 2rdrop:                                Return stack.
+* 2rot:                                  Data stack.
+* 2swap:                                 Data stack.
+* 2tuck:                                 Data stack.
+* 2Variable:                             Variables.
+* : <1>:                                 The OOF base class.
+* ::                                     Colon Definitions.
+* :, passing data across:                Literals.
+* :: <1>:                                Basic Mini-OOF Usage.
+* :::                                    The OOF base class.
+* :m:                                    Objects Glossary.
+* :noname:                               Anonymous Definitions.
+* ;:                                     Colon Definitions.
+* ;code:                                 Code and ;code.
+* ;CODE ending sequence:                 programming-idef.
+* ;CODE, name not defined via CREATE:    programming-ambcond.
+* ;CODE, processing input:               programming-idef.
+* ;m:                                    Objects Glossary.
+* ;m usage:                              Method conveniences.
+* ;s:                                    Calls and returns.
+* <:                                     Numeric comparison.
+* <#:                                    Formatted numeric output.
+* <<#:                                   Formatted numeric output.
+* <=:                                    Numeric comparison.
+* <>:                                    Numeric comparison.
+* <bind>:                                Objects Glossary.
+* <compilation:                          Combined words.
+* <interpretation:                       Combined words.
+* <IS>:                                  Deferred words.
+* <to-inst>:                             Objects Glossary.
+* =:                                     Numeric comparison.
+* >:                                     Numeric comparison.
+* >=:                                    Numeric comparison.
+* >body:                                 CREATE..DOES> details.
+* >BODY of non-CREATEd words:            core-ambcond.
+* >code-address:                         Threading Words.
+* >definer:                              Threading Words.
+* >does-code:                            Threading Words.
+* >float:                                Input.
+* >in:                                   The Text Interpreter.
+* >IN greater than input buffer:         core-ambcond.
+* >l:                                    Locals implementation.
+* >name:                                 Name token.
+* >number:                               Input.
+* >order:                                Word Lists.
+* >r:                                    Return stack.
+* ?:                                     Examining.
+* ?DO:                                   Arbitrary control structures.
+* ?dup:                                  Data stack.
+* ?DUP-0=-IF:                            Arbitrary control structures.
+* ?DUP-IF:                               Arbitrary control structures.
+* ?LEAVE:                                Arbitrary control structures.
+* @:                                     Memory Access.
+* @local#:                               Locals implementation.
+* [:                                     Literals.
+* [']:                                   Execution token.
+* [+LOOP]:                               Interpreter Directives.
+* [?DO]:                                 Interpreter Directives.
+* []:                                    The OOF base class.
+* [AGAIN]:                               Interpreter Directives.
+* [BEGIN]:                               Interpreter Directives.
+* [bind]:                                Objects Glossary.
+* [bind] usage:                          Class Binding.
+* [Char]:                                Displaying characters and strings.
+* [COMP']:                               Compilation token.
+* [compile]:                             Macros.
+* [current]:                             Objects Glossary.
+* [DO]:                                  Interpreter Directives.
+* [ELSE]:                                Interpreter Directives.
+* [ENDIF]:                               Interpreter Directives.
+* [FOR]:                                 Interpreter Directives.
+* [IF]:                                  Interpreter Directives.
+* [IF] and POSTPONE:                     programming-ambcond.
+* [IF], end of the input source before matching [ELSE] or [THEN]: programming-ambcond.
+* [IFDEF]:                               Interpreter Directives.
+* [IFUNDEF]:                             Interpreter Directives.
+* [IS]:                                  Deferred words.
+* [LOOP]:                                Interpreter Directives.
+* [NEXT]:                                Interpreter Directives.
+* [parent]:                              Objects Glossary.
+* [parent] usage:                        Class Binding.
+* [REPEAT]:                              Interpreter Directives.
+* [THEN]:                                Interpreter Directives.
+* [to-inst]:                             Objects Glossary.
+* [UNTIL]:                               Interpreter Directives.
+* [WHILE]:                               Interpreter Directives.
+* \:                                     Comments.
+* \"-parse:                              The Input Stream.
+* \, editing with Emacs:                 Emacs and Gforth.
+* \, line length in blocks:              block-idef.
+* \G:                                    Comments.
+* ]:                                     Literals.
+* ]L:                                    Literals.
+* a_, stack item type:                   Notation.
+* abort:                                 Exception Handling.
+* ABORT":                                Exception Handling.
+* ABORT", exception abort sequence:      core-idef.
+* abs:                                   Single precision.
+* abstract class <1>:                    Basic OOF Usage.
+* abstract class:                        Basic Objects Usage.
+* accept:                                Input.
+* ACCEPT, display after end of input:    core-idef.
+* ACCEPT, editing:                       core-idef.
+* address alignment exception:           core-ambcond.
+* address alignment exception, stack overflow: core-ambcond.
+* address arithmetic for structures:     Why explicit structure support?.
+* address arithmetic restrictions, ANS vs. Gforth: Memory model.
+* address arithmetic words:              Address arithmetic.
+* address of counted string:             String Formats.
+* address unit:                          Address arithmetic.
+* address unit, size in bits:            core-idef.
+* ADDRESS-UNIT-BITS:                     Address arithmetic.
+* AGAIN:                                 Arbitrary control structures.
+* AHEAD:                                 Arbitrary control structures.
+* Alias:                                 Aliases.
+* aliases:                               Aliases.
+* align:                                 Dictionary allocation.
+* aligned:                               Address arithmetic.
+* aligned addresses:                     core-idef.
+* alignment faults:                      core-ambcond.
+* alignment of addresses for types:      Address arithmetic.
+* alignment tutorial:                    Alignment Tutorial.
+* allocate:                              Heap Allocation.
+* allot:                                 Dictionary allocation.
+* also:                                  Word Lists.
+* also, too many word lists in search order: search-ambcond.
+* also-path:                             General Search Paths.
+* ambiguous conditions, block words:     block-ambcond.
+* ambiguous conditions, core words:      core-ambcond.
+* ambiguous conditions, double words:    double-ambcond.
+* ambiguous conditions, facility words:  facility-ambcond.
+* ambiguous conditions, file words:      file-ambcond.
+* ambiguous conditions, floating-point words: floating-ambcond.
+* ambiguous conditions, locals words:    locals-ambcond.
+* ambiguous conditions, programming-tools words: programming-ambcond.
+* ambiguous conditions, search-order words: search-ambcond.
+* and:                                   Bitwise operations.
+* angles in trigonometric operations:    Floating Point.
+* ANS conformance of Gforth:             ANS conformance.
+* ans-report.fs:                         ANS Report.
+* arg:                                   Modifying the Startup Sequence.
+* argc:                                  Modifying the Startup Sequence.
+* argument input source different than current input source for RESTORE-INPUT: core-ambcond.
+* argument type mismatch:                core-ambcond.
+* argument type mismatch, RESTORE-INPUT: core-ambcond.
+* arguments on the command line, access: Modifying the Startup Sequence.
+* argv:                                  Modifying the Startup Sequence.
+* arithmetic words:                      Arithmetic.
+* arithmetics tutorial:                  Arithmetics Tutorial.
+* arrays:                                CREATE.
+* arrays tutorial:                       Arrays and Records Tutorial.
+* asptr <1>:                             Class Declaration.
+* asptr:                                 The OOF base class.
+* assembler <1>:                         Code and ;code.
+* assembler:                             Assembler and Code Words.
+* ASSEMBLER, search order capability:    programming-idef.
+* assert(:                               Assertions.
+* assert-level:                          Assertions.
+* assert0(:                              Assertions.
+* assert1(:                              Assertions.
+* assert2(:                              Assertions.
+* assert3(:                              Assertions.
+* assertions:                            Assertions.
+* ASSUME-LIVE:                           Where are locals visible by name?.
+* at-xy:                                 Displaying characters and strings.
+* AT-XY can't be performed on user output device: facility-ambcond.
+* Attempt to use zero-length string as a name: core-ambcond.
+* au (address unit):                     Address arithmetic.
+* authors of Gforth:                     Origin.
+* auto-indentation of Forth code in Emacs: Auto-Indentation.
+* backtrace:                             Error messages.
+* backtraces with gforth-fast:           Error messages.
+* base:                                  Number Conversion.
+* base is not decimal (REPRESENT, F., FE., FS.): floating-ambcond.
+* basic objects usage:                   Basic Objects Usage.
+* batch processing with Gforth:          Invoking Gforth.
+* BEGIN:                                 Arbitrary control structures.
+* benchmarking Forth systems:            Performance.
+* Benchres:                              Performance.
+* bin:                                   General files.
+* bind <1>:                              The OOF base class.
+* bind:                                  Objects Glossary.
+* bind usage:                            Class Binding.
+* bind':                                 Objects Glossary.
+* bitwise operation words:               Bitwise operations.
+* bl:                                    Displaying characters and strings.
+* blank:                                 Memory Blocks.
+* blk:                                   Input Sources.
+* BLK, altering BLK:                     block-ambcond.
+* block:                                 Blocks.
+* block buffers:                         Blocks.
+* block number invalid:                  block-ambcond.
+* block read not possible:               block-ambcond.
+* block transfer, I/O exception:         block-ambcond.
+* block words, ambiguous conditions:     block-ambcond.
+* block words, implementation-defined options: block-idef.
+* block words, other system documentation: block-other.
+* block words, system documentation:     The optional Block word set.
+* block-included:                        Blocks.
+* block-offset:                          Blocks.
+* block-position:                        Blocks.
+* blocks:                                Blocks.
+* blocks file:                           Blocks.
+* blocks files, use with Emacs:          Blocks Files.
+* blocks in files:                       file-idef.
+* blocks.fb:                             Blocks.
+* Boolean flags:                         Boolean Flags.
+* bound:                                 The OOF base class.
+* bounds:                                Memory Blocks.
+* break":                                Singlestep Debugger.
+* break::                                Singlestep Debugger.
+* broken-pipe-error:                     Pipes.
+* buffer:                                Blocks.
+* bug reporting:                         Bugs.
+* bye:                                   Leaving Gforth.
+* bye during gforthmi:                   gforthmi.
+* c!:                                    Memory Access.
+* C":                                    Displaying characters and strings.
+* c,:                                    Dictionary allocation.
+* c, stack item type:                    Notation.
+* C, using C for the engine:             Portability.
+* c@:                                    Memory Access.
+* c_, stack item type:                   Notation.
+* calling a definition:                  Calls and returns.
+* case:                                  Arbitrary control structures.
+* CASE control structure:                Selection.
+* case sensitivity:                      Case insensitivity.
+* case-sensitivity characteristics:      core-idef.
+* case-sensitivity for name lookup:      core-idef.
+* catch:                                 Exception Handling.
+* catch and backtraces:                  Error messages.
+* catch and this:                        Objects Implementation.
+* catch in m: ... ;m:                    Method conveniences.
+* cell:                                  Address arithmetic.
+* cell size:                             core-idef.
+* cell%:                                 Structure Glossary.
+* cell+:                                 Address arithmetic.
+* cell-aligned addresses:                core-idef.
+* cells:                                 Address arithmetic.
+* CFA:                                   Execution token.
+* cfalign:                               Dictionary allocation.
+* cfaligned:                             Address arithmetic.
+* changing the compilation word list (during compilation): search-ambcond.
+* char:                                  Displaying characters and strings.
+* char size:                             core-idef.
+* char%:                                 Structure Glossary.
+* char+:                                 Address arithmetic.
+* character editing of ACCEPT and EXPECT: core-idef.
+* character set:                         core-idef.
+* character strings - compiling and displaying: Displaying characters and strings.
+* character strings - formats:           String Formats.
+* character strings - moving and copying: Memory Blocks.
+* character-aligned address requirements: core-idef.
+* character-set extensions and matching of names: core-idef.
+* characters - compiling and displaying: Displaying characters and strings.
+* characters tutorial:                   Characters and Strings Tutorial.
+* chars:                                 Address arithmetic.
+* child class:                           Object-Oriented Terminology.
+* child words:                           User-defined Defining Words.
+* class <1>:                             Basic Mini-OOF Usage.
+* class <2>:                             The OOF base class.
+* class <3>:                             Objects Glossary.
+* class:                                 Object-Oriented Terminology.
+* class binding:                         Class Binding.
+* class binding as optimization:         Class Binding.
+* class binding, alternative to:         Class Binding.
+* class binding, implementation:         Objects Implementation.
+* class declaration:                     Class Declaration.
+* class definition, restrictions <1>:    Basic OOF Usage.
+* class definition, restrictions:        Basic Objects Usage.
+* class implementation:                  Class Implementation.
+* class implementation and representation: Objects Implementation.
+* class scoping implementation:          Objects Implementation.
+* class usage <1>:                       Basic OOF Usage.
+* class usage:                           Basic Objects Usage.
+* class->map:                            Objects Glossary.
+* class-inst-size:                       Objects Glossary.
+* class-inst-size discussion:            Creating objects.
+* class-override!:                       Objects Glossary.
+* class-previous:                        Objects Glossary.
+* class;:                                Class Declaration.
+* class; usage:                          Basic OOF Usage.
+* class>order:                           Objects Glossary.
+* class?:                                The OOF base class.
+* classes and scoping:                   Classes and Scoping.
+* clear-path:                            General Search Paths.
+* clearstack:                            Examining.
+* clock tick duration:                   facility-idef.
+* close-file:                            General files.
+* close-pipe:                            Pipes.
+* cmove:                                 Memory Blocks.
+* cmove>:                                Memory Blocks.
+* code:                                  Code and ;code.
+* code address:                          Threading Words.
+* CODE ending sequence:                  programming-idef.
+* code examination:                      Examining.
+* code field address <1>:                Threading Words.
+* code field address:                    Execution token.
+* code words:                            Assembler and Code Words.
+* code words, portable:                  Code and ;code.
+* CODE, processing input:                programming-idef.
+* code-address!:                         Threading Words.
+* colon definitions <1>:                 Anonymous Definitions.
+* colon definitions:                     Colon Definitions.
+* colon definitions, tutorial:           Colon Definitions Tutorial.
+* colon-sys, passing data across ::      Literals.
+* combined words:                        Combined words.
+* command-line arguments, access:        Modifying the Startup Sequence.
+* command-line editing:                  Command-line editing.
+* command-line options:                  Invoking Gforth.
+* comment editing commands:              Emacs and Gforth.
+* comments:                              Comments.
+* comments tutorial:                     Comments Tutorial.
+* common-list:                           Locals implementation.
+* COMP':                                 Compilation token.
+* comp-i.fs:                             gforthmi.
+* comp.lang.forth:                       Forth-related information.
+* compare:                               Memory Blocks.
+* comparison of object models:           Comparison with other object models.
+* comparison tutorial:                   Flags and Comparisons Tutorial.
+* compilation semantics <1>:             Interpretation and Compilation Semantics.
+* compilation semantics:                 How does that work?.
+* compilation semantics tutorial:        Interpretation and Compilation Semantics and Immediacy Tutorial.
+* compilation token:                     Compilation token.
+* compilation tokens, tutorial:          Compilation Tokens Tutorial.
+* compilation word list:                 Word Lists.
+* compilation word list, change before definition ends: search-ambcond.
+* compilation>:                          Combined words.
+* compile state:                         The Text Interpreter.
+* compile,:                              Macros.
+* compile-lp+!:                          Locals implementation.
+* compile-only:                          Interpretation and Compilation Semantics.
+* compile-only words:                    Interpretation and Compilation Semantics.
+* compiling compilation semantics:       Macros.
+* compiling words:                       Compiling words.
+* conditional compilation:               Interpreter Directives.
+* conditionals, tutorial:                Conditional execution Tutorial.
+* Constant:                              Constants.
+* constants:                             Constants.
+* construct:                             Objects Glossary.
+* construct discussion:                  Creating objects.
+* context:                               Word Lists.
+* context-sensitive help:                Emacs and Gforth.
+* contiguous regions and address arithmetic: Address arithmetic.
+* contiguous regions and heap allocation: Heap Allocation.
+* contiguous regions in dictionary allocation: Dictionary allocation.
+* contiguous regions, ANS vs. Gforth:    Memory model.
+* contributors to Gforth:                Origin.
+* control characters as delimiters:      core-idef.
+* control structures:                    Control Structures.
+* control structures for selection:      Selection.
+* control structures programming style:  Arbitrary control structures.
+* control structures, user-defined:      Arbitrary control structures.
+* control-flow stack:                    Arbitrary control structures.
+* control-flow stack items, locals information: Locals implementation.
+* control-flow stack underflow:          programming-ambcond.
+* control-flow stack, format:            core-idef.
+* convert:                               Input.
+* core words, ambiguous conditions:      core-ambcond.
+* core words, implementation-defined options: core-idef.
+* core words, other system documentation: core-other.
+* core words, system documentation:      The Core Words.
+* count:                                 String Formats.
+* counted loops:                         Counted Loops.
+* counted loops with negative increment: Counted Loops.
+* counted string:                        String Formats.
+* counted string, maximum size:          core-idef.
+* counted strings:                       String Formats.
+* cputime:                               Keeping track of Time.
+* cr:                                    Displaying characters and strings.
+* Create:                                CREATE.
+* CREATE ... DOES>:                      User-defined Defining Words.
+* CREATE ... DOES>, applications:        CREATE..DOES> applications.
+* CREATE ... DOES>, details:             CREATE..DOES> details.
+* CREATE and alignment:                  Address arithmetic.
+* create-file:                           General files.
+* create-interpret/compile:              Combined words.
+* create...does> tutorial:               Defining Words Tutorial.
+* creating objects:                      Creating objects.
+* cross-compiler <1>:                    Cross Compiler.
+* cross-compiler:                        cross.fs.
+* cross.fs <1>:                          Cross Compiler.
+* cross.fs:                              cross.fs.
+* CS-PICK:                               Arbitrary control structures.
+* CS-PICK, fewer than u+1 items on the control flow-stack: programming-ambcond.
+* CS-ROLL:                               Arbitrary control structures.
+* CS-ROLL, fewer than u+1 items on the control flow-stack: programming-ambcond.
+* CT (compilation token):                Compilation token.
+* CT, tutorial:                          Compilation Tokens Tutorial.
+* current:                               Word Lists.
+* current':                              Objects Glossary.
+* current-interface:                     Objects Glossary.
+* current-interface discussion:          Objects Implementation.
+* currying:                              CREATE..DOES> applications.
+* cursor control:                        Displaying characters and strings.
+* d+:                                    Double precision.
+* d, stack item type:                    Notation.
+* d-:                                    Double precision.
+* d.:                                    Simple numeric output.
+* d.r:                                   Simple numeric output.
+* d0<:                                   Numeric comparison.
+* d0<=:                                  Numeric comparison.
+* d0<>:                                  Numeric comparison.
+* d0=:                                   Numeric comparison.
+* d0>:                                   Numeric comparison.
+* d0>=:                                  Numeric comparison.
+* d2*:                                   Bitwise operations.
+* d2/:                                   Bitwise operations.
+* d<:                                    Numeric comparison.
+* d<=:                                   Numeric comparison.
+* d<>:                                   Numeric comparison.
+* d=:                                    Numeric comparison.
+* d>:                                    Numeric comparison.
+* d>=:                                   Numeric comparison.
+* d>f:                                   Floating Point.
+* D>F, d cannot be presented precisely as a float: floating-ambcond.
+* d>s:                                   Double precision.
+* D>S, d out of range of n:              double-ambcond.
+* dabs:                                  Double precision.
+* data examination:                      Examining.
+* data space - reserving some:           Dictionary allocation.
+* data space available:                  core-other.
+* data space containing definitions gets de-allocated: core-ambcond.
+* data space pointer not properly aligned, ,, C,: core-ambcond.
+* data space read/write with incorrect alignment: core-ambcond.
+* data stack:                            Stack Manipulation.
+* data stack manipulation words:         Data stack.
+* data-relocatable image files:          Data-Relocatable Image Files.
+* data-space, read-only regions:         core-idef.
+* dbg:                                   Singlestep Debugger.
+* debug tracer editing commands:         Emacs and Gforth.
+* debugging:                             Debugging.
+* debugging output, finding the source location in Emacs: Emacs and Gforth.
+* debugging Singlestep:                  Singlestep Debugger.
+* dec.:                                  Simple numeric output.
+* decimal:                               Number Conversion.
+* decompilation tutorial:                Decompilation Tutorial.
+* default type of locals:                Gforth locals.
+* defer:                                 Class Declaration.
+* Defer:                                 Deferred words.
+* deferred words:                        Deferred words.
+* defers:                                Deferred words.
+* definer:                               Threading Words.
+* definer!:                              Threading Words.
+* defines:                               Basic Mini-OOF Usage.
+* defining defining words:               User-defined Defining Words.
+* defining words:                        Defining Words.
+* defining words tutorial:               Defining Words Tutorial.
+* defining words with arbitrary semantics combinations: Combined words.
+* defining words without name:           Anonymous Definitions.
+* defining words, name given in a string: Supplying names.
+* defining words, simple:                CREATE.
+* defining words, user-defined:          User-defined Defining Words.
+* definition:                            Introducing the Text Interpreter.
+* definitions <1>:                       The OOF base class.
+* definitions:                           Word Lists.
+* definitions, tutorial:                 Colon Definitions Tutorial.
+* delete-file:                           General files.
+* depth:                                 Examining.
+* design of stack effects, tutorial:     Designing the stack effect Tutorial.
+* dest, control-flow stack item:         Arbitrary control structures.
+* df!:                                   Memory Access.
+* df@:                                   Memory Access.
+* df@ or df! used with an address that is not double-float  aligned: floating-ambcond.
+* df_, stack item type:                  Notation.
+* dfalign:                               Dictionary allocation.
+* dfaligned:                             Address arithmetic.
+* dfloat%:                               Structure Glossary.
+* dfloat+:                               Address arithmetic.
+* dfloats:                               Address arithmetic.
+* dict-new:                              Objects Glossary.
+* dict-new discussion:                   Creating objects.
+* dictionary:                            The Text Interpreter.
+* dictionary in persistent form:         Image Files.
+* dictionary overflow:                   core-ambcond.
+* dictionary size default:               Stack and Dictionary Sizes.
+* digits > 35:                           core-idef.
+* direct threaded inner interpreter:     Threading.
+* dispose:                               The OOF base class.
+* dividing by zero:                      core-ambcond.
+* dividing by zero, floating-point:      floating-ambcond.
+* Dividing classes:                      Dividing classes.
+* division rounding:                     core-idef.
+* division with potentially negative operands: Arithmetic.
+* dmax:                                  Double precision.
+* dmin:                                  Double precision.
+* dnegate:                               Double precision.
+* DO:                                    Arbitrary control structures.
+* DO loops:                              Counted Loops.
+* docol::                                Threading Words.
+* docon::                                Threading Words.
+* dodefer::                              Threading Words.
+* dodoes routine:                        DOES>.
+* does-code!:                            Threading Words.
+* does-handler!:                         Threading Words.
+* DOES>:                                 CREATE..DOES> details.
+* DOES> implementation:                  DOES>.
+* DOES> in a separate definition:        CREATE..DOES> details.
+* DOES> in interpretation state:         CREATE..DOES> details.
+* DOES> of non-CREATEd words:            core-ambcond.
+* does> tutorial:                        Defining Words Tutorial.
+* DOES>, visibility of current definition: core-idef.
+* DOES>-code:                            DOES>.
+* does>-code:                            Threading Words.
+* does>-handler:                         Threading Words.
+* DOES>-parts, stack effect:             User-defined Defining Words.
+* dofield::                              Threading Words.
+* DONE:                                  Arbitrary control structures.
+* double precision arithmetic words:     Double precision.
+* double words, ambiguous conditions:    double-ambcond.
+* double words, system documentation:    The optional Double Number word set.
+* double%:                               Structure Glossary.
+* double-cell numbers, input format:     Number Conversion.
+* doubly indirect threaded code:         gforthmi.
+* douser::                               Threading Words.
+* dovar::                                Threading Words.
+* dpl:                                   Number Conversion.
+* drop:                                  Data stack.
+* du<:                                   Numeric comparison.
+* du<=:                                  Numeric comparison.
+* du>:                                   Numeric comparison.
+* du>=:                                  Numeric comparison.
+* dump:                                  Examining.
+* dup:                                   Data stack.
+* duration of a system clock tick:       facility-idef.
+* dynamic allocation of memory:          Heap Allocation.
+* Dynamic superinstructions with replication: Dynamic Superinstructions.
+* early:                                 Class Declaration.
+* early binding:                         Class Binding.
+* edit-line:                             Input.
+* editing in ACCEPT and EXPECT:          core-idef.
+* eforth performance:                    Performance.
+* ekey:                                  Input.
+* EKEY, encoding of keyboard events:     facility-idef.
+* ekey>char:                             Input.
+* ekey?:                                 Input.
+* elements of a Forth system:            Review - elements of a Forth system.
+* ELSE:                                  Arbitrary control structures.
+* Emacs and Gforth:                      Emacs and Gforth.
+* emit:                                  Displaying characters and strings.
+* EMIT and non-graphic characters:       core-idef.
+* emit-file:                             General files.
+* empty-buffer:                          Blocks.
+* empty-buffers:                         Blocks.
+* end-class <1>:                         Basic Mini-OOF Usage.
+* end-class:                             Objects Glossary.
+* end-class usage:                       Basic Objects Usage.
+* end-class-noname:                      Objects Glossary.
+* end-code:                              Code and ;code.
+* end-interface:                         Objects Glossary.
+* end-interface usage:                   Object Interfaces.
+* end-interface-noname:                  Objects Glossary.
+* end-methods:                           Objects Glossary.
+* end-struct:                            Structure Glossary.
+* end-struct usage:                      Structure Usage.
+* endcase:                               Arbitrary control structures.
+* ENDIF:                                 Arbitrary control structures.
+* endless loop:                          Simple Loops.
+* endof:                                 Arbitrary control structures.
+* endscope:                              Where are locals visible by name?.
+* endtry:                                Exception Handling.
+* endwith:                               The OOF base class.
+* engine:                                Engine.
+* engine performance:                    Performance.
+* engine portability:                    Portability.
+* engine.s:                              Produced code.
+* engines, gforth vs. gforth-fast vs. gforth-itc: Direct or Indirect Threaded?.
+* environment variables <1>:             gforthmi.
+* environment variables:                 Environment variables.
+* environment wordset:                   Notation.
+* environment-wordlist:                  Environmental Queries.
+* environment?:                          Environmental Queries.
+* ENVIRONMENT? string length, maximum:   core-idef.
+* environmental queries:                 Environmental Queries.
+* environmental restrictions:            ANS conformance.
+* equality of floats:                    Floating Point.
+* erase:                                 Memory Blocks.
+* error messages:                        Error messages.
+* error output, finding the source location in Emacs: Emacs and Gforth.
+* etags.fs:                              Emacs Tags.
+* evaluate:                              Input Sources.
+* examining data and code:               Examining.
+* exception:                             Exception Handling.
+* exception abort sequence of ABORT":    core-idef.
+* exception when including source:       file-idef.
+* exception words, implementation-defined options: exception-idef.
+* exception words, system documentation: The optional Exception word set.
+* exceptions:                            Exception Handling.
+* exceptions tutorial:                   Exceptions Tutorial.
+* executable image file:                 Running Image Files.
+* execute:                               Execution token.
+* execute-parsing:                       The Input Stream.
+* execute-parsing-file:                  The Input Stream.
+* executing code on startup:             Invoking Gforth.
+* execution semantics:                   Interpretation and Compilation Semantics.
+* execution token <1>:                   Execution token.
+* execution token:                       Introducing the Text Interpreter.
+* execution token of last defined word:  Anonymous Definitions.
+* execution token of words with undefined execution semantics: core-ambcond.
+* execution tokens tutorial:             Execution Tokens Tutorial.
+* exercises:                             Exercises.
+* EXIT:                                  Calls and returns.
+* exit in m: ... ;m:                     Method conveniences.
+* exitm:                                 Objects Glossary.
+* exitm discussion:                      Method conveniences.
+* expect:                                Input.
+* EXPECT, display after end of input:    core-idef.
+* EXPECT, editing:                       core-idef.
+* explicit register declarations:        Portability.
+* exponent too big for conversion (DF!, DF@, SF!, SF@): floating-ambcond.
+* extended records:                      Structure Usage.
+* f!:                                    Memory Access.
+* f! used with an address that is not float aligned: floating-ambcond.
+* f*:                                    Floating Point.
+* f**:                                   Floating Point.
+* f+:                                    Floating Point.
+* f,:                                    Dictionary allocation.
+* f, stack item type:                    Notation.
+* f-:                                    Floating Point.
+* f.:                                    Simple numeric output.
+* f.rdp:                                 Simple numeric output.
+* f.s:                                   Examining.
+* f/:                                    Floating Point.
+* f0<:                                   Floating Point.
+* f0<=:                                  Floating Point.
+* f0<>:                                  Floating Point.
+* f0=:                                   Floating Point.
+* f0>:                                   Floating Point.
+* f0>=:                                  Floating Point.
+* f2*:                                   Floating Point.
+* f2/:                                   Floating Point.
+* f83name, stack item type:              Notation.
+* f<:                                    Floating Point.
+* f<=:                                   Floating Point.
+* f<>:                                   Floating Point.
+* f=:                                    Floating Point.
+* f>:                                    Floating Point.
+* f>=:                                   Floating Point.
+* f>d:                                   Floating Point.
+* F>D, integer part of float cannot be represented by d: floating-ambcond.
+* f>l:                                   Locals implementation.
+* f>str-rdp:                             Formatted numeric output.
+* f@:                                    Memory Access.
+* f@ used with an address that is not float aligned: floating-ambcond.
+* f@local#:                              Locals implementation.
+* f_, stack item type:                   Notation.
+* fabs:                                  Floating Point.
+* facility words, ambiguous conditions:  facility-ambcond.
+* facility words, implementation-defined options: facility-idef.
+* facility words, system documentation:  The optional Facility word set.
+* facos:                                 Floating Point.
+* FACOS, |float|>1:                      floating-ambcond.
+* facosh:                                Floating Point.
+* FACOSH, float<1:                       floating-ambcond.
+* factoring:                             Introduction.
+* factoring similar colon definitions:   CREATE..DOES> applications.
+* factoring tutorial:                    Factoring Tutorial.
+* falign:                                Dictionary allocation.
+* faligned:                              Address arithmetic.
+* falog:                                 Floating Point.
+* false:                                 Boolean Flags.
+* fam (file access method):              General files.
+* fasin:                                 Floating Point.
+* FASIN, |float|>1:                      floating-ambcond.
+* fasinh:                                Floating Point.
+* FASINH, float<0:                       floating-ambcond.
+* fatan:                                 Floating Point.
+* fatan2:                                Floating Point.
+* FATAN2, both arguments are equal to zero: floating-ambcond.
+* fatanh:                                Floating Point.
+* FATANH, |float|>1:                     floating-ambcond.
+* fconstant:                             Constants.
+* fcos:                                  Floating Point.
+* fcosh:                                 Floating Point.
+* fdepth:                                Examining.
+* FDL, GNU Free Documentation License:   GNU Free Documentation License.
+* fdrop:                                 Floating point stack.
+* fdup:                                  Floating point stack.
+* fe.:                                   Simple numeric output.
+* fexp:                                  Floating Point.
+* fexpm1:                                Floating Point.
+* field:                                 Structure Glossary.
+* field naming convention:               Structure Naming Convention.
+* field usage:                           Structure Usage.
+* field usage in class definition:       Basic Objects Usage.
+* file access methods used:              file-idef.
+* file exceptions:                       file-idef.
+* file input nesting, maximum depth:     file-idef.
+* file line terminator:                  file-idef.
+* file name format:                      file-idef.
+* file search path:                      Search Paths.
+* file words, ambiguous conditions:      file-ambcond.
+* file words, implementation-defined options: file-idef.
+* file words, system documentation:      The optional File-Access word set.
+* file-handling:                         General files.
+* file-position:                         General files.
+* file-size:                             General files.
+* file-status:                           General files.
+* FILE-STATUS, returned information:     file-idef.
+* filenames in assertion output:         Assertions.
+* filenames in ~~ output:                Debugging.
+* files:                                 Files.
+* files containing blocks:               file-idef.
+* files containing Forth code, tutorial: Using files for Forth code Tutorial.
+* files tutorial:                        Files Tutorial.
+* fill:                                  Memory Blocks.
+* find:                                  Word Lists.
+* find-name:                             Name token.
+* first definition:                      Your first definition.
+* first field optimization:              Structure Usage.
+* first field optimization, implementation: Structure Implementation.
+* flags on the command line:             Invoking Gforth.
+* flags tutorial:                        Flags and Comparisons Tutorial.
+* flavours of locals:                    Gforth locals.
+* FLiteral:                              Literals.
+* fln:                                   Floating Point.
+* FLN, float=<0:                         floating-ambcond.
+* flnp1:                                 Floating Point.
+* FLNP1, float=<-1:                      floating-ambcond.
+* float:                                 Address arithmetic.
+* float%:                                Structure Glossary.
+* float+:                                Address arithmetic.
+* floating point arithmetic words:       Floating Point.
+* floating point numbers, format and range: floating-idef.
+* floating point unidentified fault, integer division: core-ambcond.
+* floating-point arithmetic, pitfalls:   Floating Point.
+* floating-point comparisons:            Floating Point.
+* floating-point dividing by zero:       floating-ambcond.
+* floating-point numbers, input format:  Number Conversion.
+* floating-point numbers, rounding or truncation: floating-idef.
+* floating-point result out of range:    floating-ambcond.
+* floating-point stack:                  Stack Manipulation.
+* floating-point stack in the standard:  Stack Manipulation.
+* floating-point stack manipulation words: Floating point stack.
+* floating-point stack size:             floating-idef.
+* floating-point stack width:            floating-idef.
+* floating-point unidentified fault, F>D: floating-ambcond.
+* floating-point unidentified fault, FACOS, FASIN or FATANH: floating-ambcond.
+* floating-point unidentified fault, FACOSH: floating-ambcond.
+* floating-point unidentified fault, FASINH or FSQRT: floating-ambcond.
+* floating-point unidentified fault, FLN or FLOG: floating-ambcond.
+* floating-point unidentified fault, FLNP1: floating-ambcond.
+* floating-point unidentified fault, FP divide-by-zero: floating-ambcond.
+* floating-point words, ambiguous conditions: floating-ambcond.
+* floating-point words, implementation-defined options: floating-idef.
+* floating-point words, system documentation: The optional Floating-Point word set.
+* floating-stack:                        Floating point stack.
+* floats:                                Address arithmetic.
+* flog:                                  Floating Point.
+* FLOG, float=<0:                        floating-ambcond.
+* floor:                                 Floating Point.
+* FLOORED:                               Single precision.
+* flush:                                 Blocks.
+* flush-file:                            General files.
+* flush-icache:                          Code and ;code.
+* fm/mod:                                Mixed precision.
+* fmax:                                  Floating Point.
+* fmin:                                  Floating Point.
+* fnegate:                               Floating Point.
+* fnip:                                  Floating point stack.
+* FOR:                                   Arbitrary control structures.
+* FOR loops:                             Counted Loops.
+* FORGET, deleting the compilation word list: programming-ambcond.
+* FORGET, name can't be found:           programming-ambcond.
+* FORGET, removing a needed definition:  programming-ambcond.
+* forgeting words:                       Forgetting words.
+* format and range of floating point numbers: floating-idef.
+* format of glossary entries:            Notation.
+* formatted numeric output:              Formatted numeric output.
+* Forth:                                 Word Lists.
+* Forth - an introduction:               Introduction.
+* Forth mode in Emacs:                   Emacs and Gforth.
+* Forth source files:                    Forth source files.
+* Forth Tutorial:                        Tutorial.
+* Forth-related information:             Forth-related information.
+* forth-wordlist:                        Word Lists.
+* forth.el:                              Emacs and Gforth.
+* fover:                                 Floating point stack.
+* fp!:                                   Stack pointer manipulation.
+* fp0:                                   Stack pointer manipulation.
+* fp@:                                   Stack pointer manipulation.
+* fpath:                                 Source Search Paths.
+* fpick:                                 Floating point stack.
+* free:                                  Heap Allocation.
+* frequently asked questions:            Forth-related information.
+* frot:                                  Floating point stack.
+* fround:                                Floating Point.
+* fs.:                                   Simple numeric output.
+* fsin:                                  Floating Point.
+* fsincos:                               Floating Point.
+* fsinh:                                 Floating Point.
+* fsqrt:                                 Floating Point.
+* FSQRT, float<0:                        floating-ambcond.
+* fswap:                                 Floating point stack.
+* ftan:                                  Floating Point.
+* FTAN on an argument r1 where cos(r1) is zero: floating-ambcond.
+* ftanh:                                 Floating Point.
+* ftuck:                                 Floating point stack.
+* fully relocatable image files:         Fully Relocatable Image Files.
+* functions, tutorial:                   Colon Definitions Tutorial.
+* fvariable:                             Variables.
+* f~:                                    Floating Point.
+* f~abs:                                 Floating Point.
+* f~rel:                                 Floating Point.
+* general files:                         General files.
+* get-block-fid:                         Blocks.
+* get-current:                           Word Lists.
+* get-order:                             Word Lists.
+* getenv:                                Passing Commands to the OS.
+* gforth:                                Environmental Queries.
+* GFORTH - environment variable <1>:     gforthmi.
+* GFORTH - environment variable:         Environment variables.
+* Gforth - leaving:                      Leaving Gforth.
+* gforth engine:                         Direct or Indirect Threaded?.
+* Gforth environment:                    Gforth Environment.
+* Gforth extensions:                     Standard vs Extensions.
+* Gforth files:                          Gforth Files.
+* Gforth locals:                         Gforth locals.
+* Gforth performance:                    Performance.
+* gforth-ditc:                           gforthmi.
+* gforth-fast and backtraces:            Error messages.
+* gforth-fast engine:                    Direct or Indirect Threaded?.
+* gforth-fast, difference from gforth:   Error messages.
+* gforth-itc engine:                     Direct or Indirect Threaded?.
+* gforth.el:                             Emacs and Gforth.
+* gforth.el, installation:               Installing gforth.el.
+* gforth.fi, relocatability:             Fully Relocatable Image Files.
+* GFORTHD - environment variable <1>:    gforthmi.
+* GFORTHD - environment variable:        Environment variables.
+* GFORTHHIST - environment variable:     Environment variables.
+* gforthmi:                              gforthmi.
+* GFORTHPATH - environment variable:     Environment variables.
+* glossary notation format:              Notation.
+* GNU C for the engine:                  Portability.
+* goals of the Gforth project:           Goals.
+* header space:                          Word Lists.
+* heap allocation:                       Heap Allocation.
+* heap-new:                              Objects Glossary.
+* heap-new discussion:                   Creating objects.
+* heap-new usage:                        Basic Objects Usage.
+* here:                                  Dictionary allocation.
+* hex:                                   Number Conversion.
+* hex.:                                  Simple numeric output.
+* highlighting Forth code in Emacs:      Hilighting.
+* hilighting Forth code in Emacs:        Hilighting.
+* history file:                          Command-line editing.
+* hold:                                  Formatted numeric output.
+* how::                                  Class Declaration.
+* hybrid direct/indirect threaded code:  Direct or Indirect Threaded?.
+* i:                                     Counted Loops.
+* I/O - blocks:                          Blocks.
+* I/O - file-handling:                   Files.
+* I/O - keyboard and display:            Other I/O.
+* I/O - see character strings:           String Formats.
+* I/O - see input:                       Input.
+* I/O exception in block transfer:       block-ambcond.
+* id.:                                   Name token.
+* IF:                                    Arbitrary control structures.
+* IF control structure:                  Selection.
+* if, tutorial:                          Conditional execution Tutorial.
+* image file:                            Image Files.
+* image file background:                 Image File Background.
+* image file initialization sequence:    Modifying the Startup Sequence.
+* image file invocation:                 Running Image Files.
+* image file loader:                     Image File Background.
+* image file, data-relocatable:          Data-Relocatable Image Files.
+* image file, executable:                Running Image Files.
+* image file, fully relocatable:         Fully Relocatable Image Files.
+* image file, non-relocatable:           Non-Relocatable Image Files.
+* image file, stack and dictionary sizes: Stack and Dictionary Sizes.
+* image file, turnkey applications:      Modifying the Startup Sequence.
+* image license:                         Image Licensing Issues.
+* immediate:                             Interpretation and Compilation Semantics.
+* immediate words <1>:                   Interpretation and Compilation Semantics.
+* immediate words:                       How does that work?.
+* immediate, tutorial:                   Interpretation and Compilation Semantics and Immediacy Tutorial.
+* implementation:                        Objects Glossary.
+* implementation of locals:              Locals implementation.
+* implementation of structures:          Structure Implementation.
+* implementation usage:                  Object Interfaces.
+* implementation-defined options, block words: block-idef.
+* implementation-defined options, core words: core-idef.
+* implementation-defined options, exception words: exception-idef.
+* implementation-defined options, facility words: facility-idef.
+* implementation-defined options, file words: file-idef.
+* implementation-defined options, floating-point words: floating-idef.
+* implementation-defined options, locals words: locals-idef.
+* implementation-defined options, memory-allocation words: memory-idef.
+* implementation-defined options, programming-tools words: programming-idef.
+* implementation-defined options, search-order words: search-idef.
+* in-lining of constants:                Constants.
+* include:                               Forth source files.
+* include search path:                   Search Paths.
+* include, placement in files:           Emacs Tags.
+* include-file:                          Forth source files.
+* INCLUDE-FILE, file-id is invalid:      file-ambcond.
+* INCLUDE-FILE, I/O exception reading or closing file-id: file-ambcond.
+* included:                              Forth source files.
+* INCLUDED, I/O exception reading or closing file-id: file-ambcond.
+* INCLUDED, named file cannot be opened: file-ambcond.
+* included?:                             Forth source files.
+* including files:                       Forth source files.
+* including files, stack effect:         Forth source files.
+* indentation of Forth code in Emacs:    Auto-Indentation.
+* indirect threaded inner interpreter:   Threading.
+* inheritance:                           Object-Oriented Terminology.
+* init:                                  The OOF base class.
+* init-asm:                              Code and ;code.
+* init-object:                           Objects Glossary.
+* init-object discussion:                Creating objects.
+* initialization sequence of image file: Modifying the Startup Sequence.
+* inner interpreter implementation:      Threading.
+* inner interpreter optimization:        Scheduling.
+* inner interpreter, direct threaded:    Threading.
+* inner interpreter, indirect threaded:  Threading.
+* input:                                 Input.
+* input buffer:                          The Text Interpreter.
+* input format for double-cell numbers:  Number Conversion.
+* input format for floating-point numbers: Number Conversion.
+* input format for single-cell numbers:  Number Conversion.
+* input from pipes:                      Gforth in pipes.
+* input line size, maximum:              file-idef.
+* input line terminator:                 core-idef.
+* input sources:                         Input Sources.
+* input stream:                          The Input Stream.
+* inst-value:                            Objects Glossary.
+* inst-value usage:                      Method conveniences.
+* inst-value visibility:                 Classes and Scoping.
+* inst-var:                              Objects Glossary.
+* inst-var implementation:               Objects Implementation.
+* inst-var usage:                        Method conveniences.
+* inst-var visibility:                   Classes and Scoping.
+* instance variables:                    Object-Oriented Terminology.
+* instruction pointer:                   Threading.
+* insufficient data stack or return stack space: core-ambcond.
+* insufficient space for loop control parameters: core-ambcond.
+* insufficient space in the dictionary:  core-ambcond.
+* integer types, ranges:                 core-idef.
+* interface:                             Objects Glossary.
+* interface implementation:              Objects Implementation.
+* interface usage:                       Object Interfaces.
+* interfaces for objects:                Object Interfaces.
+* interpret state:                       The Text Interpreter.
+* Interpret/Compile states:              Interpret/Compile states.
+* interpret/compile::                    Combined words.
+* interpretation semantics <1>:          Interpretation and Compilation Semantics.
+* interpretation semantics:              How does that work?.
+* interpretation semantics tutorial:     Interpretation and Compilation Semantics and Immediacy Tutorial.
+* interpretation>:                       Combined words.
+* interpreter - outer:                   The Text Interpreter.
+* interpreter directives:                Interpreter Directives.
+* Interpreting a compile-only word:      core-ambcond.
+* Interpreting a compile-only word, for ' etc.: core-ambcond.
+* Interpreting a compile-only word, for a local: locals-ambcond.
+* interpreting a word with undefined interpretation semantics: core-ambcond.
+* invalid block number:                  block-ambcond.
+* Invalid memory address:                core-ambcond.
+* Invalid memory address, stack overflow: core-ambcond.
+* Invalid name argument, TO <1>:         locals-ambcond.
+* Invalid name argument, TO:             core-ambcond.
+* invert:                                Bitwise operations.
+* invoking a selector:                   Object-Oriented Terminology.
+* invoking Gforth:                       Invoking Gforth.
+* invoking image files:                  Running Image Files.
+* ior type description:                  Notation.
+* ior values and meaning <1>:            memory-idef.
+* ior values and meaning:                file-idef.
+* is:                                    The OOF base class.
+* IS:                                    Deferred words.
+* j:                                     Counted Loops.
+* k:                                     Counted Loops.
+* kern*.fi, relocatability:              Fully Relocatable Image Files.
+* key:                                   Input.
+* key?:                                  Input.
+* keyboard events, encoding in EKEY:     facility-idef.
+* Kuehling, David:                       Emacs and Gforth.
+* labels as values:                      Threading.
+* laddr#:                                Locals implementation.
+* last word was headerless:              core-ambcond.
+* late binding:                          Class Binding.
+* latest:                                Name token.
+* latestxt:                              Anonymous Definitions.
+* LEAVE:                                 Arbitrary control structures.
+* leaving definitions, tutorial:         Leaving definitions or loops Tutorial.
+* leaving Gforth:                        Leaving Gforth.
+* leaving loops, tutorial:               Leaving definitions or loops Tutorial.
+* length of a line affected by \:        block-idef.
+* license for images:                    Image Licensing Issues.
+* lifetime of locals:                    How long do locals live?.
+* line terminator on input:              core-idef.
+* link:                                  The OOF base class.
+* list:                                  Blocks.
+* LIST display format:                   block-idef.
+* list-size:                             Locals implementation.
+* Literal:                               Literals.
+* literal tutorial:                      Literal Tutorial.
+* Literals:                              Literals.
+* load:                                  Blocks.
+* loader for image files:                Image File Background.
+* loading files at startup:              Invoking Gforth.
+* loading Forth code, tutorial:          Using files for Forth code Tutorial.
+* local in interpretation state:         locals-ambcond.
+* local variables, tutorial:             Local Variables Tutorial.
+* locale and case-sensitivity:           core-idef.
+* locals:                                Locals.
+* locals and return stack:               Return stack.
+* locals flavours:                       Gforth locals.
+* locals implementation:                 Locals implementation.
+* locals information on the control-flow stack: Locals implementation.
+* locals lifetime:                       How long do locals live?.
+* locals programming style:              Locals programming style.
+* locals stack <1>:                      Locals implementation.
+* locals stack:                          Stack Manipulation.
+* locals types:                          Gforth locals.
+* locals visibility:                     Where are locals visible by name?.
+* locals words, ambiguous conditions:    locals-ambcond.
+* locals words, implementation-defined options: locals-idef.
+* locals words, system documentation:    The optional Locals word set.
+* locals, ANS Forth style:               ANS Forth locals.
+* locals, default type:                  Gforth locals.
+* locals, Gforth style:                  Gforth locals.
+* locals, maximum number in a definition: locals-idef.
+* long long:                             Portability.
+* LOOP:                                  Arbitrary control structures.
+* loop control parameters not available: core-ambcond.
+* loops without count:                   Simple Loops.
+* loops, counted:                        Counted Loops.
+* loops, counted, tutorial:              Counted loops Tutorial.
+* loops, endless:                        Simple Loops.
+* loops, indefinite, tutorial:           General Loops Tutorial.
+* lp! <1>:                               Locals implementation.
+* lp!:                                   Stack pointer manipulation.
+* lp+!#:                                 Locals implementation.
+* lp0:                                   Stack pointer manipulation.
+* lp@:                                   Stack pointer manipulation.
+* lshift:                                Bitwise operations.
+* LSHIFT, large shift counts:            core-ambcond.
+* m*:                                    Mixed precision.
+* m*/:                                   Mixed precision.
+* m+:                                    Mixed precision.
+* m::                                    Objects Glossary.
+* m: usage:                              Method conveniences.
+* Macros:                                Macros.
+* macros:                                Compiling words.
+* macros, advanced tutorial:             Advanced macros Tutorial.
+* mapping block ranges to files:         file-idef.
+* marker:                                Forgetting words.
+* max:                                   Single precision.
+* maxalign:                              Dictionary allocation.
+* maxaligned:                            Address arithmetic.
+* maximum depth of file input nesting:   file-idef.
+* maximum number of locals in a definition: locals-idef.
+* maximum number of word lists in search order: search-idef.
+* maximum size of a counted string:      core-idef.
+* maximum size of a definition name, in characters: core-idef.
+* maximum size of a parsed string:       core-idef.
+* maximum size of input line:            file-idef.
+* maximum string length for ENVIRONMENT?, in characters: core-idef.
+* memory access words:                   Memory Access.
+* memory access/allocation tutorial:     Memory Tutorial.
+* memory alignment tutorial:             Alignment Tutorial.
+* memory block words:                    Memory Blocks.
+* memory words:                          Memory.
+* memory-allocation word set:            Heap Allocation.
+* memory-allocation words, implementation-defined options: memory-idef.
+* memory-allocation words, system documentation: The optional Memory-Allocation word set.
+* message send:                          Object-Oriented Terminology.
+* metacompiler <1>:                      Cross Compiler.
+* metacompiler:                          cross.fs.
+* method <1>:                            Basic Mini-OOF Usage.
+* method <2>:                            Class Declaration.
+* method <3>:                            Objects Glossary.
+* method:                                Object-Oriented Terminology.
+* method conveniences:                   Method conveniences.
+* method map:                            Objects Implementation.
+* method selector:                       Object-Oriented Terminology.
+* method usage:                          Basic OOF Usage.
+* methods:                               Objects Glossary.
+* methods...end-methods:                 Dividing classes.
+* min:                                   Single precision.
+* mini-oof:                              Mini-OOF.
+* mini-oof example:                      Mini-OOF Example.
+* mini-oof usage:                        Basic Mini-OOF Usage.
+* mini-oof.fs, differences to other models: Comparison with other object models.
+* minimum search order:                  search-idef.
+* miscellaneous words:                   Miscellaneous Words.
+* mixed precision arithmetic words:      Mixed precision.
+* mod:                                   Single precision.
+* modifying >IN:                         How does that work?.
+* modifying the contents of the input buffer or a string literal: core-ambcond.
+* most recent definition does not have a name (IMMEDIATE): core-ambcond.
+* motivation for object-oriented programming: Why object-oriented programming?.
+* move:                                  Memory Blocks.
+* ms:                                    Keeping track of Time.
+* MS, repeatability to be expected:      facility-idef.
+* n, stack item type:                    Notation.
+* naligned:                              Structure Glossary.
+* name:                                  The Input Stream.
+* name dictionary:                       Introducing the Text Interpreter.
+* name field address:                    Name token.
+* name lookup, case-sensitivity:         core-idef.
+* name not defined by VALUE or (LOCAL) used by TO: locals-ambcond.
+* name not defined by VALUE used by TO:  core-ambcond.
+* name not found:                        core-ambcond.
+* name not found (', POSTPONE, ['], [COMPILE]): core-ambcond.
+* name token:                            Name token.
+* name, maximum length:                  core-idef.
+* name>comp:                             Name token.
+* name>int:                              Name token.
+* name>string:                           Name token.
+* name?int:                              Name token.
+* names for defined words:               Supplying names.
+* needs:                                 Forth source files.
+* negate:                                Single precision.
+* negative increment for counted loops:  Counted Loops.
+* Neon model:                            Comparison with other object models.
+* new <1>:                               Basic Mini-OOF Usage.
+* new:                                   The OOF base class.
+* new[]:                                 The OOF base class.
+* newline character on input:            core-idef.
+* NEXT:                                  Arbitrary control structures.
+* NEXT, direct threaded:                 Threading.
+* NEXT, indirect threaded:               Threading.
+* nextname:                              Supplying names.
+* NFA:                                   Name token.
+* nip:                                   Data stack.
+* non-graphic characters and EMIT:       core-idef.
+* non-relocatable image files:           Non-Relocatable Image Files.
+* noname:                                Anonymous Definitions.
+* notation of glossary entries:          Notation.
+* NT Forth performance:                  Performance.
+* number conversion:                     Number Conversion.
+* number conversion - traps for the unwary: Number Conversion.
+* number of bits in one address unit:    core-idef.
+* number representation and arithmetic:  core-idef.
+* numeric comparison words:              Numeric comparison.
+* numeric output - formatted:            Formatted numeric output.
+* numeric output - simple/free-format:   Simple numeric output.
+* object <1>:                            Basic Mini-OOF Usage.
+* object <2>:                            Objects Glossary.
+* object:                                Object-Oriented Terminology.
+* object allocation options:             Creating objects.
+* object class:                          The Objects base class.
+* object creation:                       Creating objects.
+* object interfaces:                     Object Interfaces.
+* object models, comparison:             Comparison with other object models.
+* object-map discussion:                 Objects Implementation.
+* object-oriented programming <1>:       OOF.
+* object-oriented programming:           Objects.
+* object-oriented programming motivation: Why object-oriented programming?.
+* object-oriented programming style:     Object-Oriented Programming Style.
+* object-oriented terminology:           Object-Oriented Terminology.
+* objects:                               Objects.
+* objects, basic usage:                  Basic Objects Usage.
+* objects.fs <1>:                        OOF.
+* objects.fs:                            Objects.
+* objects.fs Glossary:                   Objects Glossary.
+* objects.fs implementation:             Objects Implementation.
+* objects.fs properties:                 Properties of the Objects model.
+* of:                                    Arbitrary control structures.
+* off:                                   Boolean Flags.
+* on:                                    Boolean Flags.
+* Only:                                  Word Lists.
+* oof:                                   OOF.
+* oof.fs <1>:                            OOF.
+* oof.fs:                                Objects.
+* oof.fs base class:                     The OOF base class.
+* oof.fs properties:                     Properties of the OOF model.
+* oof.fs usage:                          Basic OOF Usage.
+* oof.fs, differences to other models:   Comparison with other object models.
+* open-blocks:                           Blocks.
+* open-file:                             General files.
+* open-path-file:                        General Search Paths.
+* open-pipe:                             Pipes.
+* operating system - passing commands:   Passing Commands to the OS.
+* operator's terminal facilities available: core-other.
+* options on the command line:           Invoking Gforth.
+* or:                                    Bitwise operations.
+* order:                                 Word Lists.
+* orig, control-flow stack item:         Arbitrary control structures.
+* os-class:                              Environmental Queries.
+* other system documentation, block words: block-other.
+* other system documentation, core words: core-other.
+* outer interpreter <1>:                 The Text Interpreter.
+* outer interpreter <2>:                 Stacks and Postfix notation.
+* outer interpreter:                     Introducing the Text Interpreter.
+* output in pipes:                       Gforth in pipes.
+* over:                                  Data stack.
+* overflow of the pictured numeric output string: core-ambcond.
+* overrides:                             Objects Glossary.
+* overrides usage:                       Basic Objects Usage.
+* pad:                                   Input.
+* PAD size:                              core-idef.
+* PAD use by nonstandard words:          core-other.
+* page:                                  Displaying characters and strings.
+* parameter stack:                       Stack Manipulation.
+* parameters are not of the same type (DO, ?DO, WITHIN): core-ambcond.
+* parent class:                          Object-Oriented Terminology.
+* parent class binding:                  Class Binding.
+* parse:                                 The Input Stream.
+* parse area:                            The Text Interpreter.
+* parse-word:                            The Input Stream.
+* parsed string overflow:                core-ambcond.
+* parsed string, maximum size:           core-idef.
+* parsing a string:                      Input.
+* parsing words <1>:                     The Text Interpreter.
+* parsing words:                         How does that work?.
+* patching threaded code:                Dynamic Superinstructions.
+* path for included:                     Search Paths.
+* path+:                                 General Search Paths.
+* path-allot:                            General Search Paths.
+* path=:                                 General Search Paths.
+* pedigree of Gforth:                    Origin.
+* perform:                               Execution token.
+* performance of some Forth interpreters: Performance.
+* persistent form of dictionary:         Image Files.
+* PFE performance:                       Performance.
+* pi:                                    Floating Point.
+* pick:                                  Data stack.
+* pictured numeric output:               Formatted numeric output.
+* pictured numeric output buffer, size:  core-idef.
+* pictured numeric output string, overflow: core-ambcond.
+* pipes, creating your own:              Pipes.
+* pipes, Gforth as part of:              Gforth in pipes.
+* postpone <1>:                          The OOF base class.
+* postpone:                              Macros.
+* POSTPONE applied to [IF]:              programming-ambcond.
+* POSTPONE or [COMPILE] applied to TO:   core-ambcond.
+* postpone tutorial:                     POSTPONE Tutorial.
+* postpone,:                             Compilation token.
+* Pountain's object-oriented model:      Comparison with other object models.
+* precision:                             Floating Point.
+* precompiled Forth code:                Image Files.
+* previous:                              Word Lists.
+* previous, search order empty:          search-ambcond.
+* primitive source format:               Automatic Generation.
+* primitive-centric threaded code:       Direct or Indirect Threaded?.
+* primitives, assembly code listing:     Produced code.
+* primitives, automatic generation:      Automatic Generation.
+* primitives, implementation:            Primitives.
+* primitives, keeping the TOS in a register: TOS Optimization.
+* prims2x.fs:                            Automatic Generation.
+* print:                                 Objects Glossary.
+* printdebugdata:                        Debugging.
+* private discussion:                    Classes and Scoping.
+* procedures, tutorial:                  Colon Definitions Tutorial.
+* program data space available:          core-other.
+* programming style, arbitrary control structures: Arbitrary control structures.
+* programming style, locals:             Locals programming style.
+* programming style, object-oriented:    Object-Oriented Programming Style.
+* programming tools:                     Programming Tools.
+* programming-tools words, ambiguous conditions: programming-ambcond.
+* programming-tools words, implementation-defined options: programming-idef.
+* programming-tools words, system documentation: The optional Programming-Tools word set.
+* prompt:                                core-idef.
+* pronounciation of words:               Notation.
+* protected:                             Objects Glossary.
+* protected discussion:                  Classes and Scoping.
+* ptr <1>:                               Class Declaration.
+* ptr:                                   The OOF base class.
+* public:                                Objects Glossary.
+* query:                                 Input Sources.
+* quit:                                  Miscellaneous Words.
+* r, stack item type:                    Notation.
+* r/o:                                   General files.
+* r/w:                                   General files.
+* r>:                                    Return stack.
+* r@:                                    Return stack.
+* ranges for integer types:              core-idef.
+* rdrop:                                 Return stack.
+* read-file:                             General files.
+* read-line:                             General files.
+* read-only data space regions:          core-idef.
+* reading from file positions not yet written: file-ambcond.
+* receiving object:                      Object-Oriented Terminology.
+* records:                               Structures.
+* records tutorial:                      Arrays and Records Tutorial.
+* recover:                               Exception Handling.
+* recurse:                               Calls and returns.
+* RECURSE appears after DOES>:           core-ambcond.
+* recursion tutorial:                    Recursion Tutorial.
+* recursive:                             Calls and returns.
+* recursive definitions:                 Calls and returns.
+* refill:                                The Input Stream.
+* registers of the inner interpreter:    Code and ;code.
+* relocating loader:                     Image File Background.
+* relocation at load-time:               Image File Background.
+* relocation at run-time:                Image File Background.
+* rename-file:                           General files.
+* REPEAT:                                Arbitrary control structures.
+* repeatability to be expected from the execution of MS: facility-idef.
+* Replication:                           Dynamic Superinstructions.
+* report the words used in your program: ANS Report.
+* reposition-file:                       General files.
+* REPOSITION-FILE, outside the file's boundaries: file-ambcond.
+* represent:                             Formatted numeric output.
+* REPRESENT, results when float is out of range: floating-idef.
+* require:                               Forth source files.
+* require, placement in files:           Emacs Tags.
+* required:                              Forth source files.
+* reserving data space:                  Dictionary allocation.
+* resize:                                Heap Allocation.
+* resize-file:                           General files.
+* restore-input:                         Input Sources.
+* RESTORE-INPUT, Argument type mismatch: core-ambcond.
+* restrict:                              Interpretation and Compilation Semantics.
+* result out of range:                   core-ambcond.
+* return stack:                          Stack Manipulation.
+* return stack and locals:               Return stack.
+* return stack dump with gforth-fast:    Error messages.
+* return stack manipulation words:       Return stack.
+* return stack space available:          core-other.
+* return stack tutorial:                 Return Stack Tutorial.
+* return stack underflow:                core-ambcond.
+* returning from a definition:           Calls and returns.
+* roll:                                  Data stack.
+* Root:                                  Word Lists.
+* rot:                                   Data stack.
+* rounding of floating-point numbers:    floating-idef.
+* rp!:                                   Stack pointer manipulation.
+* rp0:                                   Stack pointer manipulation.
+* rp@:                                   Stack pointer manipulation.
+* rshift:                                Bitwise operations.
+* RSHIFT, large shift counts:            core-ambcond.
+* run-time code generation, tutorial:    Advanced macros Tutorial.
+* running Gforth:                        Invoking Gforth.
+* running image files:                   Running Image Files.
+* Rydqvist, Goran:                       Emacs and Gforth.
+* S":                                    Displaying characters and strings.
+* S", number of string buffers:          file-idef.
+* S", size of string buffer:             file-idef.
+* s>d:                                   Double precision.
+* s\":                                   Displaying characters and strings.
+* save-buffer:                           Blocks.
+* save-buffers:                          Blocks.
+* save-input:                            Input Sources.
+* savesystem:                            Non-Relocatable Image Files.
+* savesystem during gforthmi:            gforthmi.
+* scope:                                 Where are locals visible by name?.
+* scope of locals:                       Where are locals visible by name?.
+* scoping and classes:                   Classes and Scoping.
+* scr:                                   Blocks.
+* seal:                                  Word Lists.
+* search:                                Memory Blocks.
+* search order stack:                    Word Lists.
+* search order, maximum depth:           search-idef.
+* search order, minimum:                 search-idef.
+* search order, tutorial:                Wordlists and Search Order Tutorial.
+* search path control, source files <1>: General Search Paths.
+* search path control, source files:     Source Search Paths.
+* search path for files:                 Search Paths.
+* search-order words, ambiguous conditions: search-ambcond.
+* search-order words, implementation-defined options: search-idef.
+* search-order words, system documentation: The optional Search-Order word set.
+* search-wordlist:                       Word Lists.
+* see:                                   Examining.
+* see tutorial:                          Decompilation Tutorial.
+* SEE, source and format of output:      programming-idef.
+* selection control structures:          Selection.
+* selector <1>:                          Objects Glossary.
+* selector:                              Object-Oriented Terminology.
+* selector implementation, class:        Objects Implementation.
+* selector invocation:                   Object-Oriented Terminology.
+* selector invocation, restrictions <1>: Basic OOF Usage.
+* selector invocation, restrictions:     Basic Objects Usage.
+* selector usage:                        Basic Objects Usage.
+* selectors and stack effects:           Object-Oriented Programming Style.
+* selectors common to hardly-related classes: Object Interfaces.
+* self:                                  The OOF base class.
+* semantics tutorial:                    Interpretation and Compilation Semantics and Immediacy Tutorial.
+* semantics, interpretation and compilation: Interpretation and Compilation Semantics.
+* set-current:                           Word Lists.
+* set-order:                             Word Lists.
+* set-precision:                         Floating Point.
+* sf!:                                   Memory Access.
+* sf@:                                   Memory Access.
+* sf@ or sf! used with an address that is not single-float  aligned: floating-ambcond.
+* sf_, stack item type:                  Notation.
+* sfalign:                               Dictionary allocation.
+* sfaligned:                             Address arithmetic.
+* sfloat%:                               Structure Glossary.
+* sfloat+:                               Address arithmetic.
+* sfloats:                               Address arithmetic.
+* sh:                                    Passing Commands to the OS.
+* shell commands:                        Passing Commands to the OS.
+* sign:                                  Formatted numeric output.
+* silent exiting from Gforth:            Gforth in pipes.
+* simple defining words:                 CREATE.
+* simple loops:                          Simple Loops.
+* simple-see:                            Examining.
+* simple-see-range:                      Examining.
+* single precision arithmetic words:     Single precision.
+* single-assignment style for locals:    Locals programming style.
+* single-cell numbers, input format:     Number Conversion.
+* singlestep Debugger:                   Singlestep Debugger.
+* size of buffer at WORD:                core-idef.
+* size of the dictionary and the stacks: Invoking Gforth.
+* size of the keyboard terminal buffer:  core-idef.
+* size of the pictured numeric output buffer: core-idef.
+* size of the scratch area returned by PAD: core-idef.
+* size parameters for command-line options: Invoking Gforth.
+* SLiteral:                              Literals.
+* slurp-fid:                             General files.
+* slurp-file:                            General files.
+* sm/rem:                                Mixed precision.
+* source:                                The Text Interpreter.
+* source location of error or debugging output in Emacs: Emacs and Gforth.
+* source-id:                             Input Sources.
+* SOURCE-ID, behaviour when BLK is non-zero: file-ambcond.
+* sourcefilename:                        Forth source files.
+* sourceline#:                           Forth source files.
+* sp!:                                   Stack pointer manipulation.
+* sp0:                                   Stack pointer manipulation.
+* sp@:                                   Stack pointer manipulation.
+* space:                                 Displaying characters and strings.
+* space delimiters:                      core-idef.
+* spaces:                                Displaying characters and strings.
+* span:                                  Input.
+* speed, startup:                        Startup speed.
+* stack effect:                          Notation.
+* Stack effect design, tutorial:         Designing the stack effect Tutorial.
+* stack effect of DOES>-parts:           User-defined Defining Words.
+* stack effect of included files:        Forth source files.
+* stack effects of selectors:            Object-Oriented Programming Style.
+* stack empty:                           core-ambcond.
+* stack item types:                      Notation.
+* stack manipulation tutorial:           Stack Manipulation Tutorial.
+* stack manipulation words:              Stack Manipulation.
+* stack manipulation words, floating-point stack: Floating point stack.
+* stack manipulation words, return stack: Return stack.
+* stack manipulations words, data stack: Data stack.
+* stack overflow:                        core-ambcond.
+* stack pointer manipulation words:      Stack pointer manipulation.
+* stack size default:                    Stack and Dictionary Sizes.
+* stack size, cache-friendly:            Stack and Dictionary Sizes.
+* stack space available:                 core-other.
+* stack tutorial:                        Stack Tutorial.
+* stack underflow:                       core-ambcond.
+* stack-effect comments, tutorial:       Stack-Effect Comments Tutorial.
+* starting Gforth tutorial:              Starting Gforth Tutorial.
+* startup sequence for image file:       Modifying the Startup Sequence.
+* Startup speed:                         Startup speed.
+* state - effect on the text interpreter: How does that work?.
+* STATE values:                          core-idef.
+* state-smart words (are a bad idea):    Combined words.
+* static:                                Class Declaration.
+* stderr:                                General files.
+* stderr and pipes:                      Gforth in pipes.
+* stdin:                                 General files.
+* stdout:                                General files.
+* str<:                                  Memory Blocks.
+* str=:                                  Memory Blocks.
+* string larger than pictured numeric output area (f., fe., fs.): floating-ambcond.
+* string longer than a counted string returned by WORD: core-ambcond.
+* string-prefix?:                        Memory Blocks.
+* strings - see character strings:       String Formats.
+* strings tutorial:                      Characters and Strings Tutorial.
+* struct:                                Structure Glossary.
+* struct usage:                          Structure Usage.
+* structs tutorial:                      Arrays and Records Tutorial.
+* structure extension:                   Structure Usage.
+* structure glossary:                    Structure Glossary.
+* structure implementation:              Structure Implementation.
+* structure naming convention:           Structure Naming Convention.
+* structure of Forth programs:           Forth is written in Forth.
+* structure usage:                       Structure Usage.
+* structures:                            Structures.
+* structures containing arrays:          Structure Usage.
+* structures containing structures:      Structure Usage.
+* structures using address arithmetic:   Why explicit structure support?.
+* sub-list?:                             Locals implementation.
+* super:                                 The OOF base class.
+* superclass binding:                    Class Binding.
+* Superinstructions:                     Dynamic Superinstructions.
+* swap:                                  Data stack.
+* syntax tutorial:                       Syntax Tutorial.
+* system:                                Passing Commands to the OS.
+* system dictionary space required, in address units: core-other.
+* system documentation:                  ANS conformance.
+* system documentation, block words:     The optional Block word set.
+* system documentation, core words:      The Core Words.
+* system documentation, double words:    The optional Double Number word set.
+* system documentation, exception words: The optional Exception word set.
+* system documentation, facility words:  The optional Facility word set.
+* system documentation, file words:      The optional File-Access word set.
+* system documentation, floating-point words: The optional Floating-Point word set.
+* system documentation, locals words:    The optional Locals word set.
+* system documentation, memory-allocation words: The optional Memory-Allocation word set.
+* system documentation, programming-tools words: The optional Programming-Tools word set.
+* system documentation, search-order words: The optional Search-Order word set.
+* system prompt:                         core-idef.
+* table:                                 Word Lists.
+* TAGS file:                             Emacs Tags.
+* target compiler <1>:                   Cross Compiler.
+* target compiler:                       cross.fs.
+* terminal buffer, size:                 core-idef.
+* terminal input buffer:                 The Text Interpreter.
+* terminology for object-oriented programming: Object-Oriented Terminology.
+* text interpreter <1>:                  The Text Interpreter.
+* text interpreter <2>:                  Stacks and Postfix notation.
+* text interpreter:                      Introducing the Text Interpreter.
+* text interpreter - effect of state:    How does that work?.
+* text interpreter - input sources <1>:  Input Sources.
+* text interpreter - input sources:      The Text Interpreter.
+* THEN:                                  Arbitrary control structures.
+* this:                                  Objects Glossary.
+* this and catch:                        Objects Implementation.
+* this implementation:                   Objects Implementation.
+* this usage:                            Method conveniences.
+* ThisForth performance:                 Performance.
+* threaded code implementation:          Threading.
+* threading words:                       Threading Words.
+* threading, direct or indirect?:        Direct or Indirect Threaded?.
+* threading-method:                      Threading Words.
+* throw:                                 Exception Handling.
+* THROW-codes used in the system:        exception-idef.
+* thru:                                  Blocks.
+* tib:                                   The Text Interpreter.
+* tick ('):                              Execution token.
+* TILE performance:                      Performance.
+* time&date:                             Keeping track of Time.
+* time-related words:                    Keeping track of Time.
+* TMP, TEMP - environment variable:      Environment variables.
+* TO:                                    Values.
+* TO on non-VALUEs:                      core-ambcond.
+* TO on non-VALUEs and non-locals:       locals-ambcond.
+* to-this:                               Objects Glossary.
+* tokens for words:                      Tokens for Words.
+* TOS definition:                        Stacks and Postfix notation.
+* TOS optimization for primitives:       TOS Optimization.
+* toupper:                               Displaying characters and strings.
+* trigonometric operations:              Floating Point.
+* true:                                  Boolean Flags.
+* truncation of floating-point numbers:  floating-idef.
+* try:                                   Exception Handling.
+* tuck:                                  Data stack.
+* turnkey image files:                   Modifying the Startup Sequence.
+* Tutorial:                              Tutorial.
+* type:                                  Displaying characters and strings.
+* types of locals:                       Gforth locals.
+* types of stack items:                  Notation.
+* types tutorial:                        Types Tutorial.
+* typewhite:                             Displaying characters and strings.
+* U+DO:                                  Arbitrary control structures.
+* u, stack item type:                    Notation.
+* U-DO:                                  Arbitrary control structures.
+* u.:                                    Simple numeric output.
+* u.r:                                   Simple numeric output.
+* u<:                                    Numeric comparison.
+* u<=:                                   Numeric comparison.
+* u>:                                    Numeric comparison.
+* u>=:                                   Numeric comparison.
+* ud, stack item type:                   Notation.
+* ud.:                                   Simple numeric output.
+* ud.r:                                  Simple numeric output.
+* um*:                                   Mixed precision.
+* um/mod:                                Mixed precision.
+* undefined word:                        core-ambcond.
+* undefined word, ', POSTPONE, ['], [COMPILE]: core-ambcond.
+* unexpected end of the input buffer:    core-ambcond.
+* unloop:                                Arbitrary control structures.
+* unmapped block numbers:                file-ambcond.
+* UNREACHABLE:                           Where are locals visible by name?.
+* UNTIL:                                 Arbitrary control structures.
+* UNTIL loop:                            Simple Loops.
+* unused:                                Dictionary allocation.
+* update:                                Blocks.
+* UPDATE, no current block buffer:       block-ambcond.
+* updated?:                              Blocks.
+* upper and lower case:                  Case insensitivity.
+* use:                                   Blocks.
+* User:                                  Variables.
+* user input device, method of selecting: core-idef.
+* user output device, method of selecting: core-idef.
+* user space:                            Variables.
+* user variables:                        Variables.
+* user-defined defining words:           User-defined Defining Words.
+* utime:                                 Keeping track of Time.
+* Value:                                 Values.
+* value-flavoured locals:                Gforth locals.
+* values:                                Values.
+* var <1>:                               Basic Mini-OOF Usage.
+* var:                                   Class Declaration.
+* Variable:                              Variables.
+* variable-flavoured locals:             Gforth locals.
+* variables:                             Variables.
+* versions, invoking other versions of Gforth: Invoking Gforth.
+* viewing the documentation of a word in Emacs: Emacs and Gforth.
+* viewing the source of a word in Emacs: Emacs Tags.
+* virtual function:                      Object-Oriented Terminology.
+* virtual function table:                Objects Implementation.
+* virtual machine:                       Engine.
+* virtual machine instructions, implementation: Primitives.
+* visibility of locals:                  Where are locals visible by name?.
+* vlist:                                 Word Lists.
+* Vocabularies, detailed explanation:    Vocabularies.
+* Vocabulary:                            Word Lists.
+* vocs:                                  Word Lists.
+* vocstack empty, previous:              search-ambcond.
+* vocstack full, also:                   search-ambcond.
+* w, stack item type:                    Notation.
+* w/o:                                   General files.
+* What's:                                Deferred words.
+* where to go next:                      Where to go next.
+* WHILE:                                 Arbitrary control structures.
+* WHILE loop:                            Simple Loops.
+* wid:                                   Word Lists.
+* wid, stack item type:                  Notation.
+* Win32Forth performance:                Performance.
+* wior type description:                 Notation.
+* wior values and meaning:               file-idef.
+* with:                                  The OOF base class.
+* within:                                Numeric comparison.
+* word <1>:                              The Input Stream.
+* word:                                  Introducing the Text Interpreter.
+* WORD buffer size:                      core-idef.
+* word glossary entry format:            Notation.
+* word list for defining locals:         Locals implementation.
+* word lists:                            Word Lists.
+* word lists - example:                  Word list example.
+* word lists - why use them?:            Why use word lists?.
+* word name too long:                    core-ambcond.
+* WORD, string overflow:                 core-ambcond.
+* wordlist:                              Word Lists.
+* wordlists tutorial:                    Wordlists and Search Order Tutorial.
+* words <1>:                             Word Lists.
+* words:                                 Words.
+* words used in your program:            ANS Report.
+* words, forgetting:                     Forgetting words.
+* wordset:                               Notation.
+* write-file:                            General files.
+* write-line:                            General files.
+* xor:                                   Bitwise operations.
+* xt <1>:                                Execution token.
+* xt:                                    Introducing the Text Interpreter.
+* XT tutorial:                           Execution Tokens Tutorial.
+* xt, stack item type:                   Notation.
+* xt-new:                                Objects Glossary.
+* xt-see:                                Examining.
+* zero-length string as a name:          core-ambcond.
+* Zsoter's object-oriented model:        Comparison with other object models.
+* ~~:                                    Debugging.
+* ~~, removal with Emacs:                Emacs and Gforth.
+
+
