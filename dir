@@ -109,6 +109,7 @@ Lisp Programming
 					Manual
 * ecldev: (ecldev).			Embeddable Common Lisp (ECL)
 					Developer's Manual
+* acl2: (acl2-doc-emacs.info). Applicative Common Lisp
 
 Programming & development tools
 * GDBM: (gdbm). 			The GNU database manager.
