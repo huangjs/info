@@ -25,7 +25,6 @@ Austin, TX 78712-1188 U.S.A.
 
 INFO-DIR-SECTION Math
 START-INFO-DIR-ENTRY
-* acl2: (acl2-doc-emacs.info). Applicative Common Lisp
 END-INFO-DIR-ENTRY
 
 
@@ -77,6 +76,9 @@ This manual documents ACL2 Version 3.1.
 
 * Index:: An item for each documented ACL2 item.
 
+
+Math
+* acl2: (acl2-doc-emacs.info). Applicative Common Lisp
 
 File: acl2-doc-emacs.info,  Node: ACL2-TUTORIAL,  Next: BDD,  Prev: Top,  Up: Top
 

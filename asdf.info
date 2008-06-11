@@ -107,6 +107,9 @@ properties
 * Pre-defined subclasses of component::
 * Creating new component types::
 
+
+Math
+* acl2: (acl2-doc-emacs.info). Applicative Common Lisp
 
 File: asdf.info,  Node: Using asdf to load systems,  Next: Defining systems with defsystem,  Prev: Top,  Up: Top
 

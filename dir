@@ -17,6 +17,7 @@ File: dir,	Node: Top	This is the top of the INFO tree
 Emacs
 * AUCTeX: (auctex).			A sophisticated TeX environment for
 					Emacs.
+* Gnus: (gnus).         The newsreader Gnus.
 * Imaxima: (imaxima).			Image support for the computer algebra
 					system Maxima. Interactive math minor
 					mode.
@@ -50,14 +51,15 @@ Emacs
 * Speedbar: (speedbar). 		File/Tag summarizing utility.
 
 Software development
+* Vmgen: (vmgen).               Virtual machine interpreter generator
 * asdf: (asdf). 			Another system definition facility
 * Autoconf: (autoconf). 		Create source code configuration
 					scripts.
 * Gforth: (gforth).			A fast interpreter for the Forth
 					language.
+* bison: (bison).       GNU parser generator (Yacc replacement).
 * sbcl: (sbcl). 			The Steel Bank Common Lisp compiler
-* sbcl-internals: (sbcl internals).	SBCL internal documentation
-* Vmgen: (vmgen).			Virtual machine interpreter generator
+* sbcl-internals: (sbcl-internals).	SBCL internal documentation
 
 GNU programming tools
 * automake: (automake). 		Making Makefile.in's
@@ -74,6 +76,7 @@ Programming
 * Cpp: (cpp).				The GNU C preprocessor.
 * Cpplib: (cppinternals).		Cpplib internals.
 * cvsclient: (cvsclient).		The CVS client/server protocol.
+* flex: (flex).      Fast lexical analyzer generator (lex replacement).
 * gcc: (gcc).				The GNU Compiler Collection.
 * gccinstall: (gccinstall).		Installing the GNU Compiler
 					Collection.
@@ -87,19 +90,22 @@ GNU Packages
 * Make: (make). 			Remake files automatically.
 
 The Algorithmic Language Scheme
-* data-rep: (data-rep). 		Data Representation in Guile -- how to
-					use Guile objects in your C code.
+* SICP: (sicp). Structure and Interpretation of Computer Programs
 * GOOPS: (goops).			The GOOPS reference manual.
 * Guile Reference: (guile).		The Guile reference manual.
 * Guile Tutorial: (guile-tut).		The Guile tutorial.
 * R5RS: (r5rs). 			The Revised(5) Report on Scheme.
+* data-rep: (data-rep).  Data Representation in Guile -- how to use
+                         Guile objects in your C code.
 
 Individual utilities
+* awk: (gawk)Invoking gawk.                     Text scanning and processing.
 * cmp: (diff)Invoking cmp.		Compare 2 files byte by byte.
 * diff: (diff)Invoking diff.		Compare 2 files line by line.
 * diff3: (diff)Invoking diff3.		Compare 3 files line by line.
 * patch: (diff)Invoking patch.		Apply a patch to a file.
 * sdiff: (diff)Invoking sdiff.		Merge 2 files side-by-side.
+* tar: (tar)tar invocation.                     Invoking GNU `tar'.
 
 GNU Emacs Lisp
 * ECB: (ecb).				Emacs Code Browser
@@ -109,7 +115,8 @@ Lisp Programming
 					Manual
 * ecldev: (ecldev).			Embeddable Common Lisp (ECL)
 					Developer's Manual
-
+* ACL2: (acl2-doc-emacs).		Applicative Common Lisp
+					
 Programming & development tools
 * GDBM: (gdbm). 			The GNU database manager.
 
@@ -222,7 +229,7 @@ GNU organization
 * Standards: (standards).		GNU coding standards.
 
 Archiving
-* Tar: (tar).				Making tape (or disk) archives.
+* Tar: (tar).                   Making tape (or disk) archives.
 
 Network Applications
 * Wget: (wget). 			The non-interactive network
@@ -251,3 +258,16 @@ TeX
 * m4: (m4).				A powerful macro processor.
 * Octave: (octave).			Interactive language for numerical
 					computations.
+
+Text creation and manipulation
+* Gawk: (gawk).                 A text scanning and processing language.
+This is gawk.info, produced by makeinfo version 4.11 from gawk.texi.
+
+
+Network applications
+* Gawkinet: (gawkinet).         TCP/IP Internetworking With `gawk'.
+This is gawkinet.info, produced by makeinfo version 4.11 from gawkinet.texi.
+
+
+Miscellaneous
+* UUCP: (uucp).                 Transfer mail and news across phone lines.
