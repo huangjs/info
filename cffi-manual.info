@@ -1,5 +1,5 @@
-This is cffi-manual.info, produced by makeinfo version 4.12 from
-/Users/hjs/.sbcl/site/cffi/doc/cffi-manual.texinfo.
+This is cffi-manual.info, produced by makeinfo version 4.11 from
+/home/huang/cl/site/cffi/doc/cffi-manual.texinfo.
 
 Copyright (C) 2005 James Bielman <jamesjb at jamesjb.com>
 Copyright (C) 2005-2008 Lui's Oliveira   <loliveira at common-lisp.net>
@@ -224,7 +224,7 @@ dependencies:
 
    * Alexandria, a collection of portable public-domain utilities.
 
-   * trivial-features, a portability layer that ensure consistent
+   * trivial-features, a portability layer that ensures consistent
      `*features*' across multiple Common Lisp implementations.
 
 
@@ -804,10 +804,10 @@ some helpers in this new definition.
   the above destructuring."
     (flet ((enumerated-value (type offset)
              (+ (getf type-offsets type) offset))
-           ;;map PROCEDURE, destructuring each of ENUM-ARGS
+           ;; map PROCEDURE, destructuring each of ENUM-ARGS
            (map-enum-args (procedure)
              (mapcar (lambda (arg) (apply procedure arg)) enum-args))
-           ;;build a name like SET-CURL-OPTION-NOSIGNAL
+           ;; build a name like SET-CURL-OPTION-NOSIGNAL
            (make-setter-name (option-name)
              (intern (concatenate
                       'string "SET-" (symbol-name type-name)
@@ -3700,8 +3700,8 @@ See Also
 
 File: cffi-manual.info,  Node: incf-pointer,  Next: make-pointer,  Prev: inc-pointer,  Up: Pointers
 
-inc-pointer
-===========
+incf-pointer
+============
 
 Syntax
 ------
@@ -4786,10 +4786,11 @@ defcfun
 Syntax
 ------
 
- -- Macro: defcfun name-and-options return-type &body arguments [&rest]
-          => lisp-name
+ -- Macro: defcfun name-and-options return-type &body [docstring]
+          arguments [&rest] => lisp-name
 
-   NAME-AND-OPTIONS name | (name &key library calling-convention cconv)
+   NAME-AND-OPTIONS ::= name | (name &key library calling-convention
+cconv)
 NAME ::= LISP-NAME [FOREIGN-NAME] | FOREIGN-NAME [LISP-NAME]
 ARGUMENTS ::= { (arg-name arg-type) }*
 Arguments and Values
@@ -4810,10 +4811,13 @@ ARG-TYPE
 
 CALLING-CONVENTION
 CCONV
-     One of `:cdecl' (default) or `stdcall'.
+     One of `:cdecl' (default) or `:stdcall'.
 
 LIBRARY
      A symbol designating a foreign library.
+
+DOCSTRING
+     A documentation string.
 
 Description
 -----------
@@ -4842,7 +4846,9 @@ _macro_ instead of a function and will only work for Lisps that support
 Examples
 --------
 
-  (defcfun "strlen" :int (n :string))
+  (defcfun "strlen" :int
+    "Calculate the length of a string."
+    (n :string))
 
   CFFI> (strlen "123")
   => 3
@@ -4851,6 +4857,13 @@ Examples
 
   CFFI> (c-abs -42)
   => 42
+
+   Function without arguments:
+
+  (defcfun "rand" :int)
+
+  CFFI> (rand)
+  => 1804289383
 
    Variadic function example:
 
@@ -5019,7 +5032,7 @@ Implementation-specific Notes
 Examples
 --------
 
-  CFFI> (foreign-funcall-pointer (foreign-symbol-pointer "abs")
+  CFFI> (foreign-funcall-pointer (foreign-symbol-pointer "abs") ()
                                  :int -42 :int)
   => 42
 
@@ -5615,10 +5628,10 @@ CCONV
 Description
 -----------
 
-The macro `defcallback' defines a Lisp function the can be called from
-C (but not from Lisp). The arguments passed to this function will be
-converted to the appropriate Lisp representation and its return value
-will be converted to its C representation.
+The `defcallback' macro defines a Lisp function that can be called from
+C. The arguments passed to this function will be converted to the
+appropriate Lisp representation and its return value will be converted
+to its C representation.
 
    This Lisp function can be accessed by the `callback' macro or the
 `get-callback' function.
@@ -6104,9 +6117,9 @@ Index
                                                               (line  10)
 * foreign-enum-value:                    foreign-enum-value.  (line  10)
 * foreign-free:                          foreign-free.        (line  10)
-* foreign-funcall <1>:                   foreign-funcall.     (line  11)
-* foreign-funcall:                       foreign-funcall-pointer.
+* foreign-funcall <1>:                   foreign-funcall-pointer.
                                                               (line  11)
+* foreign-funcall:                       foreign-funcall.     (line  11)
 * foreign-pointer:                       Basic Pointer Operations.
                                                               (line  13)
 * foreign-slot-names:                    foreign-slot-names.  (line  10)
@@ -6196,126 +6209,126 @@ Index
 
 
 Tag Table:
-Node: Top1418
-Node: Introduction7719
-Node: Installation9333
-Node: Implementation Support10137
-Node: Tutorial11749
-Node: Tutorial-Comparison13586
-Ref: Tutorial-Comparison-Footnote-117291
-Ref: Tutorial-Comparison-Footnote-217427
-Node: Tutorial-Getting a URL17755
-Ref: Tutorial-Getting a URL-Footnote-118760
-Node: Tutorial-Loading19242
-Node: Tutorial-Initializing20621
-Node: Tutorial-easy_setopt23069
-Ref: Tutorial-easy_setopt-Footnote-126718
-Node: Tutorial-Abstraction26909
-Ref: Tutorial-Abstraction-Footnote-130026
-Ref: Tutorial-Abstraction-Footnote-230204
-Node: Tutorial-Lisp easy_setopt30459
-Node: Tutorial-Memory36170
-Ref: Tutorial-Memory-Footnote-145641
-Ref: Tutorial-Memory-Footnote-245873
-Node: Tutorial-Callbacks46041
-Ref: Tutorial-Callbacks-Footnote-150790
-Node: Tutorial-Completion51275
-Node: Tutorial-Types52622
-Ref: Tutorial-Types-Footnote-158971
-Node: Tutorial-Conclusion59085
-Node: Wrapper generators59821
-Node: Foreign Types62502
-Node: Built-In Types63545
-Node: Other Types65923
-Node: Defining Foreign Types68492
-Node: Foreign Type Translators70047
-Node: Optimizing Type Translators72880
-Node: Foreign Structure Types77702
-Node: Allocating Foreign Objects78749
-Node: convert-from-foreign78990
-Node: convert-to-foreign80274
-Node: defbitfield81762
-Node: defcstruct83953
-Node: defcunion87370
-Node: defctype88344
-Node: defcenum89257
-Node: define-foreign-type90761
-Node: define-parse-method92335
-Node: foreign-bitfield-symbols93492
-Node: foreign-bitfield-value94287
-Node: foreign-enum-keyword95044
-Node: foreign-enum-value95951
-Node: foreign-slot-names96842
-Node: foreign-slot-offset97616
-Node: foreign-slot-pointer98437
-Node: foreign-slot-value99638
-Node: foreign-type-alignment101272
-Node: foreign-type-size102007
-Node: free-converted-object102793
-Node: free-translated-object104126
-Node: translate-from-foreign105057
-Node: translate-to-foreign106467
-Node: with-foreign-slots108540
-Node: Pointers109880
-Ref: Pointers-Footnote-1111452
-Node: Basic Pointer Operations111515
-Node: Allocating Foreign Memory112214
-Node: Accessing Foreign Memory112917
-Node: foreign-free113941
-Node: foreign-alloc114578
-Node: foreign-symbol-pointer117735
-Node: inc-pointer119249
-Node: incf-pointer120015
-Node: make-pointer121019
-Node: mem-aref121862
-Node: mem-ref122951
-Node: null-pointer123854
-Node: null-pointer-p124353
-Node: pointerp125157
-Node: pointer-address125983
-Node: pointer-eq126669
-Node: with-foreign-object127863
-Node: with-foreign-pointer128895
-Node: Strings129942
-Node: *default-foreign-encoding*130753
-Node: foreign-string-alloc131643
-Node: foreign-string-free132951
-Node: foreign-string-to-lisp133484
-Node: lisp-string-to-foreign134870
-Node: with-foreign-string136121
-Node: with-foreign-pointer-as-string137476
-Node: Variables138419
-Node: defcvar138586
-Node: get-var-pointer140465
-Node: Functions141185
-Node: defcfun141385
-Node: foreign-funcall143623
-Node: foreign-funcall-pointer145519
-Node: Libraries146901
-Node: Defining a library147555
-Node: Library definition style148512
-Ref: Library definition style-Footnote-1149861
-Node: close-foreign-library150102
-Node: *darwin-framework-directories*150806
-Node: define-foreign-library151914
-Node: *foreign-library-directories*154070
-Ref: *foreign-library-directories*-Footnote-1156333
-Ref: *foreign-library-directories*-Footnote-2156455
-Node: load-foreign-library156641
-Node: load-foreign-library-error159058
-Node: use-foreign-library159935
-Ref: use-foreign-library-Footnote-1160753
-Node: Callbacks160836
-Node: callback161025
-Node: defcallback161690
-Node: get-callback163598
-Node: The Groveller164297
-Node: Groveller Syntax165910
-Node: Groveller ASDF Integration170067
-Node: Groveller Implementation Notes171740
-Node: Limitations173107
-Node: Platform-specific features173709
-Node: Glossary174824
-Node: Comprehensive Index176279
+Node: Top1416
+Node: Introduction7717
+Node: Installation9331
+Node: Implementation Support10136
+Node: Tutorial11748
+Node: Tutorial-Comparison13585
+Ref: Tutorial-Comparison-Footnote-117290
+Ref: Tutorial-Comparison-Footnote-217426
+Node: Tutorial-Getting a URL17754
+Ref: Tutorial-Getting a URL-Footnote-118759
+Node: Tutorial-Loading19241
+Node: Tutorial-Initializing20620
+Node: Tutorial-easy_setopt23068
+Ref: Tutorial-easy_setopt-Footnote-126717
+Node: Tutorial-Abstraction26908
+Ref: Tutorial-Abstraction-Footnote-130025
+Ref: Tutorial-Abstraction-Footnote-230203
+Node: Tutorial-Lisp easy_setopt30458
+Node: Tutorial-Memory36171
+Ref: Tutorial-Memory-Footnote-145642
+Ref: Tutorial-Memory-Footnote-245874
+Node: Tutorial-Callbacks46042
+Ref: Tutorial-Callbacks-Footnote-150791
+Node: Tutorial-Completion51276
+Node: Tutorial-Types52623
+Ref: Tutorial-Types-Footnote-158972
+Node: Tutorial-Conclusion59086
+Node: Wrapper generators59822
+Node: Foreign Types62503
+Node: Built-In Types63546
+Node: Other Types65924
+Node: Defining Foreign Types68493
+Node: Foreign Type Translators70048
+Node: Optimizing Type Translators72881
+Node: Foreign Structure Types77703
+Node: Allocating Foreign Objects78750
+Node: convert-from-foreign78991
+Node: convert-to-foreign80275
+Node: defbitfield81763
+Node: defcstruct83954
+Node: defcunion87371
+Node: defctype88345
+Node: defcenum89258
+Node: define-foreign-type90762
+Node: define-parse-method92336
+Node: foreign-bitfield-symbols93493
+Node: foreign-bitfield-value94288
+Node: foreign-enum-keyword95045
+Node: foreign-enum-value95952
+Node: foreign-slot-names96843
+Node: foreign-slot-offset97617
+Node: foreign-slot-pointer98438
+Node: foreign-slot-value99639
+Node: foreign-type-alignment101273
+Node: foreign-type-size102008
+Node: free-converted-object102794
+Node: free-translated-object104127
+Node: translate-from-foreign105058
+Node: translate-to-foreign106468
+Node: with-foreign-slots108541
+Node: Pointers109881
+Ref: Pointers-Footnote-1111453
+Node: Basic Pointer Operations111516
+Node: Allocating Foreign Memory112215
+Node: Accessing Foreign Memory112918
+Node: foreign-free113942
+Node: foreign-alloc114579
+Node: foreign-symbol-pointer117736
+Node: inc-pointer119250
+Node: incf-pointer120016
+Node: make-pointer121022
+Node: mem-aref121865
+Node: mem-ref122954
+Node: null-pointer123857
+Node: null-pointer-p124356
+Node: pointerp125160
+Node: pointer-address125986
+Node: pointer-eq126672
+Node: with-foreign-object127866
+Node: with-foreign-pointer128898
+Node: Strings129945
+Node: *default-foreign-encoding*130756
+Node: foreign-string-alloc131646
+Node: foreign-string-free132954
+Node: foreign-string-to-lisp133487
+Node: lisp-string-to-foreign134873
+Node: with-foreign-string136124
+Node: with-foreign-pointer-as-string137479
+Node: Variables138422
+Node: defcvar138589
+Node: get-var-pointer140468
+Node: Functions141188
+Node: defcfun141388
+Node: foreign-funcall143816
+Node: foreign-funcall-pointer145712
+Node: Libraries147097
+Node: Defining a library147751
+Node: Library definition style148708
+Ref: Library definition style-Footnote-1150057
+Node: close-foreign-library150298
+Node: *darwin-framework-directories*151002
+Node: define-foreign-library152110
+Node: *foreign-library-directories*154266
+Ref: *foreign-library-directories*-Footnote-1156529
+Ref: *foreign-library-directories*-Footnote-2156651
+Node: load-foreign-library156837
+Node: load-foreign-library-error159254
+Node: use-foreign-library160131
+Ref: use-foreign-library-Footnote-1160949
+Node: Callbacks161032
+Node: callback161221
+Node: defcallback161886
+Node: get-callback163775
+Node: The Groveller164474
+Node: Groveller Syntax166087
+Node: Groveller ASDF Integration170244
+Node: Groveller Implementation Notes171917
+Node: Limitations173284
+Node: Platform-specific features173886
+Node: Glossary175001
+Node: Comprehensive Index176456
 
 End Tag Table
