@@ -116,9 +116,13 @@ Lisp Programming
 * ecldev: (ecldev).			Embeddable Common Lisp (ECL)
 					Developer's Manual
 * ACL2: (acl2-doc-emacs).		Applicative Common Lisp
+* Iterate: (iterate).			A better Loop in Common Lisp
+* CFFI Manual: (cffi-manual).		Common Foreign Function Interface
+* CFFI Specification: (cffi-sys-spec).	Implementation dependent specification for CFFI
 
 Programming & development tools
 * GDBM: (gdbm). 			The GNU database manager.
+* Magit: (magit).			A Git mode for Emacs -- User Manual
 
 GNU Gettext Utilities
 * gettext: (gettext).			GNU gettext utilities.
@@ -174,6 +178,7 @@ GnuPG
 
 Scientific software
 * gsl-ref: (gsl-ref).			GNU Scientific Library - Reference
+* FFTW3: (fftw3).			FFTW library - User Manual
 
 Libraries
 * History: (history).			The GNU history library API.
