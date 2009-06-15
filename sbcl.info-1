@@ -1,4 +1,4 @@
-This is sbcl.info, produced by makeinfo version 4.7 from sbcl.texinfo.
+This is sbcl.info, produced by makeinfo version 4.11 from sbcl.texinfo.
 
 INFO-DIR-SECTION Software development
 START-INFO-DIR-ENTRY
@@ -15,7 +15,7 @@ END-INFO-DIR-ENTRY
      `COPYING' and `CREDITS' files for more information.
 
 
-File: sbcl.info,  Node: Top,  Next: Introduction,  Up: (dir)
+File: sbcl.info,  Node: Top,  Next: Getting Support and Reporting Bugs,  Up: (dir)
 
 sbcl
 ****
@@ -31,6 +31,7 @@ sbcl
 
 * Menu:
 
+* Getting Support and Reporting Bugs::
 * Introduction::
 * Starting and Stopping::
 * Compiler::
@@ -53,9 +54,165 @@ sbcl
 * Colophon::
 
 
-File: sbcl.info,  Node: Introduction,  Next: Starting and Stopping,  Prev: Top,  Up: Top
+File: sbcl.info,  Node: Getting Support and Reporting Bugs,  Next: Introduction,  Prev: Top,  Up: Top
 
-1 Introduction
+1 Getting Support and Reporting Bugs
+************************************
+
+* Menu:
+
+* Volunteer Support::
+* Commercial Support::
+* Reporting Bugs::
+
+
+File: sbcl.info,  Node: Volunteer Support,  Next: Commercial Support,  Up: Getting Support and Reporting Bugs
+
+1.1 Volunteer Support
+=====================
+
+Your primary source of SBCL support should probably be the mailing list
+*sbcl-help*: in addition to other users SBCL developers monitor this
+list and are available for advice. As an anti-spam measure subcription
+is required for posting:
+
+       `https://lists.sourceforge.net/lists/listinfo/sbcl-help'
+
+   Remember that the people answering your question are volunteers, so
+you stand a much better chance of getting a good answer if you ask a
+good question.
+
+   Before sending mail, check the list archives at either
+
+      
+`http://sourceforge.net/mailarchive/forum.php?forum_name=sbcl-help'
+
+   or
+
+       `http://news.gmane.org/gmane.lisp.steel-bank.general'
+
+   to see if your question has been answered already. Checking the bug
+database is also worth it *Note Reporting Bugs::, to see if the issue
+is already known.
+
+   For general advice on asking good questions, see
+
+       `http://www.catb.org/~esr/faqs/smart-questions.html'.
+
+
+File: sbcl.info,  Node: Commercial Support,  Next: Reporting Bugs,  Prev: Volunteer Support,  Up: Getting Support and Reporting Bugs
+
+1.2 Commercial Support
+======================
+
+There is no formal organization developing SBCL, but if you need a paid
+support arrangement or custom SBCL development, we maintain the list of
+companies and consultants below. Use it to identify service providers
+with appropriate skills and interests, and contact them directly.
+
+   The SBCL project cannot verify the accuracy of the information or the
+competence of the people listed, and they have provided their own
+blurbs below: you must make your own judgement of suitability from the
+available information - refer to the links they provide, the CREDITS
+file, mailing list archives, CVS commit messages, and so on. Please
+feel free to ask for advice on the sbcl-help list.
+
+*Christophe Rhodes*
+     is a long-time SBCL developer, available for custom programming.
+
+     Email: <csr21@cam.ac.uk>
+
+*Steel Bank Studio Ltd*
+     provides commercial SBCL support and custom development, is run by
+     SBCL developer _Nikodemus Siivola_, and has another SBCL developer
+     _Richard Kreuter_ as an affiliated consultant.
+
+     Website: `http://sb-studio.net/'
+
+     Email: <info@sb-studio.net>
+
+
+File: sbcl.info,  Node: Reporting Bugs,  Prev: Commercial Support,  Up: Getting Support and Reporting Bugs
+
+1.3 Reporting Bugs
+==================
+
+SBCL uses Launchpad to track bugs. The bug database is available at
+
+       `https://bugs.launchpad.net/sbcl'
+
+   Reporting bugs there requires registering at Launchpad. However, bugs
+can also be reported on the mailing list *sbcl-bugs*, which is
+moderated but does _not_ require subscribing.
+
+   Simply send email to <sbcl-bugs@lists.sourceforge.net> and the bug
+will be checked and added to Launchpad by SBCL maintainers.
+
+1.3.1 How to Report Bugs Effectively
+------------------------------------
+
+Please include enough information in a bug report that someone reading
+it can reproduce the problem, i.e. don't write
+
+     Subject: apparent bug in PRINT-OBJECT (or *PRINT-LENGTH*?)
+     PRINT-OBJECT doesn't seem to work with *PRINT-LENGTH*. Is this a bug?
+
+   but instead
+
+     Subject: apparent bug in PRINT-OBJECT (or *PRINT-LENGTH*?)
+     In sbcl-1.2.3 running under OpenBSD 4.5 on my Alpha box, when
+     I compile and load the file
+        (DEFSTRUCT (FOO (:PRINT-OBJECT (LAMBDA (X Y)
+                                         (LET ((*PRINT-LENGTH* 4))
+                                           (PRINT X Y)))))
+          X Y)
+     then at the command line type
+        (MAKE-FOO)
+     the program loops endlessly instead of printing the object.
+
+   A more in-depth discussion on reporting bugs effectively can be found
+at
+
+       `http://www.chiark.greenend.org.uk/~sgtatham/bugs.html'.
+
+1.3.2 Signal Related Bugs
+-------------------------
+
+If you run into a signal related bug, you are getting fatal errors such
+as `signal N is [un]blocked' or just hangs, and you want to send a
+useful bug report then:
+
+  1. Compile sbcl with ldb support (feature `:sb-ldb', see
+     `base-target-features.lisp-expr') and change `#define QSHOW_SIGNAL
+     0' to `#define QSHOW_SIGNAL 1' in `src/runtime/runtime.h'.
+
+  2. Isolate a smallish test case, run it.
+
+  3. If it just hangs kill it with sigabrt: `kill -ABRT <pidof sbcl>'.
+
+  4. Print the backtrace from ldb by typing `ba'.
+
+  5. Attach gdb: `gdb -p <pidof sbcl>' and get backtraces for all
+     threads: `thread apply all ba'.
+
+  6. If multiple threads are in play then still in gdb, try to get Lisp
+     backtrace for all threads: `thread apply all
+     call_backtrace_from_fp($ebp, 100)'. Substitute $ebp with $rbp on
+     x86-64. The backtraces will appear in the stdout of the SBCL
+     process.
+
+  7. Send a report with the backtraces and the output (both stdout and
+     stderr) produced by SBCL.
+
+  8. Don't forget to include OS and SBCL version.
+
+  9. If available include, information on outcome of the same test with
+     other versions of SBCL, OS, ...
+
+
+File: sbcl.info,  Node: Introduction,  Next: Starting and Stopping,  Prev: Getting Support and Reporting Bugs,  Up: Top
+
+2 Introduction
 **************
 
 SBCL is a mostly-conforming implementation of the ANSI Common Lisp
@@ -76,22 +233,17 @@ Lisp.
 
 File: sbcl.info,  Node: ANSI Conformance,  Next: Extensions,  Up: Introduction
 
-1.1 ANSI Conformance
+2.1 ANSI Conformance
 ====================
 
 Essentially every type of non-conformance is considered a bug. (The
-exceptions involve internal inconsistencies in the standard.) In SBCL
-the master record of known bugs is in the `BUGS' file in the
-distribution.
-
-   The recommended way to report bugs is through the `sbcl-help' or
-`sbcl-devel' mailing lists. For mailing list addresses, see *Note SBCL
-Homepage::.
+exceptions involve internal inconsistencies in the standard.)  *Note
+Reporting Bugs::.
 
 
 File: sbcl.info,  Node: Extensions,  Next: Idiosyncrasies,  Prev: ANSI Conformance,  Up: Introduction
 
-1.2 Extensions
+2.2 Extensions
 ==============
 
 SBCL comes with numerous extensions, some in core and some in modules
@@ -129,11 +281,12 @@ have proper documentation yet.
 
 *Network Interface*
      `sb-bsd-sockets' is a low-level networking interface, providing
-     both TCP and UDP sockets. x*Note Networking::.
+     both TCP and UDP sockets. *Note Networking::.
 
 *Introspective Facilities*
      `sb-introspect' module offers numerous introspective extensions,
-     including access to function lambda-lists.
+     including access to function lambda-lists and a cross referencing
+     facility.
 
 *Operating System Interface*
      `sb-ext' contains a number of functions for running external
@@ -143,7 +296,7 @@ have proper documentation yet.
      facilities.
 
 *Extensible Streams*
-     `sb-gray' is an implentation of _Gray Streams_. *Note Gray
+     `sb-gray' is an implementation of _Gray Streams_. *Note Gray
      Streams::.
 
      `sb-simple-streams' is an implementation of the _simple streams_
@@ -154,8 +307,8 @@ have proper documentation yet.
      Profiler::.
 
      `sb-sprof' is a statistical profiler, capable of call-graph
-     generation and instruction level profiling. *Note Statistical
-     Profiler::.
+     generation and instruction level profiling, which also supports
+     allocation profiling. *Note Statistical Profiler::.
 
 *Customization Hooks*
      SBCL contains a number of extra-standard customization hooks that
@@ -171,12 +324,8 @@ have proper documentation yet.
      which were removed from the language during the ANSI
      standardization process.
 
-*Executable Fasl Packaging*
-     `sb-executable' can be used to concatenate multiple fasls into a
-     single executable (though the presense of an SBCL runtime and core
-     image is still required to run it).
-
-     The `:executable' argument to *Note Function
+*Executable Delivery*
+     The `:executable' argument to *note Function
      sb-ext:save-lisp-and-die:: can produce a `standalone' executable
      containing both an image of the current Lisp session and an SBCL
      runtime.
@@ -184,7 +333,7 @@ have proper documentation yet.
 *Bitwise Rotation*
      `sb-rotate-byte' provides an efficient primitive for bitwise
      rotation of integers, an operation required by eg. numerous
-     cryptographic algorightms, but not available as a primitive in ANSI
+     cryptographic algorithms, but not available as a primitive in ANSI
      Common Lisp. *Note sb-rotate-byte::.
 
 *Test Harness*
@@ -200,7 +349,7 @@ have proper documentation yet.
 
 File: sbcl.info,  Node: Idiosyncrasies,  Next: Development Tools,  Prev: Extensions,  Up: Introduction
 
-1.3 Idiosyncrasies
+2.3 Idiosyncrasies
 ==================
 
 The information in this section describes some of the ways that SBCL
@@ -209,25 +358,53 @@ deals with choices that the ANSI standard leaves to the implementation.
 * Menu:
 
 * Declarations::
+* FASL Format::
 * Compiler-only Implementation::
 * Defining Constants::
 * Style Warnings::
 
 
-File: sbcl.info,  Node: Declarations,  Next: Compiler-only Implementation,  Up: Idiosyncrasies
+File: sbcl.info,  Node: Declarations,  Next: FASL Format,  Up: Idiosyncrasies
 
-1.3.1 Declarations
+2.3.1 Declarations
 ------------------
 
 Declarations are generally treated as assertions. This general
 principle, and its implications, and the bugs which still keep the
-compiler from quite satisfying this principle, are discussed in *Note
+compiler from quite satisfying this principle, are discussed in *note
 Declarations as Assertions::.
 
 
-File: sbcl.info,  Node: Compiler-only Implementation,  Next: Defining Constants,  Prev: Declarations,  Up: Idiosyncrasies
+File: sbcl.info,  Node: FASL Format,  Next: Compiler-only Implementation,  Prev: Declarations,  Up: Idiosyncrasies
 
-1.3.2 Compiler-only Implementation
+2.3.2 FASL Format
+-----------------
+
+SBCL fasl-format is binary compatible only with the exact SBCL version
+it was generated with. While this is obviously suboptimal, it has
+proven more robust than trying to maintain fasl compatibility across
+versions: accidentally breaking things is far too easy, and can lead to
+hard to diagnose bugs.
+
+   The following snippet handles fasl recompilation automatically for
+ASDF-based systems, and makes a good candidate for inclusion in the
+user or system initialization file (*note Initialization Files::.)
+
+     (require :asdf)
+
+     ;;; If a fasl was stale, try to recompile and load (once).
+     (defmethod asdf:perform :around ((o asdf:load-op)
+                                      (c asdf:cl-source-file))
+        (handler-case (call-next-method o c)
+           ;; If a fasl was stale, try to recompile and load (once).
+           (sb-ext:invalid-fasl ()
+              (asdf:perform (make-instance 'asdf:compile-op) c)
+              (call-next-method))))
+
+
+File: sbcl.info,  Node: Compiler-only Implementation,  Next: Defining Constants,  Prev: FASL Format,  Up: Idiosyncrasies
+
+2.3.3 Compiler-only Implementation
 ----------------------------------
 
 SBCL is essentially a compiler-only implementation of Common Lisp.
@@ -241,7 +418,7 @@ into the same predicate.
 
 File: sbcl.info,  Node: Defining Constants,  Next: Style Warnings,  Prev: Compiler-only Implementation,  Up: Idiosyncrasies
 
-1.3.3 Defining Constants
+2.3.4 Defining Constants
 ------------------------
 
 SBCL is quite strict about ANSI's definition of `defconstant'.  ANSI
@@ -276,7 +453,7 @@ restart as appropriate.
 
 File: sbcl.info,  Node: Style Warnings,  Prev: Defining Constants,  Up: Idiosyncrasies
 
-1.3.4 Style Warnings
+2.3.5 Style Warnings
 --------------------
 
 SBCL gives style warnings about various kinds of perfectly legal code,
@@ -306,18 +483,19 @@ isn't as of SBCL 0.7.6.)
 
 File: sbcl.info,  Node: Development Tools,  Next: More SBCL Information,  Prev: Idiosyncrasies,  Up: Introduction
 
-1.4 Development Tools
+2.4 Development Tools
 =====================
 
 * Menu:
 
 * Editor Integration::
 * Language Reference::
+* Generating Executables::
 
 
 File: sbcl.info,  Node: Editor Integration,  Next: Language Reference,  Up: Development Tools
 
-1.4.1 Editor Integration
+2.4.1 Editor Integration
 ------------------------
 
 Though SBCL can be used running "bare", the recommended mode of
@@ -340,33 +518,47 @@ provided similar functionality, but it does not support modern SBCL
 versions.
 
 
-File: sbcl.info,  Node: Language Reference,  Prev: Editor Integration,  Up: Development Tools
+File: sbcl.info,  Node: Language Reference,  Next: Generating Executables,  Prev: Editor Integration,  Up: Development Tools
 
-1.4.2 Language Reference
+2.4.2 Language Reference
 ------------------------
 
 "CLHS" (Common Lisp Hyperspec) is a hypertext version of the ANSI
-standard, made freely available by _Xanalyst_ - an invaluable reference.
+standard, made freely available by _LispWorks_ - an invaluable
+reference.
 
    See: `http://www.lispworks.com/reference/HyperSpec/index.html'
 
 
+File: sbcl.info,  Node: Generating Executables,  Prev: Language Reference,  Up: Development Tools
+
+2.4.3 Generating Executables
+----------------------------
+
+SBCL can generate stand-alone executables.  The generated executables
+include the SBCL runtime itself, so no restrictions are placed on
+program functionality.  For example, a deployed program can call
+`compile' and `load', which requires the compiler to be present in the
+executable.  For further information, *Note Function
+sb-ext:save-lisp-and-die::.
+
+
 File: sbcl.info,  Node: More SBCL Information,  Next: More Common Lisp Information,  Prev: Development Tools,  Up: Introduction
 
-1.5 More SBCL Information
+2.5 More SBCL Information
 =========================
 
 * Menu:
 
 * SBCL Homepage::
-* Additional Distributed Documentation::
 * Online Documentation::
+* Additional Documentation Files::
 * Internals Documentation::
 
 
-File: sbcl.info,  Node: SBCL Homepage,  Next: Additional Distributed Documentation,  Up: More SBCL Information
+File: sbcl.info,  Node: SBCL Homepage,  Next: Online Documentation,  Up: More SBCL Information
 
-1.5.1 SBCL Homepage
+2.5.1 SBCL Homepage
 -------------------
 
 The SBCL website at `http://www.sbcl.org/' has some general
@@ -376,18 +568,31 @@ archives of these mailing lists. Subscribing to the mailing lists
 low-volume, and help you keep abrest with SBCL development.
 
 
-File: sbcl.info,  Node: Additional Distributed Documentation,  Next: Online Documentation,  Prev: SBCL Homepage,  Up: More SBCL Information
+File: sbcl.info,  Node: Online Documentation,  Next: Additional Documentation Files,  Prev: SBCL Homepage,  Up: More SBCL Information
 
-1.5.2 Additional Distributed Documentation
-------------------------------------------
+2.5.2 Online Documentation
+--------------------------
+
+Documentation for non-ANSI extensions for various commands is available
+online from the SBCL executable itself. The extensions for functions
+which have their own command prompts (e.g. the debugger, and `inspect')
+are documented in text available by typing `help' at their command
+prompts. The extensions for functions which don't have their own
+command prompt (such as `trace') are described in their documentation
+strings, unless your SBCL was compiled with an option not to include
+documentation strings, in which case the documentation strings are only
+readable in the source code.
+
+
+File: sbcl.info,  Node: Additional Documentation Files,  Next: Internals Documentation,  Prev: Online Documentation,  Up: More SBCL Information
+
+2.5.3 Additional Documentation Files
+------------------------------------
 
 Besides this user manual both SBCL source and binary distributions
 include some other SBCL-specific documentation files, which should be
 installed along with this manual in on your system, eg. in
 `/usr/local/share/doc/sbcl/'.
-
-`BUGS'
-     Lists known bugs in the distribution.
 
 `COPYING'
      Licence and copyright summary.
@@ -403,37 +608,18 @@ installed along with this manual in on your system, eg. in
 `NEWS'
      Summarizes changes between various SBCL versions.
 
-`SUPPORT'
-     Lists SBCL developers available for-pay development of SBCL.
-
 
 
-File: sbcl.info,  Node: Online Documentation,  Next: Internals Documentation,  Prev: Additional Distributed Documentation,  Up: More SBCL Information
+File: sbcl.info,  Node: Internals Documentation,  Prev: Additional Documentation Files,  Up: More SBCL Information
 
-1.5.3 Online Documentation
---------------------------
-
-Documentation for non-ANSI extensions for various commands is available
-online from the SBCL executable itself. The extensions for functions
-which have their own command prompts (e.g. the debugger, and `inspect')
-are documented in text available by typing `help' at their command
-prompts. The extensions for functions which don't have their own
-command prompt (such as `trace') are described in their documentation
-strings, unless your SBCL was compiled with an option not to include
-documentation strings, in which case the documentation strings are only
-readable in the source code.
-
-
-File: sbcl.info,  Node: Internals Documentation,  Prev: Online Documentation,  Up: More SBCL Information
-
-1.5.4 Internals Documentation
+2.5.4 Internals Documentation
 -----------------------------
 
 If you're interested in the development of the SBCL system itself, then
-subcribing to `sbcl-devel' is a good idea.
+subscribing to `sbcl-devel' is a good idea.
 
    SBCL internals documentation - besides comments in the source - is
-currenly maitained as a _wiki-like_ website:
+currently maintained as a _wiki-like_ website:
 `http://sbcl-internals.cliki.net/'.
 
    Some low-level information describing the programming details of the
@@ -444,7 +630,7 @@ not installed by default.
 
 File: sbcl.info,  Node: More Common Lisp Information,  Next: History and Implementation of SBCL,  Prev: More SBCL Information,  Up: Introduction
 
-1.6 More Common Lisp Information
+2.6 More Common Lisp Information
 ================================
 
 * Menu:
@@ -456,7 +642,7 @@ File: sbcl.info,  Node: More Common Lisp Information,  Next: History and Impleme
 
 File: sbcl.info,  Node: Internet Community,  Next: Third-party Libraries,  Up: More Common Lisp Information
 
-1.6.1 Internet Community
+2.6.1 Internet Community
 ------------------------
 
 The Common Lisp internet community is fairly diverse:
@@ -469,7 +655,7 @@ pointers places in the net where lispers talks shop.
 
 File: sbcl.info,  Node: Third-party Libraries,  Next: Common Lisp Books,  Prev: Internet Community,  Up: More Common Lisp Information
 
-1.6.2 Third-party Libraries
+2.6.2 Third-party Libraries
 ---------------------------
 
 For a wealth of information about free Common Lisp libraries and tools
@@ -478,7 +664,7 @@ we recommend checking out _CLiki_: `http://www.cliki.net/'.
 
 File: sbcl.info,  Node: Common Lisp Books,  Prev: Third-party Libraries,  Up: More Common Lisp Information
 
-1.6.3 Common Lisp Books
+2.6.3 Common Lisp Books
 -----------------------
 
 If you're not a programmer and you're trying to learn, many
@@ -489,9 +675,16 @@ standout favorites. If you can't decide, try checking the Usenet
    If you are an experienced programmer in other languages but need to
 learn about Common Lisp, some books stand out:
 
-`ANSI Common Lisp, by Paul Graham'
-     Introduces most of the language, though some parts (eg. CLOS) are
-     covered only lightly.
+`Practical Common Lisp, by Peter Seibel'
+     An excellent introduction to the language, covering both the basics
+     and "advanced topics" like macros, CLOS, and packages. Available
+     both in print format and on the web:
+     `http://www.gigamonkeys.com/book/'.
+
+`Paradigms Of Artificial Intelligence Programming, by Peter Norvig'
+     Good information on general Common Lisp programming, and many
+     nontrivial examples. Whether or not your work is AI, it's a very
+     good book to look at.
 
 `On Lisp, by Paul Graham'
      An in-depth treatment of macros, but not recommended as a first
@@ -501,19 +694,15 @@ learn about Common Lisp, some books stand out:
      on macros.  Downloadable from
      `http://www.paulgraham.com/onlisp.html'.
 
-`Paradigms Of Artificial Intelligence Programming, by Peter Norvig'
-     Good information on general Common Lisp programming, and many
-     nontrivial examples. Whether or not your work is AI, it's a very
-     good book to look at.
-
 `Object-Oriented Programming In Common Lisp, by Sonya Keene'
-     None the books above emphasize CLOS, but this one does. Even if
-     you're very knowledgeable about object oriented programming in the
-     abstract, it's worth looking at this book if you want to do any OO
-     in Common Lisp. Some abstractions in CLOS (especially multiple
-     dispatch) go beyond anything you'll see in most OO systems, and
-     there are a number of lesser differences as well. This book tends
-     to help with the culture shock.
+     With the exception of `Practical Common Lisp' most introductory
+     books don't emphasize CLOS. This one does. Even if you're very
+     knowledgeable about object oriented programming in the abstract,
+     it's worth looking at this book if you want to do any OO in Common
+     Lisp.  Some abstractions in CLOS (especially multiple dispatch) go
+     beyond anything you'll see in most OO systems, and there are a
+     number of lesser differences as well. This book tends to help with
+     the culture shock.
 
 `Art Of Metaobject Programming, by Gregor Kiczales et al.'
      Currently to prime source of information on the Common Lisp
@@ -525,15 +714,15 @@ learn about Common Lisp, some books stand out:
 
 File: sbcl.info,  Node: History and Implementation of SBCL,  Prev: More Common Lisp Information,  Up: Introduction
 
-1.7 History and Implementation of SBCL
+2.7 History and Implementation of SBCL
 ======================================
 
-You can work productively with SBCL without knowing anything
-understanding anything about where it came from, how it is implemented,
-or how it extends the ANSI Common Lisp standard. However, a little
-knowledge can be helpful in order to understand error messages, to
-troubleshoot problems, to understand why some parts of the system are
-better debugged than others, and to anticipate which known bugs, known
+You can work productively with SBCL without knowing or understanding
+anything about where it came from, how it is implemented, or how it
+extends the ANSI Common Lisp standard. However, a little knowledge can
+be helpful in order to understand error messages, to troubleshoot
+problems, to understand why some parts of the system are better
+debugged than others, and to anticipate which known bugs, known
 performance problems, and missing extensions are likely to be fixed,
 tuned, or added.
 
@@ -558,7 +747,7 @@ still reflected in the current implementation:
    SBCL also inherited some newer architectural features from CMUCL. The
 most important is that on some architectures it has a generational
 garbage collector ("GC"), which has various implications (mostly good)
-for performance. These are discussed in another chapter, *Note
+for performance. These are discussed in another chapter, *note
 Efficiency::.
 
    SBCL has diverged from CMUCL in that SBCL is now essentially a
@@ -570,7 +759,7 @@ can't be used interactively, and in fact the change is largely invisible
 to the casual user, since SBCL still can and does execute code
 interactively by compiling it on the fly. (It is visible if you know how
 to look, like using `compiled-function-p'; and it is visible in the way
-that that SBCL doesn't have many bugs which behave differently in
+that SBCL doesn't have many bugs which behave differently in
 interpreted code than in compiled code.) What it means is that in SBCL,
 the `eval' function only truly "interprets" a few easy kinds of forms,
 such as symbols which are `boundp'. More complicated forms are
@@ -628,7 +817,7 @@ characteristics not reflected in the current version of the source code.
 
 File: sbcl.info,  Node: Starting and Stopping,  Next: Compiler,  Prev: Introduction,  Up: Top
 
-2 Starting and Stopping
+3 Starting and Stopping
 ***********************
 
 * Menu:
@@ -637,11 +826,12 @@ File: sbcl.info,  Node: Starting and Stopping,  Next: Compiler,  Prev: Introduct
 * Stopping SBCL::
 * Command Line Options::
 * Initialization Files::
+* Initialization and Exit Hooks::
 
 
 File: sbcl.info,  Node: Starting SBCL,  Next: Stopping SBCL,  Up: Starting and Stopping
 
-2.1 Starting SBCL
+3.1 Starting SBCL
 =================
 
 * Menu:
@@ -653,7 +843,7 @@ File: sbcl.info,  Node: Starting SBCL,  Next: Stopping SBCL,  Up: Starting and S
 
 File: sbcl.info,  Node: Running from Shell,  Next: Running from Emacs,  Up: Starting SBCL
 
-2.1.1 From Shell to Lisp
+3.1.1 From Shell to Lisp
 ------------------------
 
 To run SBCL type `sbcl' at the command line.
@@ -675,12 +865,12 @@ where you can interact with SBCL by typing expressions.
      * (quit)
      $
 
-   See also *Note Command Line Options:: and *Note Stopping SBCL::.
+   See also *note Command Line Options:: and *note Stopping SBCL::.
 
 
 File: sbcl.info,  Node: Running from Emacs,  Next: Shebang Scripts,  Prev: Running from Shell,  Up: Starting SBCL
 
-2.1.2 Running from Emacs
+3.1.2 Running from Emacs
 ------------------------
 
 To run SBCL as an inferior-lisp from Emacs in your `.emacs' do
@@ -689,24 +879,36 @@ something like:
      ;;; The SBCL binary and command-line arguments
      (setq inferior-lisp-program "/usr/local/bin/sbcl --noinform")
 
-   For more information on using SBCL with Emacs, see *Note Editor
+   For more information on using SBCL with Emacs, see *note Editor
 Integration::.
 
 
 File: sbcl.info,  Node: Shebang Scripts,  Prev: Running from Emacs,  Up: Starting SBCL
 
-2.1.3 Shebang Scripts
+3.1.3 Shebang Scripts
 ---------------------
 
-SBCL doesn't come with built-in support for shebang-line execution, but
-this can be provided with a shell trampoline, or by dispatching from
-initialization files (*note Unix-style Command Line Protocol:: for an
-example.)
+Standard Unix tools that are interpreters follow a common command line
+protocol that is necessary to work with "shebang scripts". SBCL supports
+this via the `--script' command line option.
+
+   Example file (`hello.lisp'):
+
+     #!/usr/local/bin/sbcl --script
+     (write-line "Hello, World!")
+
+   Usage examples:
+
+     $ ./hello.lisp
+     Hello, World!
+
+     $ sbcl --script hello.lisp
+     Hello, World!
 
 
 File: sbcl.info,  Node: Stopping SBCL,  Next: Command Line Options,  Prev: Starting SBCL,  Up: Starting and Stopping
 
-2.2 Stopping SBCL
+3.2 Stopping SBCL
 =================
 
 * Menu:
@@ -719,23 +921,24 @@ File: sbcl.info,  Node: Stopping SBCL,  Next: Command Line Options,  Prev: Start
 
 File: sbcl.info,  Node: Quit,  Next: End of File,  Up: Stopping SBCL
 
-2.2.1 Quit
+3.2.1 Quit
 ----------
 
 SBCL can be stopped at any time by calling `sb-ext:quit', optionally
 returning a specified numeric value to the calling process.  See notes
-in *Note Threading:: about the interaction between this feature and
+in *note Threading:: about the interaction between this feature and
 sessions.
 
  -- Function: sb-ext:quit &key recklessly-p unix-status
-     Terminate the current Lisp. Things are cleaned up (with
-     `unwind-protect' and so forth) unless `recklessly-p' is non-NIL. On
-     UNIX-like systems, `unix-status' is used as the status code.
+     Terminate the current Lisp. `*exit-hooks*' and pending
+     unwind-protect cleanup forms are run unless `recklessly-p' is
+     true. On UNIX-like systems, `unix-status' is used as the status
+     code.
 
 
 File: sbcl.info,  Node: End of File,  Next: Saving a Core Image,  Prev: Quit,  Up: Stopping SBCL
 
-2.2.2 End of File
+3.2.2 End of File
 -----------------
 
 By default SBCL also exits on end of input, caused either by user
@@ -745,7 +948,7 @@ using SBCL as part of a shell pipeline.
 
 File: sbcl.info,  Node: Saving a Core Image,  Next: Exit on Errors,  Prev: End of File,  Up: Stopping SBCL
 
-2.2.3 Saving a Core Image
+3.2.3 Saving a Core Image
 -------------------------
 
 SBCL has the ability to save its state as a file for later execution.
@@ -753,7 +956,8 @@ This functionality is important for its bootstrapping process, and is
 also provided as an extension to the user.
 
  -- Function: sb-ext:save-lisp-and-die core-file-name &key toplevel
-          purify root-structures environment-name executable
+          executable save-runtime-options purify root-structures
+          environment-name
      Save a "core image", i.e. enough information to restart a Lisp
      process later in the same state, in the file of the specified name.
      Only global state is preserved: the stack is unwound in the
@@ -765,13 +969,24 @@ also provided as an extension to the user.
           The function to run when the created core file is resumed. The
               default function handles command line toplevel option
           processing      and runs the top level read-eval-print loop.
-          This function should      not return.
+          This function returning      is equivalent to (SB-EXT:QUIT
+          `:unix-status' 0) being called.
 
     _`:executable'_
           If true, arrange to combine the `sbcl' runtime and the core
           image      to create a standalone executable.  If false (the
           default), the      core image will not be executable on its
-          own.
+          own. Executable images      always behave as if they were
+          passed the -noinform runtime option.
+
+    _`:save-runtime-options'_
+          If true, values of runtime options -dynamic-space-size and
+           -control-stack-size that were used to start `sbcl' are
+          stored in      the standalone executable, and restored when
+          the executable is      run. This also inhibits normal runtime
+          option processing, causing      all command line arguments to
+          be passed to the toplevel.       Meaningless if `:executable'
+          is `nil'.
 
     _`:purify'_
           If true (the default on cheneygc), do a purifying `gc' which
@@ -780,9 +995,8 @@ also provided as an extension to the user.
           which is otherwise done, but      it's only done once, and
           subsequent GC's will be done less often      and will take
           less time in the resulting core file. See the `purify'
-          function. For platforms that use the generational garbage
-          collector      (x86 and x86-64) purification generally
-          results in a loss of      performance.
+          function. This parameter has no effect on platforms using the
+              generational garbage collector.
 
     _`:root-structures'_
           This should be a list of the main entry points in any newly
@@ -808,13 +1022,8 @@ also provided as an extension to the user.
           the     saved core is loaded.
 
 
-     Foreign objects loaded with `sb-alien:load-shared-object' are
-     automatically reloaded on startup, but references to foreign
-     symbols do not survive intact on all platforms: in this case a
-     `warning' is signalled when saving the core. If no warning is
-     signalled, then the foreign symbol references will remain intact.
-     Platforms where this is currently the case are x86/FreeBSD,
-     x86/Linux, x86/NetBSD, sparc/Linux, sparc/SunOS, and ppc/Darwin.
+     `save-lisp-and-die' interacts with `sb-alien:load-foreign-object:'
+     see its documentation for details.
 
      On threaded platforms only a single thread may remain running after
      `sb-ext:*save-hooks*' have run. Applications using multiple
@@ -836,6 +1045,11 @@ also provided as an extension to the user.
      don't seem to be good quick fixes for either limitation and no one
      has been sufficiently motivated to do lengthy fixes.
 
+ -- Variable: sb-ext:*save-hooks*
+     This is a list of functions which are called in an unspecified
+     order before creating a saved core image. Unused by `sbcl' itself:
+     reserved for user and applications.
+
    To facilitate distribution of SBCL applications using external
 resources, the filesystem location of the SBCL core file being used is
 available from Lisp.
@@ -846,18 +1060,18 @@ available from Lisp.
 
 File: sbcl.info,  Node: Exit on Errors,  Prev: Saving a Core Image,  Up: Stopping SBCL
 
-2.2.4 Exit on Errors
+3.2.4 Exit on Errors
 --------------------
 
 SBCL can also be configured to exit if an unhandled error occurs, which
 is mainly useful for acting as part of a shell pipeline; doing so under
 most other circumstances would mean giving up large parts of the
-flexibility and robustness of Common Lisp. See *Note Debugger Entry::.
+flexibility and robustness of Common Lisp. See *note Debugger Entry::.
 
 
 File: sbcl.info,  Node: Command Line Options,  Next: Initialization Files,  Prev: Stopping SBCL,  Up: Starting and Stopping
 
-2.3 Command Line Options
+3.3 Command Line Options
 ========================
 
 Command line options can be considered an advanced topic; for ordinary
@@ -897,7 +1111,7 @@ system or the Lisp system.
 
 File: sbcl.info,  Node: Runtime Options,  Next: Toplevel Options,  Up: Command Line Options
 
-2.3.1 Runtime Options
+3.3.1 Runtime Options
 ---------------------
 
 `--core COREFILENAME'
@@ -910,11 +1124,34 @@ File: sbcl.info,  Node: Runtime Options,  Next: Toplevel Options,  Up: Command L
      Size of the dynamic space reserved on startup in megabytes. Default
      value is platform dependent.
 
+`--control-stack-size MEGABYTES'
+     Size of control stack reserved for each thread in megabytes.
+     Default value is 2.
+
 `--noinform'
      Suppress the printing of any banner or other informational message
      at startup. This makes it easier to write Lisp programs which work
      cleanly in Unix pipelines. See also the `--noprint' and
      `--disable-debugger' options.
+
+`--disable-ldb'
+     Disable the low-level debugger. Only effective if SBCL is compiled
+     with LDB.
+
+`--lose-on-corruption'
+     There are some dangerous low level errors (for instance, control
+     stack exhausted, memory fault) that (or whose handlers) can
+     corrupt the image. By default SBCL prints a warning, then tries to
+     continue and handle the error in Lisp, but this will not always
+     work and SBCL may malfunction or even hang. With this option, upon
+     encountering such an error SBCL will invoke ldb (if present and
+     enabled) or else exit.
+
+`--script FILENAME'
+     As a runtime option this is equivalent to `--noinform'
+     `--disable-ldb' `--lose-on-corruption' `--end-runtime-options'
+     `--script' FILENAME. See the description of `--script' as a
+     toplevel option below.
 
 `--help'
      Print some basic information about SBCL, then exit.
@@ -933,12 +1170,12 @@ chance to see it.
 
 File: sbcl.info,  Node: Toplevel Options,  Prev: Runtime Options,  Up: Command Line Options
 
-2.3.2 Toplevel Options
+3.3.2 Toplevel Options
 ----------------------
 
 `--sysinit FILENAME'
      Load filename instead of the default system initialization file
-     (*note System Initialization File::.)
+     (*note Initialization Files::.)
 
 `--no-sysinit'
      Don't load a system-wide initialization file.  If this option is
@@ -946,7 +1183,7 @@ File: sbcl.info,  Node: Toplevel Options,  Prev: Runtime Options,  Up: Command L
 
 `--userinit FILENAME'
      Load filename instead of the default user initialization file
-     (*note User Initialization File::.)
+     (*note Initialization Files::.)
 
 `--no-userinit'
      Don't load a user initialization file.  If this option is given,
@@ -954,8 +1191,8 @@ File: sbcl.info,  Node: Toplevel Options,  Prev: Runtime Options,  Up: Command L
 
 `--eval COMMAND'
      After executing any initialization file, but before starting the
-     read-eval-print loop on standard input, read and evaluate the com-
-     mand given. More than one `--eval' option can be used, and all
+     read-eval-print loop on standard input, read and evaluate the
+     command given. More than one `--eval' option can be used, and all
      will be read and executed, in the order they appear on the command
      line.
 
@@ -972,150 +1209,80 @@ File: sbcl.info,  Node: Toplevel Options,  Prev: Runtime Options,  Up: Command L
      work cleanly in Unix pipelines.
 
 `--disable-debugger'
-     This is equivalent to `--eval '(sb-ext:disable-debugger)''.  *Note
-     Debugger Entry::.
+     By default when SBCL encounters an error, it enters the builtin
+     debugger, allowing interactive diagnosis and possible intercession.
+     This option disables the debugger, causing errors to print a
+     backtrace and exit with status 1 instead. When given, this option
+     takes effect before loading of initialization files or processing
+     `--eval' and `--load' options. See `sb-ext:disable-debugger' for
+     details.  *Note Debugger Entry::.
+
+`--script FILENAME'
+     Implies `--no-userinit' `--no-sysinit' `--disable-debugger'
+     `--end-toplevel-options'.
+
+     Causes the system to load the specified file instead of entering
+     the read-eval-print-loop, and exit afterwards. If the file begins
+     with a shebang line, it is ignored.
 
 
 
-File: sbcl.info,  Node: Initialization Files,  Prev: Command Line Options,  Up: Starting and Stopping
+File: sbcl.info,  Node: Initialization Files,  Next: Initialization and Exit Hooks,  Prev: Command Line Options,  Up: Starting and Stopping
 
-2.4 Initialization Files
+3.4 Initialization Files
 ========================
-
-This section covers initialization files processed at startup, which
-can be used to customize the lisp environment.
-
-* Menu:
-
-* System Initialization File::
-* User Initialization File::
-* Initialization File Semantics::
-* Initialization Examples::
-
-
-File: sbcl.info,  Node: System Initialization File,  Next: User Initialization File,  Up: Initialization Files
-
-2.4.1 System Initialization File
---------------------------------
-
-Site-wide startup script. Unless overridden with the command line
-option `--sysinit' defaults to ``SBCL_HOME'/sbclrc', or if that doesn't
-exist to `/etc/sbclrc'.
-
-   No system initialization file is required.
-
-
-File: sbcl.info,  Node: User Initialization File,  Next: Initialization File Semantics,  Prev: System Initialization File,  Up: Initialization Files
-
-2.4.2 User Initialization File
-------------------------------
-
-Per-user startup script. Unless overridden with the command line option
-`--userinit' defaults to ``HOME'/.sbclrc'.
-
-   No user initialization file is required.
-
-
-File: sbcl.info,  Node: Initialization File Semantics,  Next: Initialization Examples,  Prev: User Initialization File,  Up: Initialization Files
-
-2.4.3 Initialization File Semantics
------------------------------------
 
 SBCL processes initialization files with `read' and `eval', not `load';
 hence initialization files can be used to set startup `*package*' and
 `*readtable*', and for proclaiming a global optimization policy.
 
-
-File: sbcl.info,  Node: Initialization Examples,  Prev: Initialization File Semantics,  Up: Initialization Files
+     *System Initialization File*
 
-2.4.4 Initialization Examples
------------------------------
+     Defaults to ``$SBCL_HOME'/sbclrc', or if that doesn't exist to
+     `/etc/sbclrc'. Can be overridden with the command line option
+     `--sysinit' or `--no-sysinit'.
 
-Some examples of what you may consider doing in the initialization
-files follow.
+     The system initialization file is intended for system
+     administrators and software packagers to configure locations of
+     installed third party modules, etc.
 
-* Menu:
+     *User Initialization File*
 
-* Unix-style Command Line Protocol::
-* Automatic Recompilation of Stale Fasls::
+     Defaults to ``$HOME'/.sbclrc'. Can be overridden with the command
+     line option `--userinit' or `--no-userinit'.
 
-
-File: sbcl.info,  Node: Unix-style Command Line Protocol,  Next: Automatic Recompilation of Stale Fasls,  Up: Initialization Examples
+     The user initialization file is intended for personal
+     customizations, such as loading certain modules at startup,
+     defining convenience functions to use in the REPL, handling
+     automatic recompilation of FASLs (*note FASL Format::), etc.
 
-2.4.4.1 Unix-style Command Line Protocol
-........................................
 
-Standard Unix tools that are interpreters follow a common command line
-protocol that is necessary to work with "shebang scripts". SBCL doesn't
-do this by default, but adding the following snippet to an
-initialization file does the trick:
-
-     ;;; If the first user-processable command-line argument is a filename,
-     ;;; disable the debugger, load the file handling shebang-line and quit.
-     (let ((script (and (second *posix-argv*)
-                        (probe-file (second *posix-argv*)))))
-        (when script
-           ;; Handle shebang-line
-           (set-dispatch-macro-character #\# #\!
-                                         (lambda (stream char arg)
-                                            (declare (ignore char arg))
-                                            (read-line stream)))
-           ;; Disable debugger
-           (setf *invoke-debugger-hook*
-                 (lambda (condition hook)
-                   (declare (ignore hook))
-                   ;; Uncomment to get backtraces on errors
-                   ;; (sb-debug:backtrace 20)
-                   (format *error-output* "Error: ~A~%" condition)
-                   (quit)))
-           (load script)
-           (quit)))
-
-   Example file (`hello.lisp'):
-
-     #!/usr/local/bin/sbcl --noinform
-     (write-line "Hello, World!")
-
-   Usage examples:
-
-     $ ./hello.lisp
-     Hello, World!
-
-     $ sbcl hello.lisp
-     This is SBCL 0.8.13.70, an implementation of ANSI Common Lisp.
-     More information about SBCL is available at <http://www.sbcl.org/>.
-
-     SBCL is free software, provided as is, with absolutely no warranty.
-     It is mostly in the public domain; some portions are provided under
-     BSD-style licenses.  See the CREDITS and COPYING files in the
-     distribution for more information.
-     Hello, World!
+   Neither initialization file is required.
 
 
-File: sbcl.info,  Node: Automatic Recompilation of Stale Fasls,  Prev: Unix-style Command Line Protocol,  Up: Initialization Examples
+File: sbcl.info,  Node: Initialization and Exit Hooks,  Prev: Initialization Files,  Up: Starting and Stopping
 
-2.4.4.2 Automatic Recompilation of Stale Fasls
-..............................................
+3.5 Initialization and Exit Hooks
+=================================
 
-SBCL fasl-format is at current stage of development undergoing
-non-backwards compatible changes fairly often. The following snippet
-handles recompilation automatically for ASDF-based systems.
+SBCL provides hooks into the system initialization and exit.
 
-     (require :asdf)
+ -- Variable: sb-ext:*init-hooks*
+     This is a list of functions which are called in an unspecified
+     order when a saved core image starts up, after the system itself
+     has been initialized. Unused by `sbcl' itself: reserved for user
+     and applications.
 
-     ;;; If a fasl was stale, try to recompile and load (once).
-     (defmethod asdf:perform :around ((o asdf:load-op)
-                                      (c asdf:cl-source-file))
-        (handler-case (call-next-method o c)
-           ;; If a fasl was stale, try to recompile and load (once).
-           (sb-ext:invalid-fasl ()
-              (asdf:perform (make-instance 'asdf:compile-op) c)
-              (call-next-method))))
+ -- Variable: sb-ext:*exit-hooks*
+     This is a list of functions which are called in an unspecified
+     order when `sbcl' process exits. Unused by `sbcl' itself: reserved
+     for user and applications. Using (QUIT `:recklessly-p' T), or
+     calling exit(3) directly will circumvent these hooks.
 
 
 File: sbcl.info,  Node: Compiler,  Next: Debugger,  Prev: Starting and Stopping,  Up: Top
 
-3 Compiler
+4 Compiler
 **********
 
 This chapter will discuss most compiler issues other than efficiency,
@@ -1124,7 +1291,7 @@ to type safety in the presence of type declarations, the effects of
 various compiler optimization policies, and the way that inlining and
 open coding may cause optimized code to differ from a naive
 translation. Efficiency issues are sufficiently varied and separate
-that they have their own chapter, *Note Efficiency::.
+that they have their own chapter, *note Efficiency::.
 
 * Menu:
 
@@ -1138,7 +1305,7 @@ that they have their own chapter, *Note Efficiency::.
 
 File: sbcl.info,  Node: Diagnostic Messages,  Next: Handling of Types,  Up: Compiler
 
-3.1 Diagnostic Messages
+4.1 Diagnostic Messages
 =======================
 
 * Menu:
@@ -1150,7 +1317,7 @@ File: sbcl.info,  Node: Diagnostic Messages,  Next: Handling of Types,  Up: Comp
 
 File: sbcl.info,  Node: Controlling Verbosity,  Next: Diagnostic Severity,  Up: Diagnostic Messages
 
-3.1.1 Controlling Verbosity
+4.1.1 Controlling Verbosity
 ---------------------------
 
 The compiler can be quite verbose in its diagnostic reporting, rather
@@ -1207,10 +1374,13 @@ controlled via the alist `sb-ext:*compiler-print-variable-alist*'.
      Initially empty, `*compiler-print-variable-alist*' is Typically
      used to specify bindings for printer control variables.
 
+   For information about muffling warnings signaled outside of the
+compiler, see *note Customization Hooks for Users::.
+
 
 File: sbcl.info,  Node: Diagnostic Severity,  Next: Understanding Compiler Diagnostics,  Prev: Controlling Verbosity,  Up: Diagnostic Messages
 
-3.1.2 Diagnostic Severity
+4.1.2 Diagnostic Severity
 -------------------------
 
 There are four levels of compiler diagnostic severity:
@@ -1234,7 +1404,7 @@ the `sb-ext:compiler-note', and is used for problems which are too mild
 for the standard condition classes, typically hints about how
 efficiency might be improved. The `sb-ext:code-deletion-note', a
 subtype of `compiler-note', is signalled when the compiler deletes
-user-supplied code, usually after proving that the code in question is
+user-supplied code after proving that the code in question is
 unreachable.
 
    Future work for SBCL includes expanding this hierarchy of types to
@@ -1258,7 +1428,7 @@ allow more fine-grained control over emission of diagnostic messages.
 
 File: sbcl.info,  Node: Understanding Compiler Diagnostics,  Prev: Diagnostic Severity,  Up: Diagnostic Messages
 
-3.1.3 Understanding Compile Diagnostics
+4.1.3 Understanding Compile Diagnostics
 ---------------------------------------
 
 The messages emitted by the compiler contain a lot of detail in a terse
@@ -1285,7 +1455,7 @@ defined anywhere.
 
 File: sbcl.info,  Node: The Parts of a Compiler Diagnostic,  Next: The Original and Actual Source,  Up: Understanding Compiler Diagnostics
 
-3.1.3.1 The Parts of a Compiler Diagnostic
+4.1.3.1 The Parts of a Compiler Diagnostic
 ..........................................
 
 When processing this program, the compiler will produce this warning:
@@ -1405,7 +1575,7 @@ processing path will also be omitted.
 
 File: sbcl.info,  Node: The Original and Actual Source,  Next: The Processing Path,  Prev: The Parts of a Compiler Diagnostic,  Up: Understanding Compiler Diagnostics
 
-3.1.3.2 The Original and Actual Source
+4.1.3.2 The Original and Actual Source
 ......................................
 
 The _original source_ displayed will almost always be a list. If the
@@ -1451,7 +1621,7 @@ this example, the problem is that `a''s `nil' initial value is not a
 
 File: sbcl.info,  Node: The Processing Path,  Prev: The Original and Actual Source,  Up: Understanding Compiler Diagnostics
 
-3.1.3.3 The Processing Path
+4.1.3.3 The Processing Path
 ...........................
 
 The processing path is mainly useful for debugging macros, so if you
@@ -1498,14 +1668,13 @@ so the compiler backed out one level.
 
 File: sbcl.info,  Node: Handling of Types,  Next: Compiler Policy,  Prev: Diagnostic Messages,  Up: Compiler
 
-3.2 Handling of Types
+4.2 Handling of Types
 =====================
 
-The most unusual features of the SBCL compiler (which is very similar
-to the original CMUCL compiler, also known as "Python") is its
-unusually sophisticated understanding of the Common Lisp type system
-and its unusually conservative approach to the implementation of type
-declarations.
+One of the most important features of the SBCL compiler (similar to the
+original CMUCL compiler, also known as "Python") is its fairly
+sophisticated understanding of the Common Lisp type system and its
+conservative approach to the implementation of type declarations.
 
    These two features reward the use of type declarations throughout
 development, even when high performance is not a concern. Also, as
@@ -1527,7 +1696,7 @@ involving the `satisfies' type specifier.
 
 File: sbcl.info,  Node: Declarations as Assertions,  Next: Precise Type Checking,  Up: Handling of Types
 
-3.2.1 Declarations as Assertions
+4.2.1 Declarations as Assertions
 --------------------------------
 
 The SBCL compiler treats type declarations differently from most other
@@ -1537,28 +1706,42 @@ the program that should be checked: all type declarations that have not
 been proven to always hold are asserted at runtime.
 
      _Remaining bugs in the compiler's handling of types unfortunately
-     provide some exceptions to this rule, see *Note Implementation
-     Limitations::)._
+     provide some exceptions to this rule, see *note Implementation
+     Limitations::._
+
+   CLOS slot types form a notable exception. Types declared using the
+`:type' slot option in `defclass' are asserted if and only if the class
+was defined in _safe code_ and the slot access location is in _safe
+code_ as well. This laxness does not pose any internal consistency
+issues, as the CLOS slot types are not available for the type
+inferencer, nor do CLOS slot types provide any efficiency benefits.
 
    There are three type checking policies available in SBCL, selectable
 via `optimize' declarations.
 
 *Full Type Checks*
      All declarations are considered assertions to be checked at
-     runtime, and all type checks are precise.
+     runtime, and all type checks are precise. The default compilation
+     policy provides full type checks.
 
-     Used when `(>= safety (max speed space compilation-speed)'. The
-     default compilation policy provides full type checks.
+     Used when `(or (>= safety 2) (>= safety speed 1))'.
 
 *Weak Type Checks*
-     Any or all type declarations may be believed without runtime
-     assertions, and assertions that are done may be imprecise.
+     Declared types may be simplified into faster to check supertypes:
+     for example, `(or (integer -17 -7) (integer 7 17))' is simplified
+     into `(integer -17 17)'.
 
-     Used when `(< 0 safety (max speed space compilation-speed)'.
+     *Note*: it is relatively easy to corrupt the heap when weak type
+     checks are used if the program contains type-errors.
+
+     Used when `(and (< safety 2) (< safety speed))'
 
 *No Type Checks*
      All declarations are believed without assertions. Also disables
      argument count and array bounds checking.
+
+     *Note*: any type errors in code where type checks are not
+     performed are liable to corrupt the heap.
 
      Used when `(= safety 0)'.
 
@@ -1566,7 +1749,7 @@ via `optimize' declarations.
 
 File: sbcl.info,  Node: Precise Type Checking,  Next: Getting Existing Programs to Run,  Prev: Declarations as Assertions,  Up: Handling of Types
 
-3.2.2 Precise Type Checking
+4.2.2 Precise Type Checking
 ---------------------------
 
 Precise checking means that the check is done as though `typep' had
@@ -1587,7 +1770,7 @@ and other list-style type specifiers.
 
 File: sbcl.info,  Node: Getting Existing Programs to Run,  Next: Implementation Limitations,  Prev: Precise Type Checking,  Up: Handling of Types
 
-3.2.3 Getting Existing Programs to Run
+4.2.3 Getting Existing Programs to Run
 --------------------------------------
 
 Since SBCL's compiler does much more comprehensive type checking than
@@ -1711,7 +1894,7 @@ already knows that `position' returns a non-negative `fixnum' or `nil'.
 
 File: sbcl.info,  Node: Implementation Limitations,  Prev: Getting Existing Programs to Run,  Up: Handling of Types
 
-3.2.4 Implementation Limitations
+4.2.4 Implementation Limitations
 --------------------------------
 
 Ideally, the compiler would consider _all_ type declarations to be
@@ -1752,7 +1935,7 @@ they may, alas, remain in the system for a while.
 
 File: sbcl.info,  Node: Compiler Policy,  Next: Compiler Errors,  Prev: Handling of Types,  Up: Compiler
 
-3.3 Compiler Policy
+4.3 Compiler Policy
 ===================
 
 Compiler policy is controlled by the `optimize' declaration, supporting
@@ -1760,7 +1943,7 @@ all ANSI optimization qualities (`debug', `safety', `space', and
 `speed').(1)
 
    For effects of various optimization qualities on type-safety and
-debuggability see *Note Declarations as Assertions:: and *Note Debugger
+debuggability see *note Declarations as Assertions:: and *note Debugger
 Policy Control::.
 
    Ordinarily, when the `speed' quality is high, the compiler emits
@@ -1782,7 +1965,7 @@ supported, but liable to go away at any time.
 
 File: sbcl.info,  Node: Compiler Errors,  Next: Open Coding and Inline Expansion,  Prev: Compiler Policy,  Up: Compiler
 
-3.4 Compiler Errors
+4.4 Compiler Errors
 ===================
 
 * Menu:
@@ -1794,7 +1977,7 @@ File: sbcl.info,  Node: Compiler Errors,  Next: Open Coding and Inline Expansion
 
 File: sbcl.info,  Node: Type Errors at Compile Time,  Next: Errors During Macroexpansion,  Up: Compiler Errors
 
-3.4.1 Type Errors at Compile Time
+4.4.1 Type Errors at Compile Time
 ---------------------------------
 
 If the compiler can prove at compile time that some portion of the
@@ -1843,7 +2026,7 @@ an error if it is executed) and gives a warning.
 
 File: sbcl.info,  Node: Errors During Macroexpansion,  Next: Read Errors,  Prev: Type Errors at Compile Time,  Up: Compiler Errors
 
-3.4.2 Errors During Macroexpansion
+4.4.2 Errors During Macroexpansion
 ----------------------------------
 
 The compiler handles errors that happen during macroexpansion, turning
@@ -1871,7 +2054,7 @@ definition:
 
 File: sbcl.info,  Node: Read Errors,  Prev: Errors During Macroexpansion,  Up: Compiler Errors
 
-3.4.3 Read Errors
+4.4.3 Read Errors
 -----------------
 
 SBCL's compiler does not attempt to recover from read errors when
@@ -1881,7 +2064,7 @@ position and gives up on the entire source file.
 
 File: sbcl.info,  Node: Open Coding and Inline Expansion,  Next: Interpreter,  Prev: Compiler Errors,  Up: Compiler
 
-3.5 Open Coding and Inline Expansion
+4.5 Open Coding and Inline Expansion
 ====================================
 
 Since Common Lisp forbids the redefinition of standard functions, the
@@ -1902,7 +2085,7 @@ to the user are basically the same:
    * The compiler can have multiple alternate implementations of
      standard functions that implement different trade-offs of speed,
      space and safety.  This selection is based on the compiler policy,
-     *Note Compiler Policy::.
+     *note Compiler Policy::.
 
 
    When a function call is _open coded_, inline code whose effect is
@@ -1942,12 +2125,12 @@ efficient calling convention that forbids redefinition.
 
 File: sbcl.info,  Node: Interpreter,  Prev: Open Coding and Inline Expansion,  Up: Compiler
 
-3.6 Interpreter
+4.6 Interpreter
 ===============
 
 By default SBCL implements `eval' by calling the native code compiler.
 SBCL also includes an interpreter for use in special cases where using
-the compiler is undesireable, for example due to compilation overhead.
+the compiler is undesirable, for example due to compilation overhead.
 Unlike in some other Lisp implementations, in SBCL interpreted code is
 not safer or more debuggable than compiled code.
 
@@ -1958,7 +2141,7 @@ for `sb-ext:*evaluator-mode*' are `:compile' and `:interpret'.
 
 File: sbcl.info,  Node: Debugger,  Next: Efficiency,  Prev: Compiler,  Up: Top
 
-4 Debugger
+5 Debugger
 **********
 
 This chapter documents the debugging facilities of SBCL, including the
@@ -1981,18 +2164,18 @@ debug)' declarations.
 
 File: sbcl.info,  Node: Debugger Entry,  Next: Debugger Command Loop,  Up: Debugger
 
-4.1 Debugger Entry
+5.1 Debugger Entry
 ==================
 
 * Menu:
 
 * Debugger Banner::
-* Debugger Invokation::
+* Debugger Invocation::
 
 
-File: sbcl.info,  Node: Debugger Banner,  Next: Debugger Invokation,  Up: Debugger Entry
+File: sbcl.info,  Node: Debugger Banner,  Next: Debugger Invocation,  Up: Debugger Entry
 
-4.1.1 Debugger Banner
+5.1.1 Debugger Banner
 ---------------------
 
 When you enter the debugger, it looks something like this:
@@ -2024,9 +2207,9 @@ by entering the corresponding number or name.
 followed by the debugger prompt.
 
 
-File: sbcl.info,  Node: Debugger Invokation,  Prev: Debugger Banner,  Up: Debugger Entry
+File: sbcl.info,  Node: Debugger Invocation,  Prev: Debugger Banner,  Up: Debugger Entry
 
-4.1.2 Debugger Invokation
+5.1.2 Debugger Invocation
 -------------------------
 
 The debugger is invoked when:
@@ -2066,7 +2249,7 @@ any entry into the debugger.
 
 File: sbcl.info,  Node: Debugger Command Loop,  Next: Stack Frames,  Prev: Debugger Entry,  Up: Debugger
 
-4.2 Debugger Command Loop
+5.2 Debugger Command Loop
 =========================
 
 The debugger is an interactive read-eval-print loop much like the
@@ -2107,7 +2290,7 @@ debugger by using the `sb-ext:*debug-print-variable-alist*'.
 
 File: sbcl.info,  Node: Stack Frames,  Next: Variable Access,  Prev: Debugger Command Loop,  Up: Debugger
 
-4.3 Stack Frames
+5.3 Stack Frames
 ================
 
 A "stack frame" is the run-time representation of a call to a function;
@@ -2137,7 +2320,7 @@ doing.  Frames have:
 
 File: sbcl.info,  Node: Stack Motion,  Next: How Arguments are Printed,  Up: Stack Frames
 
-4.3.1 Stack Motion
+5.3.1 Stack Motion
 ------------------
 
 These commands move to a new stack frame and print the name of the
@@ -2166,7 +2349,7 @@ function call:
 
 File: sbcl.info,  Node: How Arguments are Printed,  Next: Function Names,  Prev: Stack Motion,  Up: Stack Frames
 
-4.3.2 How Arguments are Printed
+5.3.2 How Arguments are Printed
 -------------------------------
 
 A frame is printed to look like a function call, but with the actual
@@ -2227,12 +2410,12 @@ or not known to be available (*note Variable Access::), then
 `#<unavailable-arg>' will be printed instead of the argument value.
 
    Note that inline expansion and open-coding affect what frames are
-present in the debugger, see *Note Debugger Policy Control::.
+present in the debugger, see *note Debugger Policy Control::.
 
 
 File: sbcl.info,  Node: Function Names,  Next: Debug Tail Recursion,  Prev: How Arguments are Printed,  Up: Stack Frames
 
-4.3.3 Function Names
+5.3.3 Function Names
 --------------------
 
 If a function is defined by `defun' it will appear in backtrace by that
@@ -2247,7 +2430,7 @@ appear as `(LAMDBA <lambda-list>)'.
 
 File: sbcl.info,  Node: Entry Point Details,  Up: Function Names
 
-4.3.3.1 Entry Point Details
+5.3.3.1 Entry Point Details
 ...........................
 
 Sometimes the compiler introduces new functions that are used to
@@ -2271,7 +2454,7 @@ execution of `unwind-protect' cleanup code.  The `:EXTERNAL' and
 
 File: sbcl.info,  Node: Debug Tail Recursion,  Next: Unknown Locations and Interrupts,  Prev: Function Names,  Up: Stack Frames
 
-4.3.4 Debug Tail Recursion
+5.3.4 Debug Tail Recursion
 --------------------------
 
 The compiler is "properly tail recursive." If a function call is in a
@@ -2312,7 +2495,7 @@ Control::.
 
 File: sbcl.info,  Node: Unknown Locations and Interrupts,  Prev: Debug Tail Recursion,  Up: Stack Frames
 
-4.3.5 Unknown Locations and Interrupts
+5.3.5 Unknown Locations and Interrupts
 --------------------------------------
 
 The debugger operates using special debugging information attached to
@@ -2337,7 +2520,7 @@ inaccessible, and the source location cannot be precisely displayed.
 
    In the last two cases, the values of argument variables are
 accessible, but may be incorrect.  For more details on when variable
-values are accessible, *Note Variable Value Availability::.
+values are accessible, *note Variable Value Availability::.
 
    It is possible for an interrupt to happen when a function call or
 return is in progress.  The debugger may then flame out with some
@@ -2348,7 +2531,7 @@ If this happens, return from the interrupt and try again.
 
 File: sbcl.info,  Node: Variable Access,  Next: Source Location Printing,  Prev: Stack Frames,  Up: Debugger
 
-4.4 Variable Access
+5.4 Variable Access
 ===================
 
 There are two ways to access the current frame's local variables in the
@@ -2403,7 +2586,7 @@ there are two variables named `X'.  The first one has identifier 0
 
 File: sbcl.info,  Node: Variable Value Availability,  Next: Note On Lexical Variable Access,  Up: Variable Access
 
-4.4.1 Variable Value Availability
+5.4.1 Variable Value Availability
 ---------------------------------
 
 The value of a variable may be unavailable to the debugger in portions
@@ -2476,7 +2659,7 @@ Interrupts::.
 
 File: sbcl.info,  Node: Note On Lexical Variable Access,  Prev: Variable Value Availability,  Up: Variable Access
 
-4.4.2 Note On Lexical Variable Access
+5.4.2 Note On Lexical Variable Access
 -------------------------------------
 
 When the debugger command loop establishes variable bindings for
@@ -2499,7 +2682,7 @@ could never take on.  This may result in bad things happening.
 
 File: sbcl.info,  Node: Source Location Printing,  Next: Debugger Policy Control,  Prev: Variable Access,  Up: Debugger
 
-4.5 Source Location Printing
+5.5 Source Location Printing
 ============================
 
 One of the debugger's capabilities is source level debugging of
@@ -2569,7 +2752,7 @@ list whose first element is `#:***HERE***'.  In the previous example,
 
 File: sbcl.info,  Node: How the Source is Found,  Next: Source Location Availability,  Up: Source Location Printing
 
-4.5.1 How the Source is Found
+5.5.1 How the Source is Found
 -----------------------------
 
 If the code was defined from Lisp by `compile' or `eval', then the
@@ -2619,7 +2802,7 @@ perverted ways, you don't need to worry about this.
 
 File: sbcl.info,  Node: Source Location Availability,  Prev: How the Source is Found,  Up: Source Location Printing
 
-4.5.2 Source Location Availability
+5.5.2 Source Location Availability
 ----------------------------------
 
 Source location information is only available when the `debug'
@@ -2661,7 +2844,7 @@ changed the program on you.)
 
 File: sbcl.info,  Node: Debugger Policy Control,  Next: Exiting Commands,  Prev: Source Location Printing,  Up: Debugger
 
-4.6 Debugger Policy Control
+5.6 Debugger Policy Control
 ===========================
 
 The compilation policy specified by `optimize' declarations affects the
@@ -2744,7 +2927,7 @@ the original function.
 
 File: sbcl.info,  Node: Exiting Commands,  Next: Information Commands,  Prev: Debugger Policy Control,  Up: Debugger
 
-4.7 Exiting Commands
+5.7 Exiting Commands
 ====================
 
 These commands get you out of the debugger.
@@ -2781,7 +2964,7 @@ These commands get you out of the debugger.
 
 File: sbcl.info,  Node: Information Commands,  Next: Function Tracing,  Prev: Exiting Commands,  Up: Debugger
 
-4.8 Information Commands
+5.8 Information Commands
 ========================
 
 Most of these commands print information about the current frame or
@@ -2811,7 +2994,7 @@ function, but a few show general information.
 
 File: sbcl.info,  Node: Function Tracing,  Next: Single Stepping,  Prev: Information Commands,  Up: Debugger
 
-4.9 Function Tracing
+5.9 Function Tracing
 ====================
 
 The tracer causes selected functions to print their arguments and their
@@ -2819,7 +3002,7 @@ results whenever they are called.  Options allow conditional printing
 of the trace information and conditional breakpoints on function entry
 or exit.
 
- -- Macro: common-lisp:trace &rest specs
+ -- Macro: cl:trace &rest specs
      `trace' {Option Global-Value}* {Name {Option Value}*}*
 
      `trace' is a debugging tool that provides information when
@@ -2896,10 +3079,9 @@ or exit.
           function        name) rather than by modifying the function.
           `:default' is the default,        and means to use
           encapsulation for interpreted functions and funcallable
-          instances, breakpoints otherwise. When encapsulation is
-          used, forms are        *not* evaluated in the function's
-          lexical environment, but `sb-debug:arg'        can still be
-          used.
+          instances, breakpoints otherwise. When encapsulation is used,
+          forms are        *not* evaluated in the function's lexical
+          environment, but `sb-debug:arg'        can still be used.
 
     _`:methods' {T | NIL}_
           If `t', any function argument naming a generic function will
@@ -2920,9 +3102,9 @@ or exit.
      The `-after' and `-all' forms are evaluated in the null
      environment.
 
- -- Macro: common-lisp:untrace &rest specs
-     Remove tracing from the specified functions. With no args, untrace
-     all    functions.
+ -- Macro: cl:untrace &rest specs
+     Remove tracing from the specified functions. Untraces all
+     functions when called with no arguments.
 
  -- Variable: sb-debug:*trace-indentation-step*
      the increase in trace indentation at each call level
@@ -2941,7 +3123,7 @@ or exit.
 
 File: sbcl.info,  Node: Single Stepping,  Prev: Function Tracing,  Up: Debugger
 
-4.10 Single Stepping
+5.10 Single Stepping
 ====================
 
 SBCL includes an instrumentation based single-stepper for compiled
@@ -2974,7 +3156,7 @@ stepping.
  -- Debugger Command: stop
      Stops the single stepper and resumes normal execution.
 
- -- Macro: common-lisp:step form
+ -- Macro: cl:step form
      The form is evaluated with single stepping enabled. Function calls
      outside the lexical scope of the form can be stepped into only if
      the functions in question have been compiled with sufficient
@@ -2983,8 +3165,261 @@ stepping.
 
 File: sbcl.info,  Node: Efficiency,  Next: Beyond the ANSI Standard,  Prev: Debugger,  Up: Top
 
-5 Efficiency
+6 Efficiency
 ************
+
+* Menu:
+
+* Slot access::
+* Dynamic-extent allocation::
+* Modular arithmetic::
+* Global and Always-Bound variables::
+* Miscellaneous Efficiency Issues::
+
+
+File: sbcl.info,  Node: Slot access,  Next: Dynamic-extent allocation,  Up: Efficiency
+
+6.1 Slot access
+===============
+
+6.1.1 Structure object slot access
+----------------------------------
+
+Structure slot accessors are efficient only if the compiler is able to
+open code them: compiling a call to a structure slot accessor before
+the structure is defined, declaring one `notinline', or passing it as a
+functional argument to another function causes severe perfomance
+degradation.
+
+6.1.2 Standard object slot access
+---------------------------------
+
+The most efficient way to access a slot of a `standard-object' is by
+using `slot-value' with a constant slot name argument inside a
+`defmethod' body, where the variable holding the instance is a
+specializer parameter of the method and is never assigned to. The cost
+is roughly 1.6 times that of an open coded structure slot accessor.
+
+   Second most efficient way is to use a CLOS slot accessor, or
+`slot-value' with a constant slot name argument, but in circumstances
+other than specified above. This may be up to 3 times as slow as the
+method described above.
+
+   Example:
+
+     (defclass foo () ((bar)))
+
+     ;; Fast: specializer and never assigned to
+     (defmethod quux ((foo foo) new)
+       (let ((old (slot-value foo 'bar)))
+         (setf (slot-value foo 'bar) new)
+         old))
+
+     ;; Slow: not a specializer
+     (defmethod quux ((foo foo) new)
+       (let* ((temp foo)
+              (old (slot-value temp 'bar)))
+         (setf (slot-value temp 'bar) new)
+         old))
+
+     ;; Slow: assignment to FOO
+     (defmethod quux ((foo foo) new)
+       (let ((old (slot-value foo 'bar)))
+         (setf (slot-value foo 'bar) new)
+         (setf foo new)
+         old))
+
+   Note that when profiling code such as this, the first few calls to
+the generic function are not representative, as the dispatch mechanism
+is lazily set up during those calls.
+
+
+File: sbcl.info,  Node: Dynamic-extent allocation,  Next: Modular arithmetic,  Prev: Slot access,  Up: Efficiency
+
+6.2 Dynamic-extent allocation
+=============================
+
+SBCL has limited support for performing allocation on the stack when a
+variable is declared `dynamic-extent'. The `dynamic-extent'
+declarations are not verified, but are simply trusted as long as
+`sb-ext:*stack-allocate-dynamic-extent*' is true.
+
+   If dynamic extent constraints specified in the Common Lisp standard
+are violated, the best that can happen is for the program to have
+garbage in variables and return values; more commonly, the system will
+crash.
+
+ -- Variable: sb-ext:*stack-allocate-dynamic-extent*
+     If true (the default), the compiler respects `dynamic-extent'
+     declarations and stack allocates otherwise inaccessible parts of
+     the object whenever possible. Potentially long (over one page in
+     size) vectors are, however, not stack allocated except in zero
+     `safety' code, as such a vector could overflow the stack without
+     triggering overflow protection.
+
+   There are many cases when `dynamic-extent' declarations could be
+useful. At present, SBCL implements stack allocation for
+
+   * `&rest' lists, when these are declared `dynamic-extent'.
+
+   * `cons', `list', `list*', and `vector' when the result is bound to
+     a variable declared `dynamic-extent'.
+
+   * simple forms of `make-array', whose result is bound to a variable
+     declared `dynamic-extent': stack allocation is possible only if
+     the resulting array is known to be both simple and one-dimensional,
+     and has a constant `:element-type'.
+
+     *Note*: stack space is limited, so allocation of a large vector
+     may cause stack overflow. For this reason potentially large
+     vectors, which might circumvent stack overflow detection, are
+     stack allocated only in zero `safety' policies.
+
+   * closures defined with `flet' or `labels', with a bound
+     `dynamic-extent' declaration. Closed-over variables, which are
+     assigned to (either inside or outside the closure) are still
+     allocated on the heap. Blocks and tags are also allocated on the
+     heap, unless all non-local control transfers to them are compiled
+     with zero `safety'.
+
+   * user-defined structures when the structure constructor defined
+     using `defstruct' has been declared `inline' and the result of the
+     call to the constructor is bound to a variable declared
+     `dynamic-extent'.
+
+     *Note_* structures with "raw" slots can currently be
+     stack-allocated only on x86 and x86-64.
+
+   * all of the above when they appear as initial parts of another
+     stack-allocated object.
+
+
+   Examples:
+
+     ;;; Declaiming a structure constructor inline before definition makes
+     ;;; stack allocation possible.
+     (declaim (inline make-thing))
+     (defstruct thing obj next)
+
+     ;;; Stack allocation of various objects bound to DYNAMIC-EXTENT
+     ;;; variables.
+     (let* ((list (list 1 2 3))
+            (nested (cons (list 1 2) (list* 3 4 (list 5))))
+            (vector (make-array 3 :element-type 'single-float))
+            (thing (make-thing :obj list
+                               :next (make-thing :obj (make-array 3)))))
+       (declare (dynamic-extent list nested vector thing))
+       ...)
+
+     ;;; Stack allocation of arguments to a local function is equivalent
+     ;;; to stack allocation of local variable values.
+     (flet ((f (x)
+              (declare (dynamic-extent x))
+              ...))
+       ...
+       (f (list 1 2 3))
+       (f (cons (cons 1 2) (cons 3 4)))
+       ...)
+
+     ;;; Stack allocation of &REST lists
+     (defun foo (&rest args)
+       (declare (dynamic-extent args))
+       ...)
+
+   Future plans include
+
+   * Stack allocation of assigned-to closed-over variables, where these
+     are declared `dynamic-extent';
+
+   * Automatic detection of the common idiom of applying a function to
+     some defaults and a `&rest' list, even when this is not declared
+     `dynamic-extent';
+
+   * Automatic detection of the common idiom of calling quantifiers
+     with a closure, even when the closure is not declared
+     `dynamic-extent'.
+
+
+
+File: sbcl.info,  Node: Modular arithmetic,  Next: Global and Always-Bound variables,  Prev: Dynamic-extent allocation,  Up: Efficiency
+
+6.3 Modular arithmetic
+======================
+
+Some numeric functions have a property: N lower bits of the result
+depend only on N lower bits of (all or some) arguments. If the compiler
+sees an expression of form `(logand EXP MASK)', where EXP is a tree of
+such "good" functions and MASK is known to be of type `(unsigned-byte
+W)', where W is a "good" width, all intermediate results will be cut to
+W bits (but it is not done for variables and constants!). This often
+results in an ability to use simple machine instructions for the
+functions.
+
+   Consider an example.
+
+     (defun i (x y)
+       (declare (type (unsigned-byte 32) x y))
+       (ldb (byte 32 0) (logxor x (lognot y))))
+
+   The result of `(lognot y)' will be negative and of type
+`(signed-byte 33)', so a naive implementation on a 32-bit platform is
+unable to use 32-bit arithmetic here. But modular arithmetic optimizer
+is able to do it: because the result is cut down to 32 bits, the
+compiler will replace `logxor' and `lognot' with versions cutting
+results to 32 bits, and because terminals (here--expressions `x' and
+`y') are also of type `(unsigned-byte 32)', 32-bit machine arithmetic
+can be used.
+
+   As of SBCL 0.8.5 "good" functions are `+', `-'; `logand', `logior',
+`logxor', `lognot' and their combinations; and `ash' with the positive
+second argument. "Good" widths are 32 on HPPA, MIPS, PPC, Sparc and x86
+and 64 on Alpha.  While it is possible to support smaller widths as
+well, currently this is not implemented.
+
+
+File: sbcl.info,  Node: Global and Always-Bound variables,  Next: Miscellaneous Efficiency Issues,  Prev: Modular arithmetic,  Up: Efficiency
+
+6.4 Global and Always-Bound variables
+=====================================
+
+ -- Macro: sb-ext:defglobal name value &optional doc
+     Defines `name' as a global variable that is always bound. `value'
+     is evaluated and assigned to `name' both at compile- and
+     load-time, but only if `name' is not already bound.
+
+     Global variables share their values between all threads, and
+     cannot be locally bound, declared special, defined as constants,
+     and neither bound nor defined as symbol macros.
+
+     See also the declarations `sb-ext:global' and
+     `sb-ext:always-bound'.
+
+ -- Declaration: sb-ext:global
+     Syntax: `(sb-ext:global symbol*)'
+
+     Only valid as a global proclamation.
+
+     Specifies that the named symbols cannot be proclaimed or locally
+     declared `special'. Proclaiming an already special or constant
+     variable name as `global' signal an error. Allows more efficient
+     value lookup in threaded environments in addition to expressing
+     programmer intention.
+
+ -- Declaration: sb-ext:always-bound
+     Syntax: `(sb-ext:always-bound symbol*)'
+
+     Only valid as a global proclamation.
+
+     Specifies that the named symbols is always bound. Inhibits
+     `makunbound' of the named symbols. Proclaiming an unbound symbol
+     as `always-bound' signals an error. Allows compiler to elide
+     boundness checks from value lookups.
+
+
+File: sbcl.info,  Node: Miscellaneous Efficiency Issues,  Prev: Global and Always-Bound variables,  Up: Efficiency
+
+6.5 Miscellaneous Efficiency Issues
+===================================
 
 FIXME: The material in the CMUCL manual about getting good performance
 from the compiler should be reviewed, reformatted in Texinfo, lightly
@@ -3043,9 +3478,6 @@ points to keep in mind.
    * SBCL has some important known efficiency problems.  Perhaps the
      most important are
 
-        - There is only limited support for the ANSI `dynamic-extent'
-          declaration.  *Note Dynamic-extent allocation::.
-
         - The garbage collector is not particularly efficient, at least
           on platforms without the generational collector (as of SBCL
           0.8.9, all except x86).
@@ -3085,143 +3517,10 @@ sources. Such code is often reasonably straightforward to write; search
 the sources for the string "`deftransform'" to find many examples (some
 straightforward, some less so).
 
-* Menu:
-
-* Dynamic-extent allocation::
-* Modular arithmetic::
-
-
-File: sbcl.info,  Node: Dynamic-extent allocation,  Next: Modular arithmetic,  Up: Efficiency
-
-5.1 Dynamic-extent allocation
-=============================
-
-SBCL has limited support for performing allocation on the stack when a
-variable is declared `dynamic-extent'.  The `dynamic-extent'
-declarations are not verified, but are simply trusted; if the
-constraints in the Common Lisp standard are violated, the best that can
-happen is for the program to have garbage in variables and return
-values; more commonly, the system will crash.
-
-   As a consequence of this, the condition for performing stack
-allocation is stringent: either of the `speed' or `space' optimization
-qualities must be higher than the maximum of `safety' and `debug' at
-the point of the allocation.  For example:
-
-     (locally
-       (declare (optimize speed (safety 1) (debug 1)))
-       (defun foo (&rest rest)
-         (declare (dynamic-extent rest))
-         (length rest)))
-
-   Here the `&rest' list will be allocated on the stack.  Note that it
-would not be in the following situation:
-
-     (defun foo (&rest rest)
-       (declare (optimize speed (safety 1) (debug 1)))
-       (declare (dynamic-extent rest))
-       (length rest))
-
-   because both the allocation of the `&rest' list and the variable
-binding are outside the scope of the `optimize' declaration.
-
-   There are many cases when `dynamic-extent' declarations could be
-useful. At present, SBCL implements
-
-   * Stack allocation of `&rest' lists, where these are declared
-     `dynamic-extent'.
-
-   * Stack allocation of `list' and `list*', whose result is bound to a
-     variable, declared `dynamic-extent', such as
-
-          (let ((list (list 1 2 3)))
-            (declare (dynamic-extent list)
-            ...))
-
-     or
-
-          (flet ((f (x)
-                   (declare (dynamic-extent x))
-                   ...))
-            ...
-            (f (list 1 2 3))
-            ...)
-
-   * Stack allocation of simple forms of `make-array', whose result is
-     bound to a variable, declared `dynamic-extent'. The resulting
-     array should be one-dimensional, the only allowed keyword argument
-     is `:element-type'.
-
-     Notice, that stack space is limited, so allocation of a large
-     vector may cause stack overflow and abnormal termination of the
-     SBCL process.
-
-   * Stack allocation of closures, defined with `flet' or `labels' with
-     a bound declaration `dynamic-extent'.  Closed-over variables,
-     which are assigned (either inside or outside the closure) are
-     still allocated on the heap. Blocks and tags are also allocated on
-     the heap, unless all non-local control transfers to them are
-     compiled with zero `safety'.
-
-
-   Future plans include
-
-   * Stack allocation of closures, where these are declared
-     `dynamic-extent';
-
-   * Stack allocation of `list', `list*' and `cons' (including
-     following chains during initialization, and also for binding
-     mutation), where the allocation is declared `dynamic-extent';
-
-   * Automatic detection of the common idiom of applying a function to
-     some defaults and a `&rest' list, even when this is not declared
-     `dynamic-extent';
-
-   * Automatic detection of the common idiom of calling quantifiers
-     with a closure, even when the closure is not declared
-     `dynamic-extent'.
-
-
-
-File: sbcl.info,  Node: Modular arithmetic,  Prev: Dynamic-extent allocation,  Up: Efficiency
-
-5.2 Modular arithmetic
-======================
-
-Some numeric functions have a property: N lower bits of the result
-depend only on N lower bits of (all or some) arguments. If the compiler
-sees an expression of form `(logand EXP MASK)', where EXP is a tree of
-such "good" functions and MASK is known to be of type `(unsigned-byte
-W)', where W is a "good" width, all intermediate results will be cut to
-W bits (but it is not done for variables and constants!). This often
-results in an ability to use simple machine instructions for the
-functions.
-
-   Consider an example.
-
-     (defun i (x y)
-       (declare (type (unsigned-byte 32) x y))
-       (ldb (byte 32 0) (logxor x (lognot y))))
-
-   The result of `(lognot y)' will be negative and of type
-`(signed-byte 33)', so a naive implementation on a 32-bit platform is
-unable to use 32-bit arithmetic here. But modular arithmetic optimizer
-is able to do it: because the result is cut down to 32 bits, the
-compiler will replace `logxor' and `lognot' with versions cutting
-results to 32 bits, and because terminals (here--expressions `x' and
-`y') are also of type `(unsigned-byte 32)', 32-bit machine arithmetic
-can be used.
-
-   As of SBCL 0.8.5 "good" functions are `+', `-'; `logand', `logior',
-`logxor', `lognot' and their combinations; and `ash' with the positive
-second argument. "Good" widths are 32 on HPPA, MIPS, PPC, Sparc and x86
-and 64 on Alpha.  While it is possible to support smaller widths as
-well, currently this is not implemented.
-
 
 File: sbcl.info,  Node: Beyond the ANSI Standard,  Next: Foreign Function Interface,  Prev: Efficiency,  Up: Top
 
-6 Beyond the ANSI Standard
+7 Beyond the ANSI Standard
 **************************
 
 SBCL is derived from CMUCL, which implements many extensions to the
@@ -3236,13 +3535,15 @@ still has quite a few.  *Note Contributed Modules::.
 * Customization Hooks for Users::
 * Tools To Help Developers::
 * Resolution of Name Conflicts::
+* Hash Table Extensions::
+* Miscellaneous Extensions::
 * Stale Extensions::
 * Efficiency Hacks::
 
 
 File: sbcl.info,  Node: Garbage Collection,  Next: Metaobject Protocol,  Up: Beyond the ANSI Standard
 
-6.1 Garbage Collection
+7.1 Garbage Collection
 ======================
 
 SBCL provides additional garbage collection functionality not specified
@@ -3250,12 +3551,18 @@ by ANSI. Weak pointers allow references to objects to be maintained
 without keeping them from being garbage collected, and "finalization"
 hooks are available to cause code to be executed when an object has
 been garbage collected. Additionally users can specify their own
-cleanup actions to be executed with garbage collection.
+cleanup actions to be executed with garbage collection. See also
+`make-hash-table' for information on weak hash tables.
 
- -- Function: sb-ext:finalize object function
+ -- Function: sb-ext:finalize object function &key dont-save
      Arrange for the designated `function' to be called when there are
      no more references to `object', including references in `function'
      itself.
+
+     If `dont-save' is true, the finalizer will be cancelled when
+     `save-lisp-and-die' is called: this is useful for finalizers
+     deallocating system memory, which might otherwise be called with
+     addresses from the old image.
 
      In a multithreaded environment `function' may be called in any
      thread. In both single and multithreaded environments `function'
@@ -3312,7 +3619,7 @@ cleanup actions to be executed with garbage collection.
 
 File: sbcl.info,  Node: Metaobject Protocol,  Next: Support For Unix,  Prev: Garbage Collection,  Up: Beyond the ANSI Standard
 
-6.2 Metaobject Protocol
+7.2 Metaobject Protocol
 =======================
 
 SBCL supports a metaobject protocol which is intended to be compatible
@@ -3423,30 +3730,85 @@ are:
      its `class-name', is redefined.
 
 
+   In addition, SBCL supports extensions to the Metaobject protocol from
+AMOP; at present, they are:
+
+   * compile-time support for generating specializer metaobjects from
+     specializer names in `defmethod' forms is provided by the
+     `make-method-specializers-form' function, which returns a form
+     which, when evaluated in the lexical environment of the
+     `defmethod', returns a list of specializer metaobjects.  This
+     operator suffers from similar restrictions to those affecting
+     `make-method-lambda', namely that the generic function must be
+     defined when the `defmethod' form is expanded, so that the correct
+     method of `make-method-specializers-form' is invoked.  The
+     system-provided method on `make-method-specializers-form'
+     generates a call to `find-class' for each symbol specializer name,
+     and a call to `intern-eql-specializer' for each `(eql X)'
+     specializer name.
+
+   * run-time support for converting between specializer names and
+     specializer metaobjects, mostly for the purposes of `find-method',
+     is provided by `parse-specializer-using-class' and
+     `unparse-specializer-using-class', which dispatch on their first
+     argument, the generic function associated with a method with the
+     given specializer.  The system-provided methods on those methods
+     convert between classes and proper names and between lists of the
+     form `(eql X)' and interned eql specializer objects.
+
+
 
 File: sbcl.info,  Node: Support For Unix,  Next: Customization Hooks for Users,  Prev: Metaobject Protocol,  Up: Beyond the ANSI Standard
 
-6.3 Support For Unix
+7.3 Support For Unix
 ====================
 
+* Menu:
+
+* Command-line arguments::
+* Querying the process environment::
+* Running external programs::
+
+
+File: sbcl.info,  Node: Command-line arguments,  Next: Querying the process environment,  Up: Support For Unix
+
+7.3.1 Command-line arguments
+----------------------------
+
 The UNIX command line can be read from the variable
-`sb-ext:*posix-argv*'. The UNIX environment can be queried with the
-`sb-ext:posix-getenv' function.
+`sb-ext:*posix-argv*'.
+
+
+File: sbcl.info,  Node: Querying the process environment,  Next: Running external programs,  Prev: Command-line arguments,  Up: Support For Unix
+
+7.3.2 Querying the process environment
+--------------------------------------
+
+The UNIX environment can be queried with the `sb-ext:posix-getenv'
+function.
 
  -- Function: sb-ext:posix-getenv name
      Return the "value" part of the environment string "name=value"
-     which    corresponds to `name', or `nil' if there is none.
+     which corresponds to `name', or `nil' if there is none.
 
-   External programs can be run with `sb-ext:run-program'.
+
+File: sbcl.info,  Node: Running external programs,  Prev: Querying the process environment,  Up: Support For Unix
+
+7.3.3 Running external programs
+-------------------------------
+
+External programs can be run with `sb-ext:run-program'.  (1)
 
  -- Function: sb-ext:run-program program args &key env environment wait
           search pty input if-input-does-not-exist output
           if-output-exists error if-error-exists status-hook
-     `run-program' creates a new Unix process running the Unix program
-     found in the file specified by the `program' argument. `args' are
-     the standard arguments that can be passed to a Unix program. For no
-     arguments, use `nil' (which means that just the name of the
-     program is passed as arg 0).
+     `run-program' creates a new process specified by the `program'
+     argument. `args' are the standard arguments that can be passed to a
+     program. For no arguments, use `nil' (which means that just the
+     name of the program is passed as arg 0).
+
+     The program arguments and the environment are encoded using the
+     default external format for streams.
 
      `run-program' will return a `process' structure. See the `cmu'
      Common Lisp Users Manual for details about the `process' structure.
@@ -3469,18 +3831,18 @@ The UNIX command line can be read from the variable
         The `&key' arguments have the following meanings:
 
     _`:environment'_
-          a list of SIMPLE-BASE-STRINGs describing the new Unix
-          environment       (as in "man environ"). The default is to
-          copy the environment of       the current process.
+          a list of STRINGs describing the new Unix environment
+          (as in "man environ"). The default is to copy the environment
+          of       the current process.
 
     _`:env'_
           an alternative lossy representation of the new Unix
           environment,       for compatibility with `cmu' `cl'
 
     _`:search'_
-          Look for `program' in each of the directories along the $PATH
-               environment variable.  Otherwise an absolute pathname
-          is required.        (See also FIND-EXECUTABLE-IN-SEARCH-PATH)
+          Look for `program' in each of the directories in the child's
+          $PATH       environment variable.  Otherwise an absolute
+          pathname is required.
 
     _`:wait'_
           If non-NIL (default), wait until the created process
@@ -3499,7 +3861,7 @@ The UNIX command line can be read from the variable
           `t', the standard       input for the current process is
           inherited.  If `nil', /dev/null       is used.  If a
           pathname, the file so specified is used.  If a stream,
-          all the input is read from that stream and send to the
+          all the input is read from that stream and sent to the
           subprocess.  If       `:stream', the `process-input' slot is
           filled in with a stream that sends       its output to the
           process. Defaults to `nil'.
@@ -3515,9 +3877,9 @@ The UNIX command line can be read from the variable
           inherited.  If `nil', /dev/null       is used.  If a
           pathname, the file so specified is used.  If a stream,
           all the output from the process is written to this stream. If
-               `:stream', the `process-output' slot is filled in with
-          a stream that can       be read to get the output. Defaults
-          to `nil'.
+               `:stream', the `process-output' slot is filled in with a
+          stream that can       be read to get the output. Defaults to
+          `nil'.
 
     _`:if-output-exists' (when `:output' is the name of a file)_
           can be one of:          `:error' (the default) to generate an
@@ -3537,6 +3899,10 @@ The UNIX command line can be read from the variable
                process changes.  The function takes the process as an
           argument.
 
+
+   When `sb-ext:run-program' is called with `wait' equal to NIL, an
+instance of class SB-EXT:PROCESS is returned.  The following functions
+are available for use with processes:
 
  -- Function: sb-ext:process-p object
      `t' if `object' is a `process', `nil' otherwise.
@@ -3579,10 +3945,23 @@ The UNIX command line can be read from the variable
      signal to whichever process group is    currently in the
      foreground.
 
+   ---------- Footnotes ----------
+
+   (1) In SBCL versions prior to 1.0.13, `sb-ext:run-program' searched
+for executables in a manner somewhat incompatible with other languages.
+As of this version, SBCL uses the system library routine `execvp(3)',
+and no longer contains the function, `find-executable-in-search-path',
+which implemented the old search.  Users who need this function may
+find it in `run-program.lisp' versions 1.67 and earlier in SBCL's CVS
+repository here
+`http://sbcl.cvs.sourceforge.net/sbcl/sbcl/src/code/run-program.lisp?view=log'.
+However, we caution such users that this search routine finds
+executables that system library routines do not.
+
 
 File: sbcl.info,  Node: Customization Hooks for Users,  Next: Tools To Help Developers,  Prev: Support For Unix,  Up: Beyond the ANSI Standard
 
-6.4 Customization Hooks for Users
+7.4 Customization Hooks for Users
 =================================
 
 The toplevel repl prompt may be customized, and the function that reads
@@ -3592,7 +3971,7 @@ user input may be replaced completely.
 implementation-defined.  In SBCL, `require' behaves in the following
 way:
 
- -- Function: common-lisp:require module-name &optional pathnames
+ -- Function: cl:require module-name &optional pathnames
      Loads a module, unless it already has been loaded. `pathnames', if
      supplied,    is a designator for a list of pathnames to be loaded
      if the module    needs to be. If `pathnames' is not supplied,
@@ -3608,7 +3987,7 @@ way:
 can be customized to hook into user-provided editing mechanisms as
 follows:
 
- -- Function: common-lisp:ed &optional x
+ -- Function: cl:ed &optional x
      Starts the editor (on a file or a function if named).  Functions
      from the list `*ed-functions*' are called in order with `x' as an
      argument until one of them returns non-NIL; these functions are
@@ -3618,14 +3997,25 @@ follows:
  -- Variable: sb-ext:*ed-functions*
      See function documentation for `ed'.
 
+   Conditions of type `warning' and `style-warning' are sometimes
+signaled at runtime, especially during execution of Common Lisp
+defining forms such as `defun', `defmethod', etc.  To muffle these
+warnings at runtime, SBCL provides a variable
+`sb-ext:*muffled-warnings*':
+
+ -- Variable: sb-ext:*muffled-warnings*
+     A type that ought to specify a subtype of `warning'.  Whenever a
+     warning is signaled, if the warning if of this type and is not
+     handled by any other handler, it will be muffled.
+
 
 File: sbcl.info,  Node: Tools To Help Developers,  Next: Resolution of Name Conflicts,  Prev: Customization Hooks for Users,  Up: Beyond the ANSI Standard
 
-6.5 Tools To Help Developers
+7.5 Tools To Help Developers
 ============================
 
 SBCL provides a profiler and other extensions to the ANSI `trace'
-facility.  For more information, see *Note Macro common-lisp:trace::.
+facility.  For more information, see *note Macro common-lisp:trace::.
 
    The debugger supports a number of options. Its documentation is
 accessed by typing `help' at the debugger prompt. *Note Debugger::.
@@ -3634,9 +4024,9 @@ accessed by typing `help' at the debugger prompt. *Note Debugger::.
 `inspect' prompt.
 
 
-File: sbcl.info,  Node: Resolution of Name Conflicts,  Next: Stale Extensions,  Prev: Tools To Help Developers,  Up: Beyond the ANSI Standard
+File: sbcl.info,  Node: Resolution of Name Conflicts,  Next: Hash Table Extensions,  Prev: Tools To Help Developers,  Up: Beyond the ANSI Standard
 
-6.6 Resolution of Name Conflicts
+7.6 Resolution of Name Conflicts
 ================================
 
 The ANSI standard (section 11.1.1.2.5) requires that name conflicts in
@@ -3648,9 +4038,176 @@ argument, which should be a member of the list returned by the condition
 accessor `sb-ext:name-conflict-symbols'.
 
 
-File: sbcl.info,  Node: Stale Extensions,  Next: Efficiency Hacks,  Prev: Resolution of Name Conflicts,  Up: Beyond the ANSI Standard
+File: sbcl.info,  Node: Hash Table Extensions,  Next: Miscellaneous Extensions,  Prev: Resolution of Name Conflicts,  Up: Beyond the ANSI Standard
 
-6.7 Stale Extensions
+7.7 Hash Table Extensions
+=========================
+
+Hash table extensions supported by SBCL are all controlled by keyword
+arguments to `make-hash-table'.
+
+ -- Function: cl:make-hash-table &key test size rehash-size
+          rehash-threshold hash-function weakness synchronized
+     Create and return a new hash table. The keywords are as follows:
+
+    _`:test'_
+          Determines how keys are compared. Must a designator for one
+          of the     standard hash table tests, or a hash table test
+          defined using     `sb-ext:define-hash-table-test'.
+          Additionally, when an explicit     `hash-function' is
+          provided (see below), any two argument equivalence
+          predicate can be used as the `test'.
+
+    _`:size'_
+          A hint as to how many elements will be put in this hash table.
+
+    _`:rehash-size'_
+          Indicates how to expand the table when it fills up. If an
+          integer, add     space for that many elements. If a floating
+          point number (which must be     greater than 1.0), multiply
+          the size by that amount.
+
+    _`:rehash-threshold'_
+          Indicates how dense the table can become before forcing a
+          rehash. Can be     any positive number <=1, with density
+          approaching zero as the threshold     approaches 0. Density 1
+          means an average of one entry per bucket.
+
+    _`:hash-function'_
+          If `nil' (the default), a hash function based on the `test'
+          argument is used,     which then must be one of the
+          standardized hash table test functions, or     one for which
+          a default hash function has been defined using
+          `sb-ext:define-hash-table-test'. If `hash-function' is
+          specified, the `test'     argument can be any two argument
+          predicate consistent with it. The     `hash-function' is
+          expected to return a non-negative fixnum hash code.
+
+    _`:weakness'_
+          If `nil' (the default) it is a normal non-weak hash table. If
+          one     of `:key', `:value', `:key-and-value',
+          `:key-or-value' it is a weak hash table.      Depending on
+          the type of weakness the lack of references to the key and
+          the value may allow for removal of the entry. If `weakness'
+          is `:key' and the     key would otherwise be garbage the
+          entry is eligible for removal from the     hash table.
+          Similarly, if `weakness' is `:value' the life of an entry
+          depends     on its value's references. If `weakness' is
+          `:key-and-value' and either the     key or the value would
+          otherwise be garbage the entry can be removed. If
+          `weakness' is `:key-or-value' and both the key and the value
+          would otherwise     be garbage the entry can be removed.
+
+    _`:synchronized'_
+          If `nil' (the default), the hash-table may have multiple
+          concurrent readers,     but results are undefined if a thread
+          writes to the hash-table     concurrently with another reader
+          or writer. If `t', all concurrent accesses     are safe, but
+          note that `clhs' 3.6 (Traversal Rules and Side Effects)
+          remains in force. See also: `sb-ext:with-locked-hash-table'.
+          This keyword     argument is experimental, and may change
+          incompatibly or be removed in the     future.
+
+
+ -- Macro: sb-ext:define-hash-table-test name hash-function
+     Defines `name' as a new kind of hash table test for use with the
+     `:test' argument to `make-hash-table', and associates a default
+     `hash-function' with it.
+
+     `name' must be a symbol naming a global two argument equivalence
+     predicate.  Afterwards both `'name' and `#'name' can be used with
+     `:test' argument. In both cases `hash-table-test' will return the
+     symbol `name'.
+
+     `hash-function' must be a symbol naming a global hash function
+     consistent with the predicate, or be a `lambda' form implementing
+     one in the current lexical environment. The hash function must
+     compute the same hash code for any two objects for which `name'
+     returns true, and subsequent calls with already hashed objects
+     must always return the same hash code.
+
+     Note: The `:hash-function' keyword argument to `make-hash-table'
+     can be used to override the specified default hash-function.
+
+     Attempting to define `name' in a locked package as hash-table test
+     causes a package lock violation.
+
+     Examples:
+
+            ;;; 1.
+
+            ;; We want to use objects of type FOO as keys (by their
+            ;; names.) EQUALP would work, but would make the names
+            ;; case-insensitive -- wich we don't want.
+            (defstruct foo (name nil :type (or null string)))
+
+            ;; Define an equivalence test function and a hash function.
+            (defun foo-name= (f1 f2) (equal (foo-name f1) (foo-name f2)))
+            (defun sxhash-foo-name (f) (sxhash (foo-name f)))
+
+            (define-hash-table-test foo-name= sxhash-foo-name)
+
+            ;; #'foo-name would work too.
+            (defun make-foo-table () (make-hash-table :test 'foo-name=))
+
+            ;;; 2.
+
+            (defun == (x y) (= x y))
+
+            (define-hash-table-test ==
+              (lambda (x)
+                ;; Hash codes must be consistent with test, so
+                ;; not (SXHASH X), since
+                ;;   (= 1 1.0)                   => T
+                ;;   (= (SXHASH 1) (SXHASH 1.0)) => NIL
+                ;; Note: this doesn't deal with complex numbers or
+                ;; bignums too large to represent as double floats.
+                (sxhash (coerce x 'double-float))))
+
+            ;; #'== would work too
+            (defun make-number-table () (make-hash-table :test '==))
+
+ -- Macro: sb-ext:with-locked-hash-table (hash-table) &body body
+     Limits concurrent accesses to `hash-table' for the duration of
+     `body'.  If `hash-table' is synchronized, `body' will execute with
+     exclusive ownership of the table. If `hash-table' is not
+     synchronized, `body' will execute with other
+     `with-locked-hash-table' bodies excluded `--' exclusion of
+     hash-table accesses not surrounded by `with-locked-hash-table' is
+     unspecified.
+
+ -- Function: sb-ext:hash-table-synchronized-p instance
+     Returns `t' if `hash-table' is synchronized.
+
+ -- Function: sb-ext:hash-table-weakness instance
+     Return the `weakness' of `hash-table' which is one of `nil',
+     `:key', `:value', `:key-and-value', `:key-or-value'.
+
+
+File: sbcl.info,  Node: Miscellaneous Extensions,  Next: Stale Extensions,  Prev: Hash Table Extensions,  Up: Beyond the ANSI Standard
+
+7.8 Miscellaneous Extensions
+============================
+
+ -- Function: sb-ext:array-storage-vector array
+     Returns the underlying storage vector of `array', which must be a
+     non-displaced array.
+
+     In `sbcl', if `array' is a of type (SIMPLE-ARRAY `*' (*)), it is
+     its own storage vector. Multidimensional arrays, arrays with fill
+     pointers, and adjustable arrays have an underlying storage vector
+     with the same `array-element-type' as `array', which this function
+     returns.
+
+     Important note: the underlying vector is an implementation detail.
+     Even though this function exposes it, changes in the
+     implementation may cause this function to be removed without
+     further warning.
+
+
+File: sbcl.info,  Node: Stale Extensions,  Next: Efficiency Hacks,  Prev: Miscellaneous Extensions,  Up: Beyond the ANSI Standard
+
+7.9 Stale Extensions
 ====================
 
 SBCL has inherited from CMUCL various hooks to allow the user to tweak
@@ -3672,8 +4229,8 @@ it up on the developers' mailing list.
 
 File: sbcl.info,  Node: Efficiency Hacks,  Prev: Stale Extensions,  Up: Beyond the ANSI Standard
 
-6.8 Efficiency Hacks
-====================
+7.10 Efficiency Hacks
+=====================
 
 The `sb-ext:purify' function causes SBCL first to collect all garbage,
 then to mark all uncollected objects as permanent, never again
@@ -3702,11 +4259,21 @@ collectors, but not all SBCL platforms use such a garbage collector.
      `sb'!`c::*info-environment*'.) If `nil' is    supplied, then
      environment compaction is inhibited.
 
+     This function is a no-op on platforms using the generational
+     garbage    collector (x86, x86-64, ppc).
+
    The `sb-ext:truly-the' special form declares the type of the result
 of the operations, producing its argument; the declaration is not
 checked. In short: don't use it.
 
- -- Special Operator: sb-ext:truly-the type value
+ -- Special Operator: sb-ext:truly-the value-type form
+     Specifies that the values returned by `form' conform to the
+     `value-type', and causes the compiler to trust this information
+     unconditionally.
+
+     Consequences are undefined if any result is not of the declared
+     type `--' typical symptoms including memory corruptions. Use with
+     great care.
 
    The `sb-ext:freeze-type' declaration declares that a type will never
 change, which can make type testing (`typep', etc.) more efficient for
@@ -3722,7 +4289,7 @@ are changed.
 
 File: sbcl.info,  Node: Foreign Function Interface,  Next: Pathnames,  Prev: Beyond the ANSI Standard,  Up: Top
 
-7 Foreign Function Interface
+8 Foreign Function Interface
 ****************************
 
 This chapter describes SBCL's interface to C programs and libraries
@@ -3752,7 +4319,7 @@ world, to other programs and libraries in general.)
 
 File: sbcl.info,  Node: Introduction to the Foreign Function Interface,  Next: Foreign Types,  Up: Foreign Function Interface
 
-7.1 Introduction to the Foreign Function Interface
+8.1 Introduction to the Foreign Function Interface
 ==================================================
 
 Because of Lisp's emphasis on dynamic memory allocation and garbage
@@ -3781,7 +4348,7 @@ are three common approaches to establishing communication:
 
    SBCL, like CMUCL before it, relies primarily on the automatic
 conversion and direct manipulation approaches. The `SB-ALIEN' package
-provices a facility wherein foreign values of simple scalar types are
+provides a facility wherein foreign values of simple scalar types are
 automatically converted and complex types are directly manipulated in
 their foreign representation.  Additionally the lower-level System Area
 Pointers (or SAPs) can be used where necessary to provide untyped
@@ -3799,7 +4366,7 @@ similar to those of the C language.
 
 File: sbcl.info,  Node: Foreign Types,  Next: Operations On Foreign Values,  Prev: Introduction to the Foreign Function Interface,  Up: Foreign Function Interface
 
-7.2 Foreign Types
+8.2 Foreign Types
 =================
 
 Alien types have a description language based on nested list structure.
@@ -3825,7 +4392,7 @@ For example the C type
 
 File: sbcl.info,  Node: Defining Foreign Types,  Next: Foreign Types and Lisp Types,  Up: Foreign Types
 
-7.2.1 Defining Foreign Types
+8.2.1 Defining Foreign Types
 ----------------------------
 
 Types may be either named or anonymous.  With structure and union
@@ -3842,7 +4409,7 @@ can be given named abbreviations using the `define-alien-type' macro.
 
 File: sbcl.info,  Node: Foreign Types and Lisp Types,  Next: Foreign Type Specifiers,  Prev: Defining Foreign Types,  Up: Foreign Types
 
-7.2.2 Foreign Types and Lisp Types
+8.2.2 Foreign Types and Lisp Types
 ----------------------------------
 
 The foreign types form a subsystem of the SBCL type system.  An `alien'
@@ -3868,7 +4435,7 @@ type specifier.
 
 File: sbcl.info,  Node: Foreign Type Specifiers,  Prev: Foreign Types and Lisp Types,  Up: Foreign Types
 
-7.2.3 Foreign Type Specifiers
+8.2.3 Foreign Type Specifiers
 -----------------------------
 
 Note: All foreign type names are exported from the `sb-alien' package.
@@ -4033,7 +4600,7 @@ e.g. it is legal to refer to `sb-alien:single-float'.
 
 File: sbcl.info,  Node: Operations On Foreign Values,  Next: Foreign Variables,  Prev: Foreign Types,  Up: Foreign Function Interface
 
-7.3 Operations On Foreign Values
+8.3 Operations On Foreign Values
 ================================
 
 This section describes how to read foreign values as Lisp values, how
@@ -4049,7 +4616,7 @@ to dynamically allocate and free foreign variables.
 
 File: sbcl.info,  Node: Accessing Foreign Values,  Next: Coercing Foreign Values,  Up: Operations On Foreign Values
 
-7.3.1 Accessing Foreign Values
+8.3.1 Accessing Foreign Values
 ------------------------------
 
  -- Function: sb-alien:deref POINTER-OR-ARRAY &rest INDICES
@@ -4071,7 +4638,7 @@ File: sbcl.info,  Node: Accessing Foreign Values,  Next: Coercing Foreign Values
      compile-time constant (but only constant slot accesses are
      efficiently compiled).
 
-7.3.1.1 Untyped memory
+8.3.1.1 Untyped memory
 ......................
 
 As noted at the beginning of the chapter, the System Area Pointer
@@ -4101,7 +4668,7 @@ other comparisons, and other conversions.  The reader is invited to use
 
 File: sbcl.info,  Node: Coercing Foreign Values,  Next: Foreign Dynamic Allocation,  Prev: Accessing Foreign Values,  Up: Operations On Foreign Values
 
-7.3.2 Coercing Foreign Values
+8.3.2 Coercing Foreign Values
 -----------------------------
 
  -- Function: sb-alien:addr ALIEN-EXPR
@@ -4120,11 +4687,11 @@ File: sbcl.info,  Node: Coercing Foreign Values,  Next: Foreign Dynamic Allocati
  -- Function: sb-alien:sap-alien SAP TYPE
      The `sb-alien:sap-alien' function converts SAP (a system area
      pointer) to a foreign value with the specified TYPE. TYPE is not
-     evaluated.  </para>
+     evaluated.
 
      The TYPE must be some foreign pointer, array, or record type.
 
- -- Function: sb-alien:alien-sap FOREIGN-VALUE TYPE
+ -- Function: sb-alien:alien-sap FOREIGN-VALUE
      The `sb-alien:alien-sap' function returns the SAP which points to
      ALIEN-VALUE's data.
 
@@ -4134,7 +4701,7 @@ File: sbcl.info,  Node: Coercing Foreign Values,  Next: Foreign Dynamic Allocati
 
 File: sbcl.info,  Node: Foreign Dynamic Allocation,  Prev: Coercing Foreign Values,  Up: Operations On Foreign Values
 
-7.3.3 Foreign Dynamic Allocation
+8.3.3 Foreign Dynamic Allocation
 --------------------------------
 
 Lisp code can call the C standard library functions `malloc' and `free'
@@ -4183,7 +4750,7 @@ C code.
 
 File: sbcl.info,  Node: Foreign Variables,  Next: Foreign Data Structure Examples,  Prev: Operations On Foreign Values,  Up: Foreign Function Interface
 
-7.4 Foreign Variables
+8.4 Foreign Variables
 =====================
 
 Both local (stack allocated) and external (C global) foreign variables
@@ -4197,7 +4764,7 @@ are supported.
 
 File: sbcl.info,  Node: Local Foreign Variables,  Next: External Foreign Variables,  Up: Foreign Variables
 
-7.4.1 Local Foreign Variables
+8.4.1 Local Foreign Variables
 -----------------------------
 
  -- Macro: sb-alien:with-alien VAR-DEFINITIONS &body BODY
@@ -4227,7 +4794,7 @@ File: sbcl.info,  Node: Local Foreign Variables,  Next: External Foreign Variabl
 
 File: sbcl.info,  Node: External Foreign Variables,  Prev: Local Foreign Variables,  Up: Foreign Variables
 
-7.4.2 External Foreign Variables
+8.4.2 External Foreign Variables
 --------------------------------
 
 External foreign names are strings, and Lisp names are symbols. When an
@@ -4287,7 +4854,7 @@ this conversion heuristic:
 
 File: sbcl.info,  Node: Foreign Data Structure Examples,  Next: Loading Shared Object Files,  Prev: Foreign Variables,  Up: Foreign Function Interface
 
-7.5 Foreign Data Structure Examples
+8.5 Foreign Data Structure Examples
 ===================================
 
 Now that we have alien types, operations and variables, we can
@@ -4349,31 +4916,51 @@ manipulate foreign data structures.  This C declaration
 
 File: sbcl.info,  Node: Loading Shared Object Files,  Next: Foreign Function Calls,  Prev: Foreign Data Structure Examples,  Up: Foreign Function Interface
 
-7.6 Loading Shared Object Files
+8.6 Loading Shared Object Files
 ===============================
 
 Foreign object files can be loaded into the running Lisp process by
 calling `load-shared-object'.
 
- -- Function: sb-alien:load-shared-object file
-     Load a shared library/dynamic shared object file/general dlopenable
-     alien container, such as a .so on an `elf' platform.
+ -- Function: sb-alien:load-shared-object pathname &key dont-save
+     Load a shared library / dynamic shared object file / similar
+     foreign container specified by designated `pathname', such as a
+     .so on an `elf' platform.
 
-     Reloading the same shared object will replace the old definitions;
-     if a symbol was previously referenced thru the object and is not
-     present in the reloaded version an error will be signalled.
-     Sameness is determined using the library filename. Reloading may
-     not work as expected if user or library-code has called dlopen on
-     `file'.
+     Locating the shared object follows standard rules of the platform,
+     consult the manual page for dlopen(3) for details. Typically paths
+     speficied by environment variables such as LD_LIBRARY_PATH are
+     searched if the `pathname' has no directory, but on some systems
+     (eg. Mac `os' X) search may happen even if `pathname' is absolute.
+     (On Windows LoadLibrary is used instead of dlopen(3).)
 
-     References to foreign symbols in loaded shared objects do not
-     survive intact through `sb-ext:save-lisp-and-die' on all
-     platforms. See `sb-ext:save-lisp-and-die' for details.
+     On non-Windows platoforms calling `load-shared-object' again with
+     an `pathname' `equal' to the designated pathname of a previous
+     call will replace the old definitions; if a symbol was previously
+     referenced thru the object and is not present in the reloaded
+     version an error will be signalled. Reloading may not work as
+     expected if user or library-code has called dlopen(3) on the same
+     shared object.
+
+     `load-shared-object' interacts with `sb-ext:save-lisp-and-die:'
+
+     1. If `dont-save' is true (default is NIL), the shared object will
+     be dropped when `save-lisp-and-die' is called `--' otherwise
+     shared objects are reloaded automatically when a saved core starts
+     up. Specifying `dont-save' can be useful when the location of the
+     shared object on startup is uncertain.
+
+     2. On most platforms references in compiled code to foreign
+     symbols in shared objects (such as those generated by
+     DEFINE-ALIEN-ROUTINE) remain valid across `save-lisp-and-die'. On
+     those platforms where this is not supported, a `warning' will be
+     signalled when the core is saved `--' this is orthogonal from
+     `dont-save'.
 
 
 File: sbcl.info,  Node: Foreign Function Calls,  Next: Step-By-Step Example of the Foreign Function Interface,  Prev: Loading Shared Object Files,  Up: Foreign Function Interface
 
-7.7 Foreign Function Calls
+8.7 Foreign Function Calls
 ==========================
 
 The foreign function call interface allows a Lisp program to call many
@@ -4389,7 +4976,7 @@ stack) which the Lisp runtime relies on for correct operation.  Precise
 details of how this works may change without notice between versions;
 the source, or the brain of a friendly SBCL developer, is the only
 documentation.  Users of a Lisp built with the `:sb-thread' feature
-should also read the section about threads, *Note Threading::.
+should also read the section about threads, *note Threading::.
 
 * Menu:
 
@@ -4401,7 +4988,7 @@ should also read the section about threads, *Note Threading::.
 
 File: sbcl.info,  Node: The alien-funcall Primitive,  Next: The define-alien-routine Macro,  Up: Foreign Function Calls
 
-7.7.1 The `alien-funcall' Primitive
+8.7.1 The `alien-funcall' Primitive
 -----------------------------------
 
  -- Function: sb-alien:alien-funcall ALIEN-FUNCTION &rest ARGUMENTS
@@ -4447,7 +5034,7 @@ function to initialize it, then returns a Lisp vector of all the `(*
 
 File: sbcl.info,  Node: The define-alien-routine Macro,  Next: define-alien-routine Example,  Prev: The alien-funcall Primitive,  Up: Foreign Function Calls
 
-7.7.2 The `define-alien-routine' Macro
+8.7.2 The `define-alien-routine' Macro
 --------------------------------------
 
  -- Macro: sb-alien:define-alien-routine NAME RESULT-TYPE &rest
@@ -4513,7 +5100,7 @@ File: sbcl.info,  Node: The define-alien-routine Macro,  Next: define-alien-rout
 
 File: sbcl.info,  Node: define-alien-routine Example,  Next: Calling Lisp From C,  Prev: The define-alien-routine Macro,  Up: Foreign Function Calls
 
-7.7.3 `define-alien-routine' Example
+8.7.3 `define-alien-routine' Example
 ------------------------------------
 
 Consider the C function `cfoo' with the following calling convention:
@@ -4541,7 +5128,7 @@ return values (A and I).
 
 File: sbcl.info,  Node: Calling Lisp From C,  Prev: define-alien-routine Example,  Up: Foreign Function Calls
 
-7.7.4 Calling Lisp From C
+8.7.4 Calling Lisp From C
 -------------------------
 
 Calling Lisp functions from C is sometimes possible, but is extremely
@@ -4569,12 +5156,12 @@ coping with this:
      for the duration (so could be said to have a whole-world
      granularity).
 
-  3. Disable GC, using the `without-gcing' macro or `gc-off' call.
+  3. Disable GC, using the `without-gcing' macro.
 
 
 File: sbcl.info,  Node: Step-By-Step Example of the Foreign Function Interface,  Prev: Foreign Function Calls,  Up: Foreign Function Interface
 
-7.8 Step-By-Step Example of the Foreign Function Interface
+8.8 Step-By-Step Example of the Foreign Function Interface
 ==========================================================
 
 This section presents a complete example of an interface to a somewhat
@@ -4710,7 +5297,7 @@ following return values:
 
 File: sbcl.info,  Node: Pathnames,  Next: Extensible Streams,  Prev: Foreign Function Interface,  Up: Top
 
-8 Pathnames
+9 Pathnames
 ***********
 
 * Menu:
@@ -4721,13 +5308,13 @@ File: sbcl.info,  Node: Pathnames,  Next: Extensible Streams,  Prev: Foreign Fun
 
 File: sbcl.info,  Node: Lisp Pathnames,  Next: Native Filenames,  Up: Pathnames
 
-8.1 Lisp Pathnames
+9.1 Lisp Pathnames
 ==================
 
 There are many aspects of ANSI Common Lisp's pathname support which are
 implementation-defined and so need documentation.
 
-8.1.1 The SYS Logical Pathname Host
+9.1.1 The SYS Logical Pathname Host
 -----------------------------------
 
 The logical pathname host named by `"SYS"' exists in SBCL.  Its
@@ -4740,7 +5327,7 @@ particular, the core system's source files match the logical pathname
 
 File: sbcl.info,  Node: Native Filenames,  Prev: Lisp Pathnames,  Up: Pathnames
 
-8.2 Native Filenames
+9.2 Native Filenames
 ====================
 
 In some circumstances, what is wanted is a Lisp pathname object which
@@ -4758,28 +5345,74 @@ pathname designator to the equivalent native namestring, if possible.
 Some Lisp pathname concepts (such as the `:back' directory component)
 have no direct equivalents in most Operating Systems; the behaviour of
 `native-namestring' is unspecified if an inappropriate pathname
-designator is passed to it.
+designator is passed to it.  Additionally, note that conversion from
+pathname to native filename and back to pathname should not be expected
+to preserve equivalence under `equal'.
 
  -- Function: sb-ext:parse-native-namestring thing &optional host
-          defaults &key start end junk-allowed
+          defaults &key start end junk-allowed as-directory
      Convert `thing' into a pathname, using the native conventions
      appropriate for the pathname host `host', or if not specified the
      host of `defaults'.  If `thing' is a string, the parse is bounded
      by `start' and `end', and error behaviour is controlled by
-     `junk-allowed', as with `parse-namestring'.
+     `junk-allowed', as with `parse-namestring'.  For file systems
+     whose native conventions allow directories to be indicated as
+     files, if `as-directory' is true, return a pathname denoting
+     `thing' as a directory.
 
  -- Function: sb-ext:native-pathname pathspec
      Convert `pathspec' (a pathname designator) into a pathname,
      assuming the operating system native pathname conventions.
 
- -- Function: sb-ext:native-namestring pathname
-     Construct the full native (name)string form of `pathname'.
+ -- Function: sb-ext:native-namestring pathname &key as-file
+     Construct the full native (name)string form of `pathname'.  For
+     file systems whose native conventions allow directories to be
+     indicated as files, if `as-file' is true and the name, type, and
+     version components of `pathname' are all `nil' or `:unspecific',
+     construct a string that names the directory according to the file
+     system's syntax for files.
+
+   Because some file systems permit the names of directories to be
+expressed in multiple ways, it is occasionally necessary to parse a
+native file name "as a directory name" or to produce a native file name
+that names a directory "as a file".  For these cases,
+`parse-native-namestring' accepts the keyword argument `as-directory'
+to force a filename to parse as a directory, and `native-namestring'
+accepts the keyword argument `as-file' to force a pathname to unparse
+as a file.  For example,
+
+     ; On Unix, the directory "/tmp/" can be denoted by "/tmp/" or "/tmp".
+     ; Under the default rules for native filenames, these parse and
+     ; unparse differently.
+     (defvar *p*)
+     (setf *p* (parse-native-namestring "/tmp/")) => #P"/tmp/"
+     (pathname-name *p*) => NIL
+     (pathname-directory *p*) => (:ABSOLUTE "tmp")
+     (native-namestring *p*) => "/tmp/"
+
+     (setf *p* (parse-native-namestring "/tmp")) => #P"/tmp"
+     (pathname-name *p*) => "tmp"
+     (pathname-directory *p*) => (:ABSOLUTE)
+     (native-namestring *p*) => "/tmp"
+
+     ; A non-NIL AS-DIRECTORY argument to PARSE-NATIVE-NAMESTRING forces
+     ; both the second string to parse the way the first does.
+     (setf *p* (parse-native-namestring "/tmp"
+                                        nil *default-pathname-defaults*
+                                        :as-directory t)) => #P"/tmp/"
+     (pathname-name *p*) => NIL
+     (pathname-directory *p*) => (:ABSOLUTE "tmp")
+
+     ; A non-NIL AS-FILE argument to NATIVE-NAMESTRING forces the pathname
+     ; parsed from the first string to unparse as the second string.
+     (setf *p* (parse-native-namestring "/tmp/")) => #P"/tmp/"
+     (native-namestring *p* :as-file t) => "/tmp"
 
 
 File: sbcl.info,  Node: Extensible Streams,  Next: Package Locks,  Prev: Pathnames,  Up: Top
 
-9 Extensible Streams
-********************
+10 Extensible Streams
+*********************
 
 SBCL supports various extensions of ANSI Common Lisp streams.
 
@@ -4805,8 +5438,8 @@ SBCL supports various extensions of ANSI Common Lisp streams.
 
 File: sbcl.info,  Node: Bivalent Streams,  Next: Gray Streams,  Up: Extensible Streams
 
-9.1 Bivalent Streams
-====================
+10.1 Bivalent Streams
+=====================
 
 A "bivalent stream" can be used to read and write both `character' and
 `(unsigned-byte 8)' values.  A bivalent stream is created by calling
@@ -4823,8 +5456,8 @@ input and output functions.
 
 File: sbcl.info,  Node: Gray Streams,  Next: Simple Streams,  Prev: Bivalent Streams,  Up: Extensible Streams
 
-9.2 Gray Streams
-================
+10.2 Gray Streams
+=================
 
 The Gray Streams interface is a widely supported extension that
 provides for definition of CLOS-extensible stream classes.  Gray stream
@@ -4848,8 +5481,8 @@ suitably.
 
 File: sbcl.info,  Node: Gray Streams classes,  Next: Methods common to all streams,  Up: Gray Streams
 
-9.2.1 Gray Streams classes
---------------------------
+10.2.1 Gray Streams classes
+---------------------------
 
 The defined Gray Stream classes are these:
 
@@ -4930,18 +5563,18 @@ stream-element-type.
 
 File: sbcl.info,  Node: Methods common to all streams,  Next: Input stream methods,  Prev: Gray Streams classes,  Up: Gray Streams
 
-9.2.2 Methods common to all streams
------------------------------------
+10.2.2 Methods common to all streams
+------------------------------------
 
 These generic functions can be specialized on any generalized instance
 of fundamental-stream.
 
- -- Generic Function: common-lisp:stream-element-type non-stream
+ -- Generic Function: cl:stream-element-type stream
      Return a type specifier for the kind of object returned by the
      `stream'. The class `fundamental-character-stream' provides a
      default method   which returns `character'.
 
- -- Generic Function: common-lisp:close stream &key abort
+ -- Generic Function: cl:close stream &key abort
      Close the given `stream'. No more I/O may be performed, but
      inquiries may still be made. If `:abort' is true, an attempt is
      made   to clean up the side effects of having created the stream.
@@ -4954,13 +5587,13 @@ of fundamental-stream.
 
 File: sbcl.info,  Node: Input stream methods,  Next: Output stream methods,  Prev: Methods common to all streams,  Up: Gray Streams
 
-9.2.3 Input stream methods
---------------------------
+10.2.3 Input stream methods
+---------------------------
 
 These generic functions may be specialized on any generalized instance
 of fundamental-input-stream.
 
- -- Generic Function: sb-gray:stream-clear-input non-stream
+ -- Generic Function: sb-gray:stream-clear-input stream
      This is like `cl:clear-input', but for Gray streams, returning
      `nil'.    The default method does nothing.
 
@@ -4971,8 +5604,8 @@ of fundamental-input-stream.
 
 File: sbcl.info,  Node: Character input stream methods,  Next: Character output stream methods,  Prev: Binary stream methods,  Up: Gray Streams
 
-9.2.4 Character input stream methods
-------------------------------------
+10.2.4 Character input stream methods
+-------------------------------------
 
 These generic functions are used to implement subclasses of
 fundamental-input-stream:
@@ -4985,9 +5618,9 @@ fundamental-input-stream:
 
  -- Generic Function: sb-gray:stream-read-char-no-hang stream
      This is used to implement `read-char-no-hang'. It returns either a
-      character, or `nil' if no input is currently available, or
-     `:eof' if   end-of-file is reached. The default method provided by
-      `fundamental-character-input-stream' simply calls
+      character, or `nil' if no input is currently available, or `:eof'
+     if   end-of-file is reached. The default method provided by
+     `fundamental-character-input-stream' simply calls
      `stream-read-char'; this   is sufficient for file streams, but
      interactive streams should define   their own method.
 
@@ -5019,22 +5652,22 @@ fundamental-input-stream:
 
 File: sbcl.info,  Node: Output stream methods,  Next: Binary stream methods,  Prev: Input stream methods,  Up: Gray Streams
 
-9.2.5 Output stream methods
----------------------------
+10.2.5 Output stream methods
+----------------------------
 
 These generic functions are used to implement subclasses of
 fundamental-output-stream:
 
- -- Generic Function: sb-gray:stream-clear-output non-stream
+ -- Generic Function: sb-gray:stream-clear-output stream
      This is like `cl:clear-output', but for Gray streams: clear the
      given   output `stream'. The default method does nothing.
 
- -- Generic Function: sb-gray:stream-finish-output non-stream
+ -- Generic Function: sb-gray:stream-finish-output stream
      Attempts to ensure that all output sent to the Stream has reached
      its destination, and only then returns false. Implements
      `finish-output'. The default method does nothing.
 
- -- Generic Function: sb-gray:stream-force-output non-stream
+ -- Generic Function: sb-gray:stream-force-output stream
      Attempts to force any buffered output to be sent. Implements
      `force-output'. The default method does nothing.
 
@@ -5045,25 +5678,25 @@ fundamental-output-stream:
 
 File: sbcl.info,  Node: Binary stream methods,  Next: Character input stream methods,  Prev: Output stream methods,  Up: Gray Streams
 
-9.2.6 Binary stream methods
----------------------------
+10.2.6 Binary stream methods
+----------------------------
 
 The following generic functions are available for subclasses of
 fundamental-binary-stream:
 
- -- Generic Function: sb-gray:stream-read-byte non-stream
+ -- Generic Function: sb-gray:stream-read-byte stream
      Used by `read-byte'; returns either an integer, or the symbol
      `:eof'   if the stream is at end-of-file.
 
- -- Generic Function: sb-gray:stream-write-byte non-stream integer
+ -- Generic Function: sb-gray:stream-write-byte stream integer
      Implements `write-byte'; writes the integer to the stream and
      returns the integer as the result.
 
 
 File: sbcl.info,  Node: Character output stream methods,  Next: Gray Streams examples,  Prev: Character input stream methods,  Up: Gray Streams
 
-9.2.7 Character output stream methods
--------------------------------------
+10.2.7 Character output stream methods
+--------------------------------------
 
 These generic functions are used to implement subclasses of
 fundamental-character-output-stream:
@@ -5074,8 +5707,8 @@ fundamental-character-output-stream:
      successful, or `nil' if it is not supported for this stream. This
      is   intended for use by by `pprint' and `format' ~T. The default
      method uses   `stream-line-column' and repeated calls to
-     `stream-write-char' with a   #SPACE character; it returns `nil' if
-     `stream-line-column' returns `nil'.
+     `stream-write-char' with a   `#space' character; it returns `nil'
+     if `stream-line-column' returns `nil'.
 
  -- Generic Function: sb-gray:stream-fresh-line stream
      Outputs a new line to the Stream if it is not positioned at the
@@ -5087,10 +5720,10 @@ fundamental-character-output-stream:
      Return the column number where the next character   will be
      written, or `nil' if that is not meaningful for this stream.
      The first column on a line is numbered 0. This function is used in
-      the implementation of `pprint' and the `format' ~T directive.
-     For every   character output stream class that is defined, a
-     method must be   defined for this function, although it is
-     permissible for it to   always return `nil'.
+      the implementation of `pprint' and the `format' ~T directive. For
+     every   character output stream class that is defined, a method
+     must be   defined for this function, although it is permissible
+     for it to   always return `nil'.
 
  -- Generic Function: sb-gray:stream-line-length stream
      Return the stream line length or `nil'.
@@ -5130,8 +5763,8 @@ fundamental-character-output-stream:
 
 File: sbcl.info,  Node: Gray Streams examples,  Prev: Character output stream methods,  Up: Gray Streams
 
-9.2.8 Gray Streams examples
----------------------------
+10.2.8 Gray Streams examples
+----------------------------
 
 Below are two classes of stream that can be conveniently defined as
 wrappers for Common Lisp streams.  These are meant to serve as examples
@@ -5149,8 +5782,8 @@ implement the various methods that can do I/O in batches, such as
 
 File: sbcl.info,  Node: Character counting input stream,  Next: Output prefixing character stream,  Up: Gray Streams examples
 
-9.2.8.1 Character counting input stream
-.......................................
+10.2.8.1 Character counting input stream
+........................................
 
 It is occasionally handy for programs that process input files to count
 the number of characters and lines seen so far, and the number of
@@ -5169,11 +5802,12 @@ input streams must implement `stream-read-char' and
      (defmethod close ((stream wrapped-stream) &key abort)
        (close (stream-of stream) :abort abort))
 
-     (defclass wrapped-character-input-stream (wrapped-stream)
+     (defclass wrapped-character-input-stream
+         (wrapped-stream fundamental-character-input-stream)
        ())
 
      (defmethod stream-read-char ((stream wrapped-character-input-stream))
-       (read-char (stream-of stream)))
+       (read-char (stream-of stream) nil :eof))
 
      (defmethod stream-unread-char ((stream wrapped-character-input-stream)
                                     char)
@@ -5249,8 +5883,8 @@ forwarded directly).
 
 File: sbcl.info,  Node: Output prefixing character stream,  Prev: Character counting input stream,  Up: Gray Streams examples
 
-9.2.8.2 Output prefixing character stream
-.........................................
+10.2.8.2 Output prefixing character stream
+..........................................
 
 One use for a wrapped output stream might be to prefix each line of
 text with a timestamp, e.g., for a logging stream.  Here's a simple
@@ -5322,8 +5956,8 @@ at least `stream-write-line', `stream-write-sequence'.
 
 File: sbcl.info,  Node: Simple Streams,  Prev: Gray Streams,  Up: Extensible Streams
 
-9.3 Simple Streams
-==================
+10.3 Simple Streams
+===================
 
 Simple streams are an extensible streams protocol that avoids some
 problems with Gray streams.
@@ -5349,7 +5983,7 @@ things that should work.
 
 File: sbcl.info,  Node: Package Locks,  Next: Threading,  Prev: Extensible Streams,  Up: Top
 
-10 Package Locks
+11 Package Locks
 ****************
 
 None of the following sections apply to SBCL built without package
@@ -5359,7 +5993,7 @@ locking support.
 future SBCL releases are possible, even expected: the concept of
 "implementation packages" and the associated operators may be renamed;
 more operations (such as naming restarts or catch tags) may be added to
-the the list of operations violating package locks.
+the list of operations violating package locks.
 
 * Menu:
 
@@ -5369,7 +6003,7 @@ the the list of operations violating package locks.
 
 File: sbcl.info,  Node: Package Lock Concepts,  Next: Package Lock Dictionary,  Up: Package Locks
 
-10.1 Package Lock Concepts
+11.1 Package Lock Concepts
 ==========================
 
 * Menu:
@@ -5383,7 +6017,7 @@ File: sbcl.info,  Node: Package Lock Concepts,  Next: Package Lock Dictionary,  
 
 File: sbcl.info,  Node: Package Lock Overview,  Next: Implementation Packages,  Up: Package Lock Concepts
 
-10.1.1 Package Locking Overview
+11.1.1 Package Locking Overview
 -------------------------------
 
 Package locks protect against unintentional modifications of a package:
@@ -5404,7 +6038,7 @@ currently done by default.
 
 File: sbcl.info,  Node: Implementation Packages,  Next: Package Lock Violations,  Prev: Package Lock Overview,  Up: Package Lock Concepts
 
-10.1.2 Implementation Packages
+11.1.2 Implementation Packages
 ------------------------------
 
 Each package has a list of associated implementation packages. A locked
@@ -5420,10 +6054,10 @@ implementation package.
 
 File: sbcl.info,  Node: Package Lock Violations,  Next: Package Locks in Compiled Code,  Prev: Implementation Packages,  Up: Package Lock Concepts
 
-10.1.3 Package Lock Violations
+11.1.3 Package Lock Violations
 ------------------------------
 
-10.1.3.1 Lexical Bindings and Declarations
+11.1.3.1 Lexical Bindings and Declarations
 ..........................................
 
 Lexical bindings or declarations that violate package locks cause
@@ -5449,7 +6083,7 @@ re-enabled with `sb-ext:enable-package-locks' declaration.
             (declare (enable-package-locks locked:foo)) ; re-enable for body
             ,@body)))
 
-10.1.3.2 Other Operations
+11.1.3.2 Other Operations
 .........................
 
 If an non-lexical operation violates a package lock, a continuable
@@ -5467,17 +6101,17 @@ of type `sb-ext:symbol-package-locked-error'.
 
 File: sbcl.info,  Node: Package Locks in Compiled Code,  Next: Operations Violating Package Locks,  Prev: Package Lock Violations,  Up: Package Lock Concepts
 
-10.1.4 Package Locks in Compiled Code
+11.1.4 Package Locks in Compiled Code
 -------------------------------------
 
-10.1.4.1 Interned Symbols
+11.1.4.1 Interned Symbols
 .........................
 
 If file-compiled code contains interned symbols, then loading that code
 into an image without the said symbols will not cause a package lock
 violation, even if the packages in question are locked.
 
-10.1.4.2 Other Limitations on Compiled Code
+11.1.4.2 Other Limitations on Compiled Code
 ...........................................
 
 With the exception of interned symbols, behaviour is unspecified if
@@ -5490,16 +6124,16 @@ at runtime, and code compiled with packages locked may or may not signal
 spurious package-lock-violations at runtime even if the packages are
 unlocked.
 
-   In practice all this means that package-locks have a neglible
+   In practice all this means that package-locks have a negligible
 performance penalty in compiled code as long as they are not violated.
 
 
 File: sbcl.info,  Node: Operations Violating Package Locks,  Prev: Package Locks in Compiled Code,  Up: Package Lock Concepts
 
-10.1.5 Operations Violating Package Locks
+11.1.5 Operations Violating Package Locks
 -----------------------------------------
 
-10.1.5.1 Operations on Packages
+11.1.5.1 Operations on Packages
 ...............................
 
 The following actions cause a package lock violation if the package
@@ -5526,7 +6160,7 @@ errors of type `sb-ext:package-locked-error'.
   8. Deleting a package.
 
 
-10.1.5.2 Operations on Symbols
+11.1.5.2 Operations on Symbols
 ..............................
 
 Following actions cause a package lock violation if the home package of
@@ -5603,11 +6237,14 @@ apparent violated package.
 
  10. Using it as the class-name argument to setf of find-class.
 
+ 11. Defining it as a hash table test using
+     `sb-ext:define-hash-table-test'.
+
 
 
 File: sbcl.info,  Node: Package Lock Dictionary,  Prev: Package Lock Concepts,  Up: Package Locks
 
-10.2 Package Lock Dictionary
+11.2 Package Lock Dictionary
 ============================
 
  -- Declaration: sb-ext:disable-package-locks
@@ -5624,7 +6261,7 @@ File: sbcl.info,  Node: Package Lock Dictionary,  Prev: Package Lock Concepts,  
      Re-enables package locks affecting the named symbols during
      compilation in the lexical scope of the declaration. Enabling
      locks that were not first disabled with
-     `sb-ext:disable-package-locks' declararion, or enabling locks that
+     `sb-ext:disable-package-locks' declaration, or enabling locks that
      are already enabled has no effect.
 
  -- Condition: sb-ext:package-lock-violation
@@ -5732,7 +6369,7 @@ File: sbcl.info,  Node: Package Lock Dictionary,  Prev: Package Lock Concepts,  
 
 File: sbcl.info,  Node: Threading,  Next: Timers,  Prev: Package Locks,  Up: Top
 
-11 Threading
+12 Threading
 ************
 
 SBCL supports a fairly low-level threading interface that maps onto the
@@ -5751,14 +6388,16 @@ experimental.
 * Threading basics::
 * Special Variables::
 * Mutex Support::
+* Semaphores::
 * Waitqueue/condition variables::
 * Sessions/Debugging::
-* Implementation (Linux x86)::
+* Foreign threads::
+* Implementation (Linux x86/x86-64)::
 
 
 File: sbcl.info,  Node: Threading basics,  Next: Special Variables,  Up: Threading
 
-11.1 Threading basics
+12.1 Threading basics
 =====================
 
      (make-thread (lambda () (write-line "Hello, world")))
@@ -5774,7 +6413,23 @@ File: sbcl.info,  Node: Threading basics,  Next: Special Variables,  Up: Threadi
 
  -- Function: sb-thread:make-thread function &key name
      Create a new thread of `name' that runs `function'. When the
-     function returns the thread exits.
+     function returns the thread exits. The return values of `function'
+     are kept around and can be retrieved by `join-thread'.
+
+ -- Function: sb-thread:join-thread thread &key default
+     Suspend current thread until `thread' exits. Returns the result
+     values of the thread function. If the thread does not exit
+     normally, return `default' if given or else signal
+     `join-thread-error'.
+
+ -- Condition: sb-thread:join-thread-error
+     Class precedence list: `join-thread-error, error,
+     serious-condition, condition, t'
+
+     Joining thread failed.
+
+ -- Function: sb-thread:join-thread-error-thread condition
+     The thread that we failed to join.
 
  -- Function: sb-thread:thread-alive-p thread
      Check if `thread' is running.
@@ -5796,16 +6451,25 @@ File: sbcl.info,  Node: Threading basics,  Next: Special Variables,  Up: Threadi
      degree of care is expected for use of `interrupt-thread', due to
      its nature: if you interrupt a thread that was holding important
      locks then do something that turns out to need those locks, you
-     probably won't like the effect.
+     probably won't like the effect. `function' runs with interrupts
+     disabled, but `with-interrupts' is allowed in it. Keep in mind
+     that many things may enable interrupts (GET-MUTEX when contended,
+     for instance) so the first thing to do is usually a
+     `with-interrupts' or a `without-interrupts'. Within a thread
+     interrupts are queued, they are run in same the order they were
+     sent.
 
  -- Function: sb-thread:terminate-thread thread
      Terminate the thread identified by `thread', by causing it to run
      `sb-ext:quit' `-' the usual cleanup forms will be evaluated
 
+ -- Function: sb-thread:thread-yield
+     Yield the processor to other threads.
+
 
 File: sbcl.info,  Node: Special Variables,  Next: Mutex Support,  Prev: Threading basics,  Up: Threading
 
-11.2 Special Variables
+12.2 Special Variables
 ======================
 
 The interaction of special variables with multiple threads is mostly as
@@ -5826,9 +6490,9 @@ one would expect, with behaviour very similar to other implementations.
    prints `0' and not `1' as of 0.9.6.
 
 
-File: sbcl.info,  Node: Mutex Support,  Next: Waitqueue/condition variables,  Prev: Special Variables,  Up: Threading
+File: sbcl.info,  Node: Mutex Support,  Next: Semaphores,  Prev: Special Variables,  Up: Threading
 
-11.3 Mutex Support
+12.3 Mutex Support
 ==================
 
 Mutexes are used for controlling access to a shared resource. One
@@ -5861,23 +6525,51 @@ can be used if you want a bounded wait.
 
      Mutex type.
 
- -- Function: sb-thread:make-mutex &key name value lutex
+ -- Function: sb-thread:make-mutex &key name %owner state
      Create a mutex.
 
  -- Function: sb-thread:mutex-name instance
      The name of the mutex. Setfable.
 
- -- Function: sb-thread:mutex-value instance
-     The value of the mutex. `nil' if the mutex is free. Setfable.
+ -- Function: sb-thread:mutex-value mutex
+     Current owner of the mutex, `nil' if the mutex is free. May return
+     a stale value, use `mutex-owner' instead.
 
- -- Function: sb-thread:get-mutex mutex &optional new-value wait-p
-     Acquire `mutex', setting it to `new-value' or some suitable default
-     value if `nil'.  If `wait-p' is non-NIL and the mutex is in use,
-     sleep until it is available
+ -- Function: sb-thread:get-mutex mutex &optional new-owner waitp
+     Acquire `mutex' for `new-owner', which must be a thread or `nil'.
+     If `new-owner' is `nil', it defaults to the current thread. If
+     `waitp' is non-NIL and the mutex is in use, sleep until it is
+     available.
 
- -- Function: sb-thread:release-mutex mutex
+     Note: using `get-mutex' to assign a `mutex' to another thread then
+     the current one is not recommended, and liable to be deprecated.
+
+     `get-mutex' is not interrupt safe. The correct way to call it is:
+
+           (WITHOUT-INTERRUPTS
+             ...
+             (ALLOW-WITH-INTERRUPTS (GET-MUTEX ...))
+             ...)
+
+     `without-interrupts' is necessary to avoid an interrupt unwinding
+     the call while the mutex is in an inconsistent state while
+     `allow-with-interrupts' allows the call to be interrupted from
+     sleep.
+
+     It is recommended that you use `with-mutex' instead of calling
+     `get-mutex' directly.
+
+ -- Function: sb-thread:release-mutex mutex &key if-not-owner
      Release `mutex' by setting it to `nil'. Wake up threads waiting for
      this mutex.
+
+     `release-mutex' is not interrupt safe: interrupts should be
+     disabled around calls to it.
+
+     If the current thread is not the owner of the mutex then it
+     silently returns without doing anything (if `if-not-owner' is
+     :PUNT), signals a `warning' (if `if-not-owner' is :WARN), or
+     releases the mutex anyway (if `if-not-owner' is :FORCE).
 
  -- Macro: sb-thread:with-mutex (mutex &key value wait-p) &body body
      Acquire `mutex' for the dynamic scope of `body', setting it to
@@ -5891,9 +6583,42 @@ can be used if you want a bounded wait.
      mutex provided the default value is used for the mutex.
 
 
-File: sbcl.info,  Node: Waitqueue/condition variables,  Next: Sessions/Debugging,  Prev: Mutex Support,  Up: Threading
+File: sbcl.info,  Node: Semaphores,  Next: Waitqueue/condition variables,  Prev: Mutex Support,  Up: Threading
 
-11.4 Waitqueue/condition variables
+12.4 Semaphores
+===============
+
+described here should be considered experimental, subject to API
+changes without notice.
+
+ -- Structure: sb-thread:semaphore
+     Class precedence list: `semaphore, structure-object, t'
+
+     Semaphore type. The fact that a `semaphore' is a `structure-object'
+     should be considered an implementation detail, and may change in
+     the future.
+
+ -- Function: sb-thread:make-semaphore &key name count
+     Create a semaphore with the supplied `count' and `name'.
+
+ -- Function: sb-thread:semaphore-count instance
+     Returns the current count of the semaphore `instance'.
+
+ -- Function: sb-thread:semaphore-name instance
+     The name of the semaphore `instance'. Setfable.
+
+ -- Function: sb-thread:signal-semaphore semaphore &optional n
+     Increment the count of `semaphore' by `n'. If there are threads
+     waiting on this semaphore, then `n' of them is woken up.
+
+ -- Function: sb-thread:wait-on-semaphore semaphore
+     Decrement the count of `semaphore' if the count would not be
+     negative. Else blocks until the semaphore can be decremented.
+
+
+File: sbcl.info,  Node: Waitqueue/condition variables,  Next: Sessions/Debugging,  Prev: Semaphores,  Up: Threading
+
+12.5 Waitqueue/condition variables
 ==================================
 
 These are based on the POSIX condition variable design, hence the
@@ -5975,15 +6700,17 @@ weren't expecting it to.
      to the caller.
 
  -- Function: sb-thread:condition-notify queue &optional n
-     Notify `n' threads waiting on `queue'.
+     Notify `n' threads waiting on `queue'. The same mutex that is used
+     in the corresponding `condition-wait' must be held by this thread
+     during this call.
 
  -- Function: sb-thread:condition-broadcast queue
      Notify all threads waiting on `queue'.
 
 
-File: sbcl.info,  Node: Sessions/Debugging,  Next: Implementation (Linux x86),  Prev: Waitqueue/condition variables,  Up: Threading
+File: sbcl.info,  Node: Sessions/Debugging,  Next: Foreign threads,  Prev: Waitqueue/condition variables,  Up: Threading
 
-11.5 Sessions/Debugging
+12.6 Sessions/Debugging
 =======================
 
 If the user has multiple views onto the same Lisp image (for example,
@@ -6010,9 +6737,31 @@ managed by calls to `sb-thread:get-foreground' (which may block) and
 leaves other sessions running.
 
 
-File: sbcl.info,  Node: Implementation (Linux x86),  Prev: Sessions/Debugging,  Up: Threading
+File: sbcl.info,  Node: Foreign threads,  Next: Implementation (Linux x86/x86-64),  Prev: Sessions/Debugging,  Up: Threading
 
-11.6 Implementation (Linux x86/x86-64)
+12.7 Foreign threads
+====================
+
+Direct calls to `pthread_create' (instead of `MAKE-THREAD') create
+threads that SBCL is not aware of, these are called foreign threads.
+Currently, it is not possible to run Lisp code in such threads. This
+means that the Lisp side signal handlers cannot work.  The best
+solution is to start foreign threads with signals blocked, but since
+third party libraries may create threads, it is not always feasible to
+do so. As a workaround, upon receiving a signal in a foreign thread,
+SBCL changes the thread's sigmask to block all signals that it wants to
+handle and resends the signal to the current process which should land
+in a thread that does not block it, that is, a Lisp thread.
+
+   The resignalling trick cannot work for synchronously triggered
+signals (SIGSEGV and co), take care not to trigger any. Resignalling for
+synchronously triggered signals in foreign threads is subject to
+`--lose-on-corruption', see *note Runtime Options::.
+
+
+File: sbcl.info,  Node: Implementation (Linux x86/x86-64),  Prev: Foreign threads,  Up: Threading
+
+12.8 Implementation (Linux x86/x86-64)
 ======================================
 
 Threading is implemented using pthreads and some Linux specific bits
@@ -6061,19 +6810,43 @@ embarrassing.
 
 File: sbcl.info,  Node: Timers,  Next: Networking,  Prev: Threading,  Up: Top
 
-12 Timers
+13 Timers
 *********
 
-SBCL supports a system-wide scheduler implemented on top of `setitimer'
-that also works with threads but does not require a separate schduler
-thread.
+SBCL supports a system-wide event scheduler implemented on top of
+`setitimer' that also works with threads but does not require a
+separate scheduler thread.
 
-* Menu:
+   The following example schedules a timer that writes "Hello, word"
+after two seconds.
 
      (schedule-timer (make-timer (lambda ()
                                    (write-line "Hello, world")
                                    (force-output)))
                      2)
+
+   It should be noted that writing timer functions requires special
+care, as the dynamic environment in which they run is unpredictable:
+dynamic variable bindings, locks held, etc, all depend on whatever code
+was running when the timer fired. The following example should serve as
+a cautionary tale:
+
+     (defvar *foo* nil)
+
+     (defun show-foo ()
+       (format t "~&foo=~S~%" *foo*)
+       (force-output t))
+
+     (defun demo ()
+       (schedule-timer (make-timer #'show-foo) 0.5)
+       (schedule-timer (make-timer #'show-foo) 1.5)
+       (let ((*foo* t))
+         (sleep 1.0))
+       (let ((*foo* :surprise!))
+         (sleep 2.0)))
+
+13.1 Timer Dictionary
+=====================
 
  -- Structure: sb-ext:timer
      Class precedence list: `timer, structure-object, t'
@@ -6086,7 +6859,10 @@ thread.
      `thread' is a thread then that thread is to be interrupted with
      `function'. If `thread' is `t' then a new thread is created each
      timer `function' is run. If `thread' is `nil' then `function' can
-     be run in any thread.
+     be run in any thread. When `thread' is not `t', `interrupt-thread'
+     is used to run `function' and the ordering guarantees of
+     `interrupt-thread' also apply here.  `function' always runs with
+     interrupts disabled but `with-interrupts' is allowed.
 
  -- Function: sb-ext:timer-name timer
      Return the name of `timer'.
@@ -6115,7 +6891,7 @@ thread.
 
 File: sbcl.info,  Node: Networking,  Next: Profiling,  Prev: Timers,  Up: Top
 
-13 Networking
+14 Networking
 *************
 
 The `sb-bsd-sockets' module provides a thinly disguised BSD socket API
@@ -6138,7 +6914,7 @@ style.
 
 File: sbcl.info,  Node: Sockets Overview,  Next: General Sockets,  Up: Networking
 
-13.1 Sockets Overview
+14.1 Sockets Overview
 =====================
 
 Most of the functions are modelled on the BSD socket API.  BSD sockets
@@ -6165,21 +6941,23 @@ the more useful features of Common Lisp - briefly:
 
 File: sbcl.info,  Node: General Sockets,  Next: Socket Options,  Prev: Sockets Overview,  Up: Networking
 
-13.2 General Sockets
+14.2 General Sockets
 ====================
 
  -- Class: sb-bsd-sockets:socket
      Class precedence list: `socket, standard-object, t'
 
      Slots:
-        * `protocol' -- initargs: `:protocol'
+        * `protocol' -- initarg: `:protocol'; reader:
+          `sb-bsd-sockets:socket-protocol'
 
           Protocol used by the socket. If a keyword, the symbol-name of
           the keyword will be passed to `get-protocol-by-name'
           downcased, and the returned value used as protocol. Other
           values are used as-is.
 
-        * `type' -- initargs: `:type'
+        * `type' -- initarg: `:type'; reader:
+          `sb-bsd-sockets:socket-type'
 
           Type of the socket: `:stream' or `:datagram'.
 
@@ -6196,7 +6974,7 @@ File: sbcl.info,  Node: General Sockets,  Next: Socket Options,  Prev: Sockets O
      Perform the accept(2) call, returning a newly-created connected
      socket and the peer address as multiple values
 
- -- Generic Function: sb-bsd-sockets:socket-connect socket &rest peer
+ -- Generic Function: sb-bsd-sockets:socket-connect socket &rest address
      Perform the connect(2) call to connect `socket' to a   remote
      `peer'.  No useful return value.
 
@@ -6209,19 +6987,20 @@ File: sbcl.info,  Node: General Sockets,  Next: Socket Options,  Prev: Sockets O
      is bound to, as multiple values.
 
  -- Generic Function: sb-bsd-sockets:socket-receive socket buffer
-          length &key oob peek waitall element-type
+          length &key oob peek waitall dontwait element-type
+          element-type
      Read `length' octets from `socket' into `buffer' (or a
-     freshly-consed buffer if NIL), using recvfrom(2).  If `length' is
+     freshly-consed buffer if NIL), using recvfrom(2). If `length' is
      `nil', the length of `buffer' is used, so at least one of these
-     two arguments must be non-NIL.  If `buffer' is supplied, it had
-     better be of an element type one octet wide.  Returns the buffer,
+     two arguments must be non-NIL. If `buffer' is supplied, it had
+     better be of an element type one octet wide. Returns the buffer,
      its length, and the address of the peer that sent it, as multiple
-     values.  On datagram sockets, sets MSG_TRUNC so that the actual
-     packet length is returned even if the buffer was too small
+     values. On datagram sockets, sets MSG_TRUNC so that the actual
+     packet length is returned even if the buffer was too small.
 
  -- Generic Function: sb-bsd-sockets:socket-send socket buffer length
           &key address external-format oob eor dontroute dontwait
-          nosignal
+          nosignal confirm more external-format
      Send `length' octets from `buffer' into `socket', using sendto(2).
      If `buffer' is a string, it will converted to octets according to
      `external-format'. If `length' is `nil', the length of the octet
@@ -6245,11 +7024,26 @@ File: sbcl.info,  Node: General Sockets,  Next: Socket Options,  Prev: Sockets O
      have thrown.  If `socket-make-stream' has been called, calls
      `close' on that stream instead
 
- -- Generic Function: sb-bsd-sockets:socket-make-stream socket &rest
-          args
+ -- Generic Function: sb-bsd-sockets:socket-make-stream socket &key
+          input output element-type external-format buffering timeout
+          element-type buffering external-format
      Find or create a `stream' that can be used for `io' on `socket'
-     (which must be connected).  `args' are passed onto
-     `sb-sys:make-fd-stream'.
+     (which must be connected).  Specify whether the stream is for
+     `input', `output', or both (it is an error to specify neither).
+     `element-type' and `external-format' are as per `open'.  `timeout'
+     specifies a read timeout for the stream.
+
+ -- Method: sb-bsd-sockets:socket-make-stream (socket socket) &key
+          input output (element-type (quote character)) (buffering
+          full) (external-format default) timeout
+     Default method for `socket' objects.  An `element-type' of
+     `:default' will construct a bivalent stream.  Acceptable values
+     for `buffering' are `:full', `:line' and `:none'.  Streams will
+     have no `timeout' by default.    The stream for `socket' will be
+     cached, and a second invocation of this method will return the
+     same stream.  This may lead to oddities if this function is
+     invoked with inconsistent arguments (e.g., one might request an
+     input stream and get an output stream in response).
 
  -- Function: sb-bsd-sockets:socket-error where
 
@@ -6259,7 +7053,7 @@ File: sbcl.info,  Node: General Sockets,  Next: Socket Options,  Prev: Sockets O
 
 File: sbcl.info,  Node: Socket Options,  Next: INET Domain Sockets,  Prev: General Sockets,  Up: Networking
 
-13.3 Socket Options
+14.3 Socket Options
 ===================
 
 A subset of socket options are supported, using a fairly general
@@ -6307,7 +7101,7 @@ from C is fairly straightforward: `SO_RCVLOWAT' becomes
 
 File: sbcl.info,  Node: INET Domain Sockets,  Next: Local (Unix) Domain Sockets,  Prev: Socket Options,  Up: Networking
 
-13.4 INET Domain Sockets
+14.4 INET Domain Sockets
 ========================
 
 The TCP and UDP sockets that you know and love. Some representation
@@ -6335,7 +7129,7 @@ issues:
 
  -- Function: sb-bsd-sockets:make-inet-address dotted-quads
      Return a vector of octets given a string `dotted-quads' in the
-     format "127.0.0.1"
+     format "127.0.0.1". Signals an error if the string is malformed.
 
  -- Function: sb-bsd-sockets:get-protocol-by-name name
      Returns the network protocol number associated with the string
@@ -6345,7 +7139,7 @@ issues:
 
 File: sbcl.info,  Node: Local (Unix) Domain Sockets,  Next: Name Service,  Prev: INET Domain Sockets,  Up: Networking
 
-13.5 Local (Unix) Domain Sockets
+14.5 Local (Unix) Domain Sockets
 ================================
 
 Local domain (`AF_LOCAL') sockets are also known as Unix-domain
@@ -6365,41 +7159,50 @@ across a network.
 
 File: sbcl.info,  Node: Name Service,  Prev: Local (Unix) Domain Sockets,  Up: Networking
 
-13.6 Name Service
+14.6 Name Service
 =================
 
-Presently name service is implemented by calling whatever
-`gethostbyname(2)' uses. This may be any or all of `/etc/hosts', NIS,
-DNS, or something completely different.  Typically it's controlled by
-`/etc/nsswitch.conf'.
-
-   Direct links to the asynchronous `resolver(3)' routines would be
-nice to have eventually, so that we can do DNS lookups in parallel with
-other things
+Presently name service is implemented by calling out to the
+`getaddrinfo(3)' and `gethostinfo(3)', or to `gethostbyname(3)'
+`gethostbyaddr(3)' on platforms where the preferred functions are not
+available. The exact details of the name resolving process (for example
+the choice of whether DNS or a hosts file is used for lookup) are
+platform dependent.
 
  -- Class: sb-bsd-sockets:host-ent
      Class precedence list: `host-ent, standard-object, t'
 
+     Slots:
+        * `name' -- initarg: `:name'; reader:
+          `sb-bsd-sockets:host-ent-name'
+
+          The name of the host
+
+        * `addresses' -- initarg: `:addresses'; reader:
+          `sb-bsd-sockets:host-ent-addresses'
+
+          A list of addresses for this host.
+
+     This class represents the results of an address lookup.
 
  -- Function: sb-bsd-sockets:get-host-by-name host-name
-     Returns a `host-ent' instance for `host-name' or throws some kind
-     of condition.  `host-name' may also be an `ip' address in dotted
-     quad notation or some other weird stuff `-' see gethostbyname(3)
-     for grisly details.
+     Returns a `host-ent' instance for `host-name' or signals a
+     `name-service-error'.  `host-name' may also be an `ip' address in
+     dotted quad notation or some other weird stuff `-' see
+     gethostbyname(3) or getaddrinfo(3) for the details.
 
  -- Function: sb-bsd-sockets:get-host-by-address address
      Returns a `host-ent' instance for `address', which should be a
-     vector of  (integer 0 255), or throws some kind of error.  See
-     gethostbyaddr(3) for grisly details.
+     vector of  (integer 0 255), or signals a `name-service-error'.
+     See gethostbyaddr(3)  or gethostinfo(3) for details.
 
  -- Generic Function: sb-bsd-sockets:host-ent-address host-ent
-
- -- Function: sb-bsd-sockets:name-service-error where
+     Returns some valid address for `host-ent'.
 
 
 File: sbcl.info,  Node: Profiling,  Next: Contributed Modules,  Prev: Networking,  Up: Top
 
-14 Profiling
+15 Profiling
 ************
 
 SBCL includes both a deterministic profiler, that can collect statistics
@@ -6415,7 +7218,7 @@ on individual functions, and a more "modern" statistical profiler.
 
 File: sbcl.info,  Node: Deterministic Profiler,  Next: Statistical Profiler,  Up: Profiling
 
-14.1 Deterministic Profiler
+15.1 Deterministic Profiler
 ===========================
 
 The package `sb-profile' provides a classic, per-function-call profiler.
@@ -6453,7 +7256,7 @@ The package `sb-profile' provides a classic, per-function-call profiler.
 
 File: sbcl.info,  Node: Statistical Profiler,  Prev: Deterministic Profiler,  Up: Profiling
 
-14.2 Statistical Profiler
+15.2 Statistical Profiler
 =========================
 
 The `sb-sprof' module, loadable by
@@ -6465,19 +7268,28 @@ more useful than the deterministic profiler when profiling functions in
 the `common-lisp'-package, SBCL internals, or code where the
 instrumenting overhead is excessive.
 
-14.2.1 Example Usage
+   Additionally `sb-sprof' includes a limited deterministic profiler
+which can be used for reporting the amounts of calls to some functions
+during
+
+15.2.1 Example Usage
 --------------------
+
+     (in-package :cl-user)
 
      (require :sb-sprof)
 
      (declaim (optimize speed))
 
+     (defun cpu-test-inner (a i)
+       (logxor a
+               (* i 5)
+               (+ a i)))
+
      (defun cpu-test (n)
        (let ((a 0))
          (dotimes (i (expt 2 n) a)
-           (setf a (logxor a
-                           (* i 5)
-                           (+ a i))))))
+           (setf a (cpu-test-inner a i)))))
 
      ;;;; CPU profiling
 
@@ -6488,6 +7300,10 @@ instrumenting overhead is excessive.
                                :report :flat
                                :loop nil)
        (cpu-test 26))
+
+     ;;; Record call counts for functions defined on symbols in the CL-USER
+     ;;; package.
+     (sb-sprof:profile-call-counts "CL-USER")
 
      ;;; Take 1000 samples of running (CPU-TEST 24), and give a flat
      ;;; table report at the end. The body will be re-evaluated in a loop
@@ -6513,7 +7329,7 @@ instrumenting overhead is excessive.
                                :report :flat)
        (bar 1000))
 
-14.2.2 Output
+15.2.2 Output
 -------------
 
 The flat report format will show a table of all functions that the
@@ -6521,11 +7337,12 @@ profiler encountered on the call stack during sampling, ordered by the
 number of samples taken while executing that function.
 
                 Self        Total        Cumul
-       Nr  Count     %  Count     %  Count     % Function
+       Nr  Count     %  Count     %  Count     %    Calls  Function
      ------------------------------------------------------------------------
-        1    165  38.3    165  38.3    165  38.3 SB-KERNEL:TWO-ARG-XOR
-        2    141  32.7    141  32.7    306  71.0 SB-VM::GENERIC-+
-        3     67  15.5    145  33.6    373  86.5 CPU-TEST-2
+        1     69  24.4     97  34.3     69  24.4 67108864  CPU-TEST-INNER
+        2     64  22.6     64  22.6    133  47.0        -  SB-VM::GENERIC-+
+        3     39  13.8    256  90.5    172  60.8        1  CPU-TEST
+        4     31  11.0     31  11.0    203  71.7        -  SB-KERNEL:TWO-ARG-XOR
 
    For each function, the table will show three absolute and relative
 sample counts. The Self column shows samples taken while directly
@@ -6533,6 +7350,11 @@ executing that function. The Total column shows samples taken while
 executing that function or functions called from it (sampled to a
 platform-specific depth). The Cumul column shows the sum of all Self
 columns up to and including that line in the table.
+
+   Additionally the Calls column will record the amount of calls that
+were made to the function during the profiling run. This value will only
+be reported for functions that have been explicitly marked for call
+counting with `profile-call-counts'.
 
    The profiler also hooks into the disassembler such that instructions
 which have been sampled are annotated with their relative frequency of
@@ -6547,7 +7369,7 @@ runs.
      ;      6DA:       8BC3             MOV EAX, EBX       ; 5/242 samples
      ;      6DC: L3:   83F900           CMP ECX, 0         ; 4/242 samples
 
-14.2.3 Platform support
+15.2.3 Platform support
 -----------------------
 
 This module is known not to work consistently on the Alpha platform,
@@ -6560,12 +7382,12 @@ the deficiency on the Alpha will eventually be rectified.
 generational garbage collector. Tracking of call stacks at a depth of
 more than two levels is only supported on x86 and x86-64.
 
-14.2.4 Macros
+15.2.4 Macros
 -------------
 
  -- Macro: sb-sprof:with-profiling (&key sample-interval alloc-interval
-          max-samples reset mode loop max-depth show-progress report)
-          &body body
+          max-samples reset mode loop max-depth show-progress threads
+          report) &body body
      Repeatedly evaluate `body' with statistical profiling turned on.
       In multi-threaded operation, only the thread in which
      `with-profiling'    was evaluated will be profiled by default. If
@@ -6580,12 +7402,13 @@ more than two levels is only supported on x86 and x86-64.
 
     _`:alloc-interval' <n>_
           Take a sample every time <n> allocation regions (approximately
-              8kB) have been allocated since the last sample. Default
-          is      `*alloc-interval*'.
+              8kB) have been allocated since the last sample. Default is
+              `*alloc-interval*'.
 
     _`:mode' <mode>_
           If `:cpu', run the profiler in `cpu' profiling mode. If
-          `:alloc', run      the profiler in allocation profiling mode.
+          `:alloc', run the      profiler in allocation profiling mode.
+          If `:time', run the profiler      in wallclock profiling mode.
 
     _`:max-samples' <max>_
           Repeat evaluating body until <max> samples are taken.
@@ -6601,17 +7424,34 @@ more than two levels is only supported on x86 and x86-64.
     _`:reset' <bool>_
           It true, call `reset' at the beginning.
 
-     e    `:loop' <bool>      If true (the default) repeatedly evaluate
-     `body'. If false, evaluate      if only once.
+    _`:threads' <list-form>_
+          Form that evaluates to the list threads to profile, or `:all'
+          to indicate      that all threads should be profiled.
+          Defaults to the current      thread. (Note: `start-profiling'
+          defaults to all threads.)
+
+          `:threads' has no effect on call-counting at the moment.
+
+          On some platforms (eg. Darwin) the signals used by the
+          profiler are      not properly delivered to threads in
+          proportion to their `cpu' usage      when doing `:cpu'
+          profiling. If you see empty call graphs, or are obviously
+          missing several samples from certain threads, you may be
+          falling afoul      of this.
+
+    _`:loop' <bool>_
+          If true (the default) repeatedly evaluate `body'. If false,
+          evaluate      if only once.
+
 
  -- Macro: sb-sprof:with-sampling (&optional on) &body body
      Evaluate body with statistical sampling turned on or off.
 
-14.2.5 Functions
+15.2.5 Functions
 ----------------
 
  -- Function: sb-sprof:report &key type max min-percent call-graph
-          stream show-progress
+          sort-by sort-order stream show-progress
      Report statistical profiling results.  The following keyword
      args are recognized:
 
@@ -6631,6 +7471,17 @@ more than two levels is only supported on x86 and x86-64.
           Don't show functions taking less than <min-percent> of the
             total time in the flat report.
 
+    _`:sort-by' <column>_
+          If `:samples', sort flat report by number of samples taken.
+              If `:cumulative-samples', sort flat report by cumulative
+          number of samples       taken (shows how much time each
+          function spent on stack.) Default       is `*report-sort-by*'.
+
+    _`:sort-order' <order>_
+          If `:descending', sort flat report in descending order. If
+          `:ascending',       sort flat report in ascending order.
+          Default is `*report-sort-order*'.
+
     _`:show-progress' <bool>_
           If true, print progress messages while generating the call
           graph.
@@ -6641,15 +7492,16 @@ more than two levels is only supported on x86 and x86-64.
 
 
      Value of this function is a `call-graph' object representing the
-     resulting call-graph.
+     resulting call-graph, or `nil' if there are no samples (eg. right
+     after calling `reset'.)
 
  -- Function: sb-sprof:reset
      Reset the profiler.
 
  -- Function: sb-sprof:start-profiling &key max-samples mode
-          sample-interval alloc-interval max-depth sampling
-     Start profiling statistically if not already profiling.     The
-     following keyword args are recognized:
+          sample-interval alloc-interval max-depth threads sampling
+     Start profiling statistically in the current thread if not already
+     profiling.  The following keyword args are recognized:
 
     _`:sample-interval' <n>_
           Take a sample every <n> seconds.  Default is
@@ -6657,12 +7509,13 @@ more than two levels is only supported on x86 and x86-64.
 
     _`:alloc-interval' <n>_
           Take a sample every time <n> allocation regions (approximately
-              8kB) have been allocated since the last sample. Default
-          is      `*alloc-interval*'.
+              8kB) have been allocated since the last sample. Default is
+              `*alloc-interval*'.
 
     _`:mode' <mode>_
           If `:cpu', run the profiler in `cpu' profiling mode. If
           `:alloc', run      the profiler in allocation profiling mode.
+          If `:time', run the profiler      in wallclock profiling mode.
 
     _`:max-samples' <max>_
           Maximum number of samples.  Default is `*max-samples*'.
@@ -6670,6 +7523,20 @@ more than two levels is only supported on x86 and x86-64.
     _`:max-depth' <max>_
           Maximum call stack depth that the profiler should consider.
           Only      has an effect on x86 and x86-64.
+
+    _`:threads' <list>_
+          List threads to profile, or `:all' to indicate that all
+          threads should be      profiled. Defaults to `:all'. (Note:
+          `with-profiling' defaults to the current      thread.)
+
+          `:threads' has no effect on call-counting at the moment.
+
+          On some platforms (eg. Darwin) the signals used by the
+          profiler are      not properly delivered to threads in
+          proportion to their `cpu' usage      when doing `:cpu'
+          profiling. If you see empty call graphs, or are obviously
+          missing several samples from certain threads, you may be
+          falling afoul      of this.
 
     _`:sampling' <bool>_
           If true, the default, start sampling right away.       If
@@ -6679,7 +7546,19 @@ more than two levels is only supported on x86 and x86-64.
  -- Function: sb-sprof:stop-profiling
      Stop profiling if profiling.
 
-14.2.6 Variables
+ -- Function: sb-sprof:profile-call-counts &rest names
+     Mark the functions named by `names' as being subject to call
+     counting during statistical profiling. If a string is used as a
+     name, it will be interpreted as a package name. In this case call
+     counting will be done for all functions with names like `x' or
+     (SETF X), where `x' is a symbol with the package as its home
+     package.
+
+ -- Function: sb-sprof:unprofile-call-counts
+     Clear all call counting information. Call counting will be done
+     for no functions during statistical profiling.
+
+15.2.6 Variables
 ----------------
 
  -- Variable: sb-sprof:*max-samples*
@@ -6690,7 +7569,7 @@ more than two levels is only supported on x86 and x86-64.
  -- Variable: sb-sprof:*sample-interval*
      Default number of seconds between samples.
 
-14.2.7 Credits
+15.2.7 Credits
 --------------
 
 `sb-sprof' is an SBCL port, with enhancements, of Gerd Moellmann's
@@ -6699,32 +7578,34 @@ statistical profiler for CMUCL.
 
 File: sbcl.info,  Node: Contributed Modules,  Next: Concept Index,  Prev: Profiling,  Up: Top
 
-15 Contributed Modules
+16 Contributed Modules
 **********************
 
 SBCL comes with a number of modules that are not part of the core
 system.  These are loaded via `(require :MODULENAME)' (*note
 Customization Hooks for Users::).  This section contains documentation
-(or pointers to documentation) for the contributed modules.
+(or pointers to documentation) for some of the contributed modules.
 
 * Menu:
 
 * sb-aclrepl::
 * sb-grovel::
+* sb-posix::
 * sb-md5::
 * sb-rotate-byte::
+* sb-cover::
 
 
 File: sbcl.info,  Node: sb-aclrepl,  Next: sb-grovel,  Up: Contributed Modules
 
-15.1 sb-aclrepl
+16.1 sb-aclrepl
 ===============
 
 The `sb-aclrepl' module offers an Allegro CL-style Read-Eval-Print Loop
 for SBCL, with integrated inspector.  Adding a debugger interface is
 planned.
 
-15.1.1 Usage
+16.1.1 Usage
 ------------
 
 To start `sb-aclrepl' as your read-eval-print loop, put the form
@@ -6732,7 +7613,7 @@ To start `sb-aclrepl' as your read-eval-print loop, put the form
 
    in your `~/.sbclrc' initialization file.
 
-15.1.2 Example Initialization
+16.1.2 Example Initialization
 -----------------------------
 
 Here's a longer example of a `~/.sbclrc' file that shows off some of
@@ -6759,406 +7640,8 @@ the features of `sb-aclrepl':
    Questions, comments, or bug reports should be sent to Kevin Rosenberg
 (<kevin@rosenberg.net>).
 
-15.1.3 Credits
+16.1.3 Credits
 --------------
 
 Allegro CL is a registered trademark of Franz Inc.
-
-
-File: sbcl.info,  Node: sb-grovel,  Next: sb-md5,  Prev: sb-aclrepl,  Up: Contributed Modules
-
-15.2 sb-grovel
-==============
-
-The `sb-grovel' module helps in generation of foreign function
-interfaces. It aids in extracting constants' values from the C compiler
-and in generating SB-ALIEN structure and union types, *note Defining
-Foreign Types::.
-
-   The ASDF(`http://www.cliki.net/ASDF') component type
-GROVEL-CONSTANTS-FILE has its PERFORM operation defined to write out a
-C source file, compile it, and run it.  The output from this program is
-Lisp, which is then itself compiled and loaded.
-
-   sb-grovel is used in a few contributed modules, and it is currently
-compatible only to SBCL. However, if you want to use it, here are a few
-directions.
-
-15.2.1 Using sb-grovel in your own ASDF system
-----------------------------------------------
-
-  1. Create a Lisp package for the foreign constants/functions to go
-     into.
-
-  2. Make your system depend on the 'sb-grovel system.
-
-  3. Create a grovel-constants data file - for an example, see
-     example-constants.lisp in the contrib/sb-grovel/ directory in the
-     SBCL source distribution.
-
-  4. Add it as a component in your system. e.g.
-
-          (eval-when (:compile-toplevel :load-toplevel :execute)
-            (require :sb-grovel))
-
-          (defpackage :example-package.system
-                      (:use :cl :asdf :sb-grovel :sb-alien))
-
-          (in-package :example-package.system)
-
-          (defsystem example-system
-              :depends-on (sb-grovel)
-              :components
-              ((:module "sbcl"
-                        :components
-                        ((:file "defpackage")
-                         (grovel-constants-file "example-constants"
-                                                :package :example-package)))))
-
-     Make sure to specify the package you chose in step 1
-
-  5. Build stuff.
-
-
-15.2.2 Contents of a grovel-constants-file
-------------------------------------------
-
-The grovel-constants-file, typically named `constants.lisp', comprises
-lisp expressions describing the foreign things that you want to grovel
-for. A `constants.lisp' file contains two sections:
-
-   * a list of headers to include in the C program, for example:
-          ("sys/types.h" "sys/socket.h" "sys/stat.h" "unistd.h" "sys/un.h"
-           "netinet/in.h" "netinet/in_systm.h" "netinet/ip.h" "net/if.h"
-           "netdb.h" "errno.h" "netinet/tcp.h" "fcntl.h" "signal.h" )
-
-   * A list of sb-grovel clauses describing the things you want to
-     grovel from the C compiler, for example:
-          ((:integer af-local
-                     #+(or sunos solaris) "AF_UNIX"
-                     #-(or sunos solaris) "AF_LOCAL"
-                     "Local to host (pipes and file-domain).")
-           (:structure stat ("struct stat"
-                             (integer dev "dev_t" "st_dev")
-                             (integer atime "time_t" "st_atime")))
-           (:function getpid ("getpid" int )))
-
-   There are two types of things that sb-grovel can sensibly extract
-from the C compiler: constant integers and structure layouts. It is also
-possible to define foreign functions in the constants.lisp file, but
-these definitions don't use any information from the C program; they
-expand directly to `sb-alien:define-alien-routine' (*note The
-define-alien-routine Macro::) forms.
-
-   Here's how to use the grovel clauses:
-
-   * `:integer' - constant expressions in C. Used in this form:
-           (:integer lisp-variable-name "C expression" &optional doc export)
-
-     `"C expression"' will be typically be the name of a constant. But
-     other forms are possible.
-
-   * `:enum'
-           (:enum lisp-type-name ((lisp-enumerated-name c-enumerated-name) ...)))
-
-     An `sb-alien:enum' type with name `lisp-type-name' will be defined.
-     The symbols are the `lisp-enumerated-name's, and the values are
-     grovelled from the `c-enumerated-name's.
-
-   * `:structure' - alien structure definitions look like this:
-           (:structure lisp-struct-name ("struct c_structure"
-                                         (type-designator lisp-element-name
-                                          "c_element_type" "c_element_name"
-                                          :distrust-length nil)
-                                         ; ...
-                                         ))
-
-     `type-designator' is a reference to a type whose size (and type
-     constraints) will be groveled for. sb-grovel accepts a form of type
-     designator that doesn't quite conform to either lisp nor sb-alien's
-     type specifiers. Here's a list of type designators that sb-grovel
-     currently accepts:
-        * `integer' - a C integral type; sb-grovel will infer the exact
-          type from size information extracted from the C program. All
-          common C integer types can be grovelled for with this type
-          designator, but it is not possible to grovel for bit fields
-          yet.
-
-        * `(unsigned n)' - an unsigned integer variable that is `n'
-          bytes long. No size information from the C program will be
-          used.
-
-        * `(signed n)' - an signed integer variable that is `n' bytes
-          long. No size information from the C program will be used.
-
-        * `c-string' - an array of `char' in the structure. sb-grovel
-          will use the array's length from the C program, unless you
-          pass it the `:distrust-length' keyword argument with
-          non-`nil' value (this might be required for structures such
-          as solaris's `struct dirent').
-
-        * `c-string-pointer' - a pointer to a C string, corresponding to
-          the `sb-alien:c-string' type (*note Foreign Type
-          Specifiers::).
-
-        * `(array alien-type)' - An array of the previously-declared
-          alien type. The array's size will be determined from the
-          output of the C program and the alien type's size.
-
-        * `(array alien-type n)' - An array of the previously-declared
-          alien type. The array's size will be assumed as being `n'.
-
-     Note that `c-string' and `c-string-pointer' do not have the same
-     meaning. If you declare that an element is of type `c-string', it
-     will be treated as if the string is a part of the structure,
-     whereas if you declare that the element is of type
-     `c-string-pointer', a _pointer to a string_ will be the structure
-     member.
-
-   * `:function' - alien function definitions are similar to
-     `define-alien-routine' definitions, because they expand to such
-     forms when the lisp program is loaded. *Note Foreign Function
-     Calls::.
-
-          (:function lisp-function-name ("alien_function_name" alien-return-type
-                                                               (argument alien-type)
-                                                               (argument2 alien-type)))
-
-15.2.3 Programming with sb-grovel's structure types
----------------------------------------------------
-
-Let us assume that you have a grovelled structure definition:
-      (:structure mystruct ("struct my_structure"
-                            (integer myint "int" "st_int")
-                            (c-string mystring "char[]" "st_str")))
-
-   What can you do with it? Here's a short interface document:
-
-   * Creating and destroying objects:
-        * Function `(allocate-mystruct)' - allocates an object of type
-          `mystruct'and returns a system area pointer to it.
-
-        * Function `(free-mystruct var)' - frees the alien object
-          pointed to by VAR.
-
-        * Macro `(with-mystruct var ((member init) [...]) &body body)' -
-          allocates an object of type `mystruct' that is valid in BODY.
-          If BODY terminates or control unwinds out of BODY, the object
-          pointed to by VAR will be deallocated.
-
-   * Accessing structure members:
-        * `(mystruct-myint var)' and `(mystruct-mystring var)' return
-          the value of the respective fields in `mystruct'.
-
-        * `(setf (mystruct-myint var) new-val)' and `(setf
-          (mystruct-mystring var) new-val)' sets the value of the
-          respective structure member to the value of NEW-VAL. Notice
-          that in `(setf (mystruct-mystring var) new-val)''s case,
-          new-val is a lisp string.
-
-15.2.3.1 Traps and Pitfalls
-...........................
-
-Basically, you can treat functions and data structure definitions that
-sb-grovel spits out as if they were alien routines and types. This has
-a few implications that might not be immediately obvious (especially if
-you have programmed in a previous version of sb-grovel that didn't use
-alien types):
-
-   * You must take care of grovel-allocated structures yourself. They
-     are alien types, so the garbage collector will not collect them
-     when you drop the last reference.
-
-   * If you use the `with-mystruct' macro, be sure that no references
-     to the variable thus allocated leaks out. It will be deallocated
-     when the block exits.
-
-
-File: sbcl.info,  Node: sb-md5,  Next: sb-rotate-byte,  Prev: sb-grovel,  Up: Contributed Modules
-
-15.3 sb-md5
-===========
-
-The `sb-md5' module implements the RFC1321 MD5 Message Digest
-Algorithm. [FIXME cite]
-
- -- Function: sb-md5:md5sum-file pathname
-     Calculate the MD5 message-digest of the file designated by
-     pathname.
-
- -- Function: sb-md5:md5sum-sequence sequence &key start end
-     Calculate the MD5 message-digest of data bounded by `start' and
-     `end' in `sequence' , which must be a vector with element-type
-     (UNSIGNED-BYTE 8).
-
- -- Function: sb-md5:md5sum-stream stream
-     Calculate an MD5 message-digest of the contents of `stream', whose
-     element-type has to be (UNSIGNED-BYTE 8).
-
- -- Function: sb-md5:md5sum-string string &key external-format start end
-     Calculate the MD5 message-digest of the binary representation of
-     `string' (as octets) in `external-format'. The boundaries `start'
-     and `end' refer to character positions in the string, not to octets
-     in the resulting binary representation.
-
-15.3.1 Credits
---------------
-
-The implementation for CMUCL was largely done by Pierre Mai, with help
-from members of the `cmucl-help' mailing list.  Since CMUCL and SBCL
-are similar in many respects, it was not too difficult to extend the
-low-level implementation optimizations for CMUCL to SBCL.  Following
-this, SBCL's compiler was extended to implement efficient compilation
-of modular arithmetic (*note Modular arithmetic::), which enabled the
-implementation to be expressed in portable arithmetical terms, apart
-from the use of `rotate-byte' for bitwise rotation.  
-
-
-File: sbcl.info,  Node: sb-rotate-byte,  Prev: sb-md5,  Up: Contributed Modules
-
-15.4 sb-rotate-byte
-===================
-
-The `sb-rotate-byte' module offers an interface to bitwise rotation,
-with an efficient implementation for operations which can be performed
-directly using the platform's arithmetic routines.  It implements the
-specification at `http://www.cliki.net/ROTATE-BYTE'.
-
-   Bitwise rotation is a component of various cryptographic or hashing
-algorithms: MD5, SHA-1, etc.; often these algorithms are specified on
-32-bit rings.  [FIXME cite cite cite].
-
- -- Function: sb-rotate-byte:rotate-byte count bytespec integer
-     Rotates a field of bits within `integer'; specifically, returns an
-     integer that contains the bits of `integer' rotated `count' times
-     leftwards within the byte specified by `bytespec', and elsewhere
-     contains the bits of `integer'.
-
-
-File: sbcl.info,  Node: Concept Index,  Next: Function Index,  Prev: Contributed Modules,  Up: Top
-
-Appendix A Concept Index
-************************
-
- [index ]
-* Menu:
-
-* Actual Source <1>:                     The Parts of a Compiler Diagnostic.
-                                                               (line 53)
-* Actual Source:                         The Original and Actual Source.
-                                                               (line  6)
-* Arithmetic, hardware <1>:              sb-rotate-byte.       (line  6)
-* Arithmetic, hardware:                  Modular arithmetic.   (line  6)
-* Arithmetic, modular <1>:               sb-rotate-byte.       (line  6)
-* Arithmetic, modular:                   Modular arithmetic.   (line  6)
-* Availability of debug variables:       Variable Value Availability.
-                                                               (line  6)
-* Block compilation, debugger implications: Entry Point Details.
-                                                               (line  6)
-* Block, basic:                          Source Location Availability.
-                                                               (line  6)
-* Block, start location:                 Source Location Availability.
-                                                               (line  6)
-* Cleanup, stack frame kind:             Entry Point Details.  (line  6)
-* Compatibility with other Lisps:        Getting Existing Programs to Run.
-                                                               (line  6)
-* Compile time type errors:              Type Errors at Compile Time.
-                                                               (line  6)
-* Compiler Diagnostic Severity:          Diagnostic Severity.  (line  6)
-* Compiler messages:                     Diagnostic Messages.  (line  6)
-* Debug optimization quality <1>:        Source Location Availability.
-                                                               (line  6)
-* Debug optimization quality <2>:        Debugger Policy Control.
-                                                               (line  6)
-* Debug optimization quality:            Variable Value Availability.
-                                                               (line  6)
-* Debug variables:                       Variable Access.      (line  6)
-* Debugger:                              Debugger.             (line  6)
-* Declarations:                          Package Lock Violations.
-                                                               (line  9)
-* Dynamic-extent declaration:            Dynamic-extent allocation.
-                                                               (line  6)
-* Efficiency:                            Efficiency.           (line  6)
-* Entry points, external:                Entry Point Details.  (line  6)
-* Errors, run-time:                      Unknown Locations and Interrupts.
-                                                               (line  6)
-* Existing programs, to run:             Getting Existing Programs to Run.
-                                                               (line  6)
-* External entry points:                 Entry Point Details.  (line  6)
-* External, stack frame kind:            Entry Point Details.  (line  6)
-* Foreign Function Interface, generation: sb-grovel.           (line  6)
-* Function, tracing:                     Function Tracing.     (line  6)
-* Garbage Collection, conservative:      History and Implementation of SBCL.
-                                                               (line 62)
-* Garbage Collection, generational:      History and Implementation of SBCL.
-                                                               (line 33)
-* Hashing, cryptographic:                sb-md5.               (line  6)
-* Inline expansion <1>:                  Debugger Policy Control.
-                                                               (line  6)
-* Inline expansion:                      Open Coding and Inline Expansion.
-                                                               (line  6)
-* Interpreter:                           Interpreter.          (line  6)
-* Interrupts:                            Unknown Locations and Interrupts.
-                                                               (line  6)
-* Locations, unknown:                    Unknown Locations and Interrupts.
-                                                               (line  6)
-* Logical pathnames:                     Lisp Pathnames.       (line 12)
-* Macroexpansion:                        The Processing Path.  (line  6)
-* Macroexpansion, errors during:         Errors During Macroexpansion.
-                                                               (line  6)
-* Messages, Compiler:                    Diagnostic Messages.  (line  6)
-* Modular arithmetic <1>:                sb-rotate-byte.       (line  6)
-* Modular arithmetic:                    Modular arithmetic.   (line  6)
-* Open-coding:                           Open Coding and Inline Expansion.
-                                                               (line  6)
-* Optimize declaration:                  Debugger Policy Control.
-                                                               (line  6)
-* Optional, stack frame kind:            Entry Point Details.  (line  6)
-* Original Source <1>:                   The Original and Actual Source.
-                                                               (line  6)
-* Original Source:                       The Parts of a Compiler Diagnostic.
-                                                               (line 35)
-* Packages, locked:                      Package Locks.        (line  6)
-* Pathnames:                             Pathnames.            (line  6)
-* Pathnames, logical:                    Lisp Pathnames.       (line 12)
-* Policy, debugger:                      Debugger Policy Control.
-                                                               (line  6)
-* Precise type checking:                 Precise Type Checking.
-                                                               (line  6)
-* Processing Path <1>:                   The Parts of a Compiler Diagnostic.
-                                                               (line 42)
-* Processing Path:                       The Processing Path.  (line  6)
-* Profiling:                             Profiling.            (line  6)
-* Profiling, deterministic:              Deterministic Profiler.
-                                                               (line  6)
-* Profiling, statistical:                Statistical Profiler. (line  6)
-* Read errors, compiler:                 Read Errors.          (line  6)
-* Read-Eval-Print Loop:                  sb-aclrepl.           (line  6)
-* Recursion, tail:                       Debug Tail Recursion. (line  6)
-* REPL:                                  sb-aclrepl.           (line  6)
-* Semi-inline expansion:                 Debugger Policy Control.
-                                                               (line  6)
-* Severity of compiler messages:         Diagnostic Severity.  (line  6)
-* Single Stepping:                       Single Stepping.      (line  6)
-* Sockets, Networking:                   Networking.           (line  6)
-* Source location printing, debugger:    Source Location Printing.
-                                                               (line  6)
-* Source-to-source transformation:       The Processing Path.  (line  6)
-* Stack frames:                          Stack Frames.         (line  6)
-* Static functions:                      Open Coding and Inline Expansion.
-                                                               (line  6)
-* Stepper:                               Single Stepping.      (line  6)
-* Tail recursion:                        Debug Tail Recursion. (line  6)
-* Tracing:                               Function Tracing.     (line  6)
-* Type checking, at compile time:        Type Errors at Compile Time.
-                                                               (line  6)
-* Type checking, precise:                Precise Type Checking.
-                                                               (line  6)
-* Types, portability:                    Getting Existing Programs to Run.
-                                                               (line  6)
-* Unknown code locations:                Unknown Locations and Interrupts.
-                                                               (line  6)
-* Validity of debug variables:           Variable Value Availability.
-                                                               (line  6)
-* Variables, debugger access:            Variable Access.      (line  6)
 
