@@ -15,6 +15,77 @@ END-INFO-DIR-ENTRY
      `COPYING' and `CREDITS' files for more information.
 
 
+File: sbcl.info,  Node: Contributed Modules,  Next: Concept Index,  Prev: Profiling,  Up: Top
+
+16 Contributed Modules
+**********************
+
+SBCL comes with a number of modules that are not part of the core
+system.  These are loaded via `(require :MODULENAME)' (*note
+Customization Hooks for Users::).  This section contains documentation
+(or pointers to documentation) for some of the contributed modules.
+
+* Menu:
+
+* sb-aclrepl::
+* sb-grovel::
+* sb-posix::
+* sb-md5::
+* sb-queue::
+* sb-rotate-byte::
+* sb-cover::
+
+
+File: sbcl.info,  Node: sb-aclrepl,  Next: sb-grovel,  Up: Contributed Modules
+
+16.1 sb-aclrepl
+===============
+
+The `sb-aclrepl' module offers an Allegro CL-style Read-Eval-Print Loop
+for SBCL, with integrated inspector.  Adding a debugger interface is
+planned.
+
+16.1.1 Usage
+------------
+
+To start `sb-aclrepl' as your read-eval-print loop, put the form
+     (require 'sb-aclrepl)
+
+   in your `~/.sbclrc' initialization file.
+
+16.1.2 Example Initialization
+-----------------------------
+
+Here's a longer example of a `~/.sbclrc' file that shows off some of
+the features of `sb-aclrepl':
+
+     (ignore-errors (require 'sb-aclrepl))
+
+     (when (find-package 'sb-aclrepl)
+       (push :aclrepl cl:*features*))
+     #+aclrepl
+     (progn
+       (setq sb-aclrepl:*max-history* 100)
+       (setf (sb-aclrepl:alias "asdc")
+            #'(lambda (sys) (asdf:operate 'asdf:compile-op sys)))
+       (sb-aclrepl:alias "l" (sys) (asdf:operate 'asdf:load-op sys))
+       (sb-aclrepl:alias "t" (sys) (asdf:operate 'asdf:test-op sys))
+       ;; The 1 below means that two characaters ("up") are required
+       (sb-aclrepl:alias ("up" 1 "Use package") (package) (use-package package))
+       ;; The 0 below means only the first letter ("r") is required,
+       ;; such as ":r base64"
+       (sb-aclrepl:alias ("require" 0 "Require module") (sys) (require sys))
+       (setq cl:*features* (delete :aclrepl cl:*features*)))
+
+   Questions, comments, or bug reports should be sent to Kevin Rosenberg
+(<kevin@rosenberg.net>).
+
+16.1.3 Credits
+--------------
+
+Allegro CL is a registered trademark of Franz Inc.
+
+
 File: sbcl.info,  Node: sb-grovel,  Next: sb-posix,  Prev: sb-aclrepl,  Up: Contributed Modules
 
 16.2 sb-grovel
@@ -248,9 +319,9 @@ consistency of Lisp.  Not all functions are available on all platforms.
 
 * Lisp names for C names::
 * Types::
-* Lisp objects and C structures::
 * Function Parameters::
 * Function Return Values::
+* Lisp objects and C structures::
 * Functions with idiosyncratic bindings::
 
    ---------- Footnotes ----------
@@ -285,7 +356,7 @@ symbols contained in the SB-POSIX package have the same name as CL
 symbols (`OPEN', `CLOSE', `SIGNAL' etc).
 
 
-File: sbcl.info,  Node: Types,  Next: Lisp objects and C structures,  Prev: Lisp names for C names,  Up: sb-posix
+File: sbcl.info,  Node: Types,  Next: Function Parameters,  Prev: Lisp names for C names,  Up: sb-posix
 
 16.3.2 Types
 ------------
@@ -304,7 +375,6 @@ pathnames and strings as its arguments.
 
 * File-descriptors::
 * Filenames::
-* Type conversion functions::
 
 
 File: sbcl.info,  Node: File-descriptors,  Next: Filenames,  Up: Types
@@ -312,60 +382,68 @@ File: sbcl.info,  Node: File-descriptors,  Next: Filenames,  Up: Types
 16.3.2.1 File-descriptors
 .........................
 
-A file-descriptor is a non-negative small integer.
+ -- Type: sb-posix:file-descriptor
+     A `fixnum' designating a native file descriptor.
 
-   A file-stream is a designator for a file-descriptor: the stream's
-file descriptor is extracted.  Note that mixing I/O operations on a
-stream with operations directly on its descriptor may produce unexpected
-results if the stream is buffered.
+     `sb-sys:make-fd-stream' can be used to construct a `file-stream'
+     associated with a native file descriptor.
 
-   `SB-EXT:MAKE-FD-STREAM' can be used to construct a stream associated
-with a file descriptor.
+     Note that mixing I/O operations on a `file-stream' with operations
+     directly on its descriptor may produce unexpected results if the
+     stream is buffered.
+
+ -- Type: sb-posix:file-descriptor-designator
+     Designator for a `file-descriptor:' either a fixnum designating
+     itself, or a `file-stream' designating the underlying
+     file-descriptor.
+
+ -- Function: sb-posix:file-descriptor file-descriptor
+     Converts `file-descriptor-designator' into a `file-descriptor'.
 
 
-File: sbcl.info,  Node: Filenames,  Next: Type conversion functions,  Prev: File-descriptors,  Up: Types
+File: sbcl.info,  Node: Filenames,  Prev: File-descriptors,  Up: Types
 
 16.3.2.2 Filenames
 ..................
 
-A filename is a string.
+ -- Type: sb-posix:filename
+     A `string' designating a filename in native namestring syntax.
 
-   A pathname is a designator for a filename: the filename is computed
-using the same mechanism that SBCL uses to map pathnames to OS filenames
-internally.
+     Note that native namestring syntax is distinct from Lisp
+     namestring syntax:
 
-   Note that filename syntax is distinct from namestring syntax, and
-that `SB-EXT:PARSE-NATIVE-NAMESTRING' may be used to construct Lisp
-pathnames that denote POSIX filenames returned by system calls.  *Note
-Function sb-ext:parse-native-namestring::.  Additionally, notice that
-POSIX filename syntax does not distinguish the names of files from the
-names of directories.  Consequently, in order to parse the name of a
-directory in POSIX filename syntax into a pathname `defaults' for which
+            (pathname "/foo*/bar")
 
-     (merge-pathnames (make-pathname :name "FOO" :case :common)
-                      defaults)
+     is a wild pathname with a pattern-matching directory component.
+     `sb-ext:parse-native-namestring' may be used to construct Lisp
+     pathnames that denote `posix' filenames as understood by system
+     calls, and `sb-ext:native-namestring' can be used to coerce them
+     into strings in the native namestring syntax.
 
-returns a pathname that denotes a file in the directory, supply a true
-`AS-DIRECTORY' argument to `SB-EXT:PARSE-NATIVE-NAMESTRING'.  Likewise,
-if it is necessary to supply the name of a directory to a POSIX
-function in non-directory syntax, supply a true `AS-FILE' argument to
-`SB-EXT:NATIVE-NAMESTRING'.
+     Note also that `posix' filename syntax does not distinguish the
+     names of files from the names of directories: in order to parse
+     the name of a directory in `posix' filename syntax into a pathname
+     `my-defaults' for which
+
+            (merge-pathnames (make-pathname :name "FOO" :case :common)
+                              my-defaults)
+
+     returns a pathname that denotes a file in the directory, supply a
+     true `:as-directory' argument to `sb-ext:parse-native-namestring'.
+     Likewise, to supply the name of a directory to a `posix' function
+     in non-directory syntax, supply a true `:as-file' argument to
+     `sb-ext:native-namestring'.
+
+ -- Type: sb-posix:filename-designator
+     Designator for a `filename:' a `string' designating itself, or a
+     designator for a `pathname' designating the corresponding native
+     namestring.
+
+ -- Function: sb-posix:filename filename
+     Converts `filename-designator' into a `filename'.
 
 
-File: sbcl.info,  Node: Type conversion functions,  Prev: Filenames,  Up: Types
-
-16.3.2.3 Type conversion functions
-..................................
-
-For each of these types there is a function of the same name that
-converts any valid designator for the type into an object of said type.
-
-     (with-open-file (o "/tmp/foo" :direction :output)
-       (sb-posix:file-descriptor o))
-     => 4
-
-
-File: sbcl.info,  Node: Function Parameters,  Next: Function Return Values,  Prev: Lisp objects and C structures,  Up: sb-posix
+File: sbcl.info,  Node: Function Parameters,  Next: Function Return Values,  Prev: Types,  Up: sb-posix
 
 16.3.3 Function Parameters
 --------------------------
@@ -394,7 +472,7 @@ package: in particular, it's like the C interface except that:
 
 
 
-File: sbcl.info,  Node: Function Return Values,  Next: Functions with idiosyncratic bindings,  Prev: Function Parameters,  Up: sb-posix
+File: sbcl.info,  Node: Function Return Values,  Next: Lisp objects and C structures,  Prev: Function Parameters,  Up: sb-posix
 
 16.3.4 Function Return Values
 -----------------------------
@@ -411,7 +489,7 @@ stream.  Exception: boolean-returning functions (or, more commonly,
 macros) do not return a C integer, but instead a Lisp boolean.
 
 
-File: sbcl.info,  Node: Lisp objects and C structures,  Next: Function Parameters,  Prev: Types,  Up: sb-posix
+File: sbcl.info,  Node: Lisp objects and C structures,  Next: Functions with idiosyncratic bindings,  Prev: Function Return Values,  Up: sb-posix
 
 16.3.5 Lisp objects and C structures
 ------------------------------------
@@ -633,7 +711,7 @@ for those structures.
           Instances of this class represent time values.
 
 
-File: sbcl.info,  Node: Functions with idiosyncratic bindings,  Prev: Function Return Values,  Up: sb-posix
+File: sbcl.info,  Node: Functions with idiosyncratic bindings,  Prev: Lisp objects and C structures,  Up: sb-posix
 
 16.3.6 Functions with idiosyncratic bindings
 --------------------------------------------
@@ -660,7 +738,7 @@ counterparts.
           arguments `args'.
 
 
-File: sbcl.info,  Node: sb-md5,  Next: sb-rotate-byte,  Prev: sb-posix,  Up: Contributed Modules
+File: sbcl.info,  Node: sb-md5,  Next: sb-queue,  Prev: sb-posix,  Up: Contributed Modules
 
 16.4 sb-md5
 ===========
@@ -700,9 +778,58 @@ implementation to be expressed in portable arithmetical terms, apart
 from the use of `rotate-byte' for bitwise rotation.  
 
 
-File: sbcl.info,  Node: sb-rotate-byte,  Next: sb-cover,  Prev: sb-md5,  Up: Contributed Modules
+File: sbcl.info,  Node: sb-queue,  Next: sb-rotate-byte,  Prev: sb-md5,  Up: Contributed Modules
 
-16.5 sb-rotate-byte
+16.5 sb-queue
+=============
+
+The `sb-queue' module, loadable by
+     (require :sb-queue)
+   provides a thread-safe lockless FIFO queues.
+
+ -- Structure: sb-queue:queue
+     Class precedence list: `queue, structure-object, t'
+
+     Lock-free thread safe queue. `enqueue' can be used to add objects
+     to the queue, and `dequeue' retrieves items from the queue in
+     `fifo' order.
+
+ -- Function: sb-queue:dequeue queue
+     Retrieves the oldest value in `queue' and returns it as the
+     primary value, and `t' as secondary value. If the queue is empty,
+     returns `nil' as both primary and secondary value.
+
+ -- Function: sb-queue:enqueue value queue
+     Adds `value' to the end of `queue'. Returns `value'.
+
+ -- Function: sb-queue:list-queue-contents queue
+     Returns the contents of `queue' as a list without removing them
+     from the `queue'. Mainly useful for manual examination of queue
+     state.
+
+ -- Function: sb-queue:make-queue &key name initial-contents
+     Returns a new `queue' with `name' and contents of the
+     `initial-contents' sequence enqueued.
+
+ -- Function: sb-queue:queue-count queue
+     Returns the number of objects in `queue'. Mainly useful for manual
+     examination of queue state, and in `print-object' methods:
+     inefficient as it walks the entire queue.
+
+ -- Function: sb-queue:queue-empty-p queue
+     Returns `t' if `queue' is empty, `nil' otherwise.
+
+ -- Function: sb-queue:queue-name instance
+     Name of a `queue'. Can be assingned to using `setf'. Queue names
+     can be arbitrary printable objects, and need not be unique.
+
+ -- Function: sb-queue:queuep object
+     Returns true if argument is a `queue', `nil' otherwise.
+
+
+File: sbcl.info,  Node: sb-rotate-byte,  Next: sb-cover,  Prev: sb-queue,  Up: Contributed Modules
+
+16.6 sb-rotate-byte
 ===================
 
 The `sb-rotate-byte' module offers an interface to bitwise rotation,
@@ -723,7 +850,7 @@ algorithms: MD5, SHA-1, etc.; often these algorithms are specified on
 
 File: sbcl.info,  Node: sb-cover,  Prev: sb-rotate-byte,  Up: Contributed Modules
 
-16.6 sb-cover
+16.7 sb-cover
 =============
 
 The `sb-cover' module provides a code coverage tool for SBCL. The tool
@@ -735,7 +862,7 @@ optimization quality set to 3.
    As of SBCL 1.0.6 `sb-cover' is still experimental, and the
 interfaces documented here might change in later versions.
 
-16.6.1 Example Usage
+16.7.1 Example Usage
 --------------------
 
      ;;; Load SB-COVER
@@ -757,7 +884,7 @@ interfaces documented here might change in later versions.
      ;;; Turn off instrumentation
      (declaim (optimize (sb-cover:store-coverage-data 0)))
 
-16.6.2 Functions
+16.7.2 Functions
 ----------------
 
  -- Function: sb-cover:report directory &key form-mode external-format
@@ -903,6 +1030,7 @@ Appendix A Concept Index
 * Profiling, deterministic:              Deterministic Profiler.
                                                                (line  6)
 * Profiling, statistical:                Statistical Profiler. (line  6)
+* Queue, FIFO:                           sb-queue.             (line  6)
 * Read errors, compiler:                 Read Errors.          (line  6)
 * Read-Eval-Print Loop:                  sb-aclrepl.           (line  6)
 * Recursion, tail:                       Debug Tail Recursion. (line  6)
@@ -1142,7 +1270,7 @@ Appendix B Function Index
 * sb-ext:hash-table-synchronized-p:      Hash Table Extensions.
                                                               (line 140)
 * sb-ext:hash-table-weakness:            Hash Table Extensions.
-                                                              (line 143)
+                                                              (line 144)
 * sb-ext:list-all-timers:                Timers.              (line  79)
 * sb-ext:lock-package:                   Package Lock Dictionary.
                                                               (line  59)
@@ -1166,27 +1294,27 @@ Appendix B Function Index
 * sb-ext:posix-getenv:                   Querying the process environment.
                                                               (line  10)
 * sb-ext:process-alive-p:                Running external programs.
-                                                              (line 126)
+                                                              (line 129)
 * sb-ext:process-close:                  Running external programs.
-                                                              (line 144)
+                                                              (line 149)
 * sb-ext:process-core-dumped:            Running external programs.
-                                                              (line 141)
+                                                              (line 145)
 * sb-ext:process-error:                  Running external programs.
-                                                              (line 123)
+                                                              (line 125)
 * sb-ext:process-exit-code:              Running external programs.
-                                                              (line 138)
+                                                              (line 141)
 * sb-ext:process-input:                  Running external programs.
                                                               (line 117)
 * sb-ext:process-kill:                   Running external programs.
-                                                              (line 148)
+                                                              (line 153)
 * sb-ext:process-output:                 Running external programs.
-                                                              (line 120)
+                                                              (line 121)
 * sb-ext:process-p:                      Running external programs.
                                                               (line 114)
 * sb-ext:process-status:                 Running external programs.
-                                                              (line 129)
+                                                              (line 132)
 * sb-ext:process-wait:                   Running external programs.
-                                                              (line 133)
+                                                              (line 136)
 * sb-ext:purify:                         Efficiency Hacks.    (line  18)
 * sb-ext:quit:                           Quit.                (line  12)
 * sb-ext:remove-implementation-package:  Package Lock Dictionary.
@@ -1275,6 +1403,8 @@ Appendix B Function Index
 * sb-pcl:parse-specializer-using-class:  Metaobject Protocol. (line 131)
 * sb-pcl:unparse-specializer-using-class: Metaobject Protocol.
                                                               (line 131)
+* sb-posix:file-descriptor:              File-descriptors.    (line  22)
+* sb-posix:filename:                     Filenames.           (line  40)
 * sb-posix:getcwd:                       Functions with idiosyncratic bindings.
                                                               (line  12)
 * sb-posix:readlink:                     Functions with idiosyncratic bindings.
@@ -1282,13 +1412,21 @@ Appendix B Function Index
 * sb-posix:syslog:                       Functions with idiosyncratic bindings.
                                                               (line  22)
 * sb-profile:profile:                    Deterministic Profiler.
-                                                              (line   9)
+                                                              (line  12)
 * sb-profile:report:                     Deterministic Profiler.
-                                                              (line  30)
+                                                              (line  33)
 * sb-profile:reset:                      Deterministic Profiler.
-                                                              (line  36)
+                                                              (line  39)
 * sb-profile:unprofile:                  Deterministic Profiler.
-                                                              (line  23)
+                                                              (line  26)
+* sb-queue:dequeue:                      sb-queue.            (line  18)
+* sb-queue:enqueue:                      sb-queue.            (line  23)
+* sb-queue:list-queue-contents:          sb-queue.            (line  26)
+* sb-queue:make-queue:                   sb-queue.            (line  31)
+* sb-queue:queue-count:                  sb-queue.            (line  35)
+* sb-queue:queue-empty-p:                sb-queue.            (line  40)
+* sb-queue:queue-name:                   sb-queue.            (line  43)
+* sb-queue:queuep:                       sb-queue.            (line  47)
 * sb-rotate-byte:rotate-byte:            sb-rotate-byte.      (line  16)
 * sb-sprof:profile-call-counts:          Statistical Profiler.
                                                               (line 294)
@@ -1313,36 +1451,37 @@ Appendix B Function Index
 * sb-sys:sap=:                           Accessing Foreign Values.
                                                               (line  44)
 * sb-thread:condition-broadcast:         Waitqueue/condition variables.
-                                                              (line  90)
+                                                              (line  91)
 * sb-thread:condition-notify:            Waitqueue/condition variables.
-                                                              (line  85)
+                                                              (line  86)
 * sb-thread:condition-wait:              Waitqueue/condition variables.
-                                                              (line  79)
-* sb-thread:get-mutex:                   Mutex Support.       (line  47)
-* sb-thread:interrupt-thread:            Threading basics.    (line  53)
-* sb-thread:interrupt-thread-error-thread: Threading basics.  (line  50)
-* sb-thread:join-thread:                 Threading basics.    (line  23)
-* sb-thread:join-thread-error-thread:    Threading basics.    (line  35)
-* sb-thread:list-all-threads:            Threading basics.    (line  41)
+                                                              (line  80)
+* sb-thread:get-mutex:                   Mutex Support.       (line  48)
+* sb-thread:interrupt-thread:            Threading basics.    (line  55)
+* sb-thread:join-thread:                 Threading basics.    (line  46)
+* sb-thread:list-all-threads:            Threading basics.    (line  21)
 * sb-thread:make-mutex:                  Mutex Support.       (line  37)
 * sb-thread:make-semaphore:              Semaphores.          (line  17)
-* sb-thread:make-thread:                 Threading basics.    (line  18)
+* sb-thread:make-thread:                 Threading basics.    (line  38)
 * sb-thread:make-waitqueue:              Waitqueue/condition variables.
                                                               (line  73)
 * sb-thread:mutex-name:                  Mutex Support.       (line  40)
-* sb-thread:mutex-value:                 Mutex Support.       (line  43)
-* sb-thread:release-mutex:               Mutex Support.       (line  71)
+* sb-thread:mutex-value:                 Mutex Support.       (line  44)
+* sb-thread:release-mutex:               Mutex Support.       (line  72)
 * sb-thread:semaphore-count:             Semaphores.          (line  20)
 * sb-thread:semaphore-name:              Semaphores.          (line  23)
-* sb-thread:signal-semaphore:            Semaphores.          (line  26)
-* sb-thread:terminate-thread:            Threading basics.    (line  66)
-* sb-thread:thread-alive-p:              Threading basics.    (line  38)
-* sb-thread:thread-yield:                Threading basics.    (line  70)
-* sb-thread:wait-on-semaphore:           Semaphores.          (line  30)
+* sb-thread:signal-semaphore:            Semaphores.          (line  27)
+* sb-thread:symbol-value-in-thread:      Threading basics.    (line  76)
+* sb-thread:terminate-thread:            Threading basics.    (line  68)
+* sb-thread:thread-alive-p:              Threading basics.    (line  26)
+* sb-thread:thread-error-thread:         Threading basics.    (line 104)
+* sb-thread:thread-name:                 Threading basics.    (line  31)
+* sb-thread:thread-yield:                Threading basics.    (line  43)
+* sb-thread:wait-on-semaphore:           Semaphores.          (line  31)
 * sb-thread:waitqueue-name:              Waitqueue/condition variables.
                                                               (line  76)
-* sb-thread:with-mutex:                  Mutex Support.       (line  83)
-* sb-thread:with-recursive-lock:         Mutex Support.       (line  88)
+* sb-thread:with-mutex:                  Mutex Support.       (line  84)
+* sb-thread:with-recursive-lock:         Mutex Support.       (line  89)
 * slot:                                  Accessing Foreign Values.
                                                               (line  17)
 * slot-boundp-using-class:               Metaobject Protocol. (line  85)
@@ -1414,7 +1553,7 @@ Appendix C Variable Index
                                                               (line 309)
 * sb-sprof:*sample-interval*:            Statistical Profiler.
                                                               (line 314)
-* sb-thread:*current-thread*:            Threading basics.    (line  15)
+* sb-thread:*current-thread*:            Threading basics.    (line  18)
 
 
 File: sbcl.info,  Node: Type Index,  Next: Colophon,  Prev: Variable Index,  Up: Top
@@ -1490,6 +1629,10 @@ Appendix D Type Index
                                                               (line   9)
 * sb-mop:funcallable-standard-class:     Metaobject Protocol. (line  33)
 * sb-mop:funcallable-standard-object:    Metaobject Protocol. (line  15)
+* sb-posix:file-descriptor:              File-descriptors.    (line   7)
+* sb-posix:file-descriptor-designator:   File-descriptors.    (line  17)
+* sb-posix:filename:                     Filenames.           (line   7)
+* sb-posix:filename-designator:          Filenames.           (line  35)
 * sb-posix:flock:                        Lisp objects and C structures.
                                                               (line  32)
 * sb-posix:passwd:                       Lisp objects and C structures.
@@ -1500,11 +1643,13 @@ Appendix D Type Index
                                                               (line 172)
 * sb-posix:timeval:                      Lisp objects and C structures.
                                                               (line 205)
-* sb-thread:interrupt-thread-error:      Threading basics.    (line  44)
-* sb-thread:join-thread-error:           Threading basics.    (line  29)
+* sb-queue:queue:                        sb-queue.            (line  11)
+* sb-thread:interrupt-thread-error:      Threading basics.    (line 107)
+* sb-thread:join-thread-error:           Threading basics.    (line 115)
 * sb-thread:mutex:                       Mutex Support.       (line  32)
 * sb-thread:semaphore:                   Semaphores.          (line  10)
-* sb-thread:thread:                      Threading basics.    (line   9)
+* sb-thread:thread:                      Threading basics.    (line  12)
+* sb-thread:thread-error:                Threading basics.    (line  95)
 * sb-thread:waitqueue:                   Waitqueue/condition variables.
                                                               (line  68)
 * standard-class:                        Metaobject Protocol. (line  33)
