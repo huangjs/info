@@ -1,5 +1,4 @@
-This is gambit-c.info, produced by makeinfo version 4.7 from
-gambit-c.txi.
+This is gambit-c.info, produced by makeinfo version 4.11 from gambit-c.txi.
 
 START-INFO-DIR-ENTRY
 * Gambit-C: (gambit-c).		A portable implementation of Scheme.
@@ -9,7 +8,7 @@ END-INFO-DIR-ENTRY
 
    This file documents Gambit-C, a portable implementation of Scheme.
 
-   Copyright (C) 1994-2006 Marc Feeley.
+   Copyright (C) 1994-2009 Marc Feeley.
 
    Permission is granted to make and distribute verbatim copies of this
 manual provided the copyright notice and this permission notice are
@@ -24,6 +23,658 @@ permission notice identical to this one.
 manual into another language, under the above conditions for modified
 versions, except that this permission notice may be stated in a
 translation approved by the copyright holder.
+
+
+File: gambit-c.info,  Node: Exception objects related to procedure call,  Next: Other exception objects,  Prev: Exception objects related to type checking,  Up: Exceptions
+
+15.9 Exception objects related to procedure call
+================================================
+
+ -- procedure: wrong-number-of-arguments-exception? OBJ
+ -- procedure: wrong-number-of-arguments-exception-procedure EXC
+ -- procedure: wrong-number-of-arguments-exception-arguments EXC
+     Wrong-number-of-arguments-exception objects are raised when a
+     procedure is called with the wrong number of arguments.  The
+     parameter EXC must be a wrong-number-of-arguments-exception object.
+
+     The procedure `wrong-number-of-arguments-exception?' returns `#t'
+     when OBJ is a wrong-number-of-arguments-exception object and `#f'
+     otherwise.
+
+     The procedure `wrong-number-of-arguments-exception-procedure'
+     returns the procedure that raised EXC.
+
+     The procedure `wrong-number-of-arguments-exception-arguments'
+     returns the list of arguments of the procedure that raised EXC.
+
+     For example:
+
+          > (define (handler exc)
+              (if (wrong-number-of-arguments-exception? exc)
+                  (list (wrong-number-of-arguments-exception-procedure exc)
+                        (wrong-number-of-arguments-exception-arguments exc))
+                  'not-wrong-number-of-arguments-exception))
+          > (with-exception-catcher
+              handler
+              (lambda () (open-input-file "data" 99)))
+          (#<procedure #2 open-input-file> ("data" 99))
+
+
+ -- procedure: number-of-arguments-limit-exception? OBJ
+ -- procedure: number-of-arguments-limit-exception-procedure EXC
+ -- procedure: number-of-arguments-limit-exception-arguments EXC
+     Number-of-arguments-limit-exception objects are raised by the
+     `apply' procedure when the procedure being called is passed more
+     than 8192 arguments.  The parameter EXC must be a
+     number-of-arguments-limit-exception object.
+
+     The procedure `number-of-arguments-limit-exception?' returns `#t'
+     when OBJ is a number-of-arguments-limit-exception object and `#f'
+     otherwise.
+
+     The procedure `number-of-arguments-limit-exception-procedure'
+     returns the target procedure of the call to `apply' that raised
+     EXC.
+
+     The procedure `number-of-arguments-limit-exception-arguments'
+     returns the list of arguments of the target procedure of the call
+     to `apply' that raised EXC.
+
+     For example:
+
+          > (define (iota n) (if (= n 0) '() (cons n (iota (- n 1)))))
+          > (define (handler exc)
+              (if (number-of-arguments-limit-exception? exc)
+                  (list (number-of-arguments-limit-exception-procedure exc)
+                        (length (number-of-arguments-limit-exception-arguments exc)))
+                  'not-number-of-arguments-limit-exception))
+          > (with-exception-catcher
+              handler
+              (lambda () (apply + 1 2 3 (iota 8190))))
+          (#<procedure #2 +> 8193)
+
+
+ -- procedure: nonprocedure-operator-exception? OBJ
+ -- procedure: nonprocedure-operator-exception-operator EXC
+ -- procedure: nonprocedure-operator-exception-arguments EXC
+ -- procedure: nonprocedure-operator-exception-code EXC
+ -- procedure: nonprocedure-operator-exception-rte EXC
+     Nonprocedure-operator-exception objects are raised when a procedure
+     call is executed and the operator position is not a procedure.  The
+     parameter EXC must be an nonprocedure-operator-exception object.
+
+     The procedure `nonprocedure-operator-exception?' returns `#t' when
+     OBJ is an nonprocedure-operator-exception object and `#f'
+     otherwise.
+
+     The procedure `nonprocedure-operator-exception-operator' returns
+     the value in operator position of the procedure call that raised
+     EXC.
+
+     The procedure `nonprocedure-operator-exception-arguments' returns
+     the list of arguments of the procedure call that raised EXC.
+
+     For example:
+
+          > (define (handler exc)
+              (if (nonprocedure-operator-exception? exc)
+                  (list (nonprocedure-operator-exception-operator exc)
+                        (nonprocedure-operator-exception-arguments exc))
+                  'not-nonprocedure-operator-exception))
+          > (with-exception-catcher
+              handler
+              (lambda () (11 22 33)))
+          (11 (22 33))
+
+
+ -- procedure: unknown-keyword-argument-exception? OBJ
+ -- procedure: unknown-keyword-argument-exception-procedure EXC
+ -- procedure: unknown-keyword-argument-exception-arguments EXC
+     Unknown-keyword-argument-exception objects are raised when a
+     procedure accepting keyword arguments is called and one of the
+     keywords supplied is not among those that are expected.  The
+     parameter EXC must be an unknown-keyword-argument-exception object.
+
+     The procedure `unknown-keyword-argument-exception?' returns `#t'
+     when OBJ is an unknown-keyword-argument-exception object and `#f'
+     otherwise.
+
+     The procedure `unknown-keyword-argument-exception-procedure'
+     returns the procedure that raised EXC.
+
+     The procedure `unknown-keyword-argument-exception-arguments'
+     returns the list of arguments of the procedure that raised EXC.
+
+     For example:
+
+          > (define (handler exc)
+              (if (unknown-keyword-argument-exception? exc)
+                  (list (unknown-keyword-argument-exception-procedure exc)
+                        (unknown-keyword-argument-exception-arguments exc))
+                  'not-unknown-keyword-argument-exception))
+          > (with-exception-catcher
+              handler
+              (lambda () ((lambda (#!key (foo 5)) foo) bar: 11)))
+          (#<procedure #2> (bar: 11))
+
+
+ -- procedure: keyword-expected-exception? OBJ
+ -- procedure: keyword-expected-exception-procedure EXC
+ -- procedure: keyword-expected-exception-arguments EXC
+     Keyword-expected-exception objects are raised when a procedure
+     accepting keyword arguments is called and a nonkeyword was supplied
+     where a keyword was expected.  The parameter EXC must be an
+     keyword-expected-exception object.
+
+     The procedure `keyword-expected-exception?' returns `#t' when OBJ
+     is an keyword-expected-exception object and `#f' otherwise.
+
+     The procedure `keyword-expected-exception-procedure' returns the
+     procedure that raised EXC.
+
+     The procedure `keyword-expected-exception-arguments' returns the
+     list of arguments of the procedure that raised EXC.
+
+     For example:
+
+          > (define (handler exc)
+              (if (keyword-expected-exception? exc)
+                  (list (keyword-expected-exception-procedure exc)
+                        (keyword-expected-exception-arguments exc))
+                  'not-keyword-expected-exception))
+          > (with-exception-catcher
+              handler
+              (lambda () ((lambda (#!key (foo 5)) foo) 11 22)))
+          (#<procedure #2> (11 22))
+
+
+
+File: gambit-c.info,  Node: Other exception objects,  Prev: Exception objects related to procedure call,  Up: Exceptions
+
+15.10 Other exception objects
+=============================
+
+ -- procedure: error-exception? OBJ
+ -- procedure: error-exception-message EXC
+ -- procedure: error-exception-parameters EXC
+ -- procedure: error MESSAGE OBJ...
+     Error-exception objects are raised when the `error' procedure is
+     called.  The parameter EXC must be an error-exception object.
+
+     The procedure `error-exception?' returns `#t' when OBJ is an
+     error-exception object and `#f' otherwise.
+
+     The procedure `error-exception-message' returns the first argument
+     of the call to `error' that raised EXC.
+
+     The procedure `error-exception-parameters' returns the list of
+     arguments, starting with the second argument, of the call to
+     `error' that raised EXC.
+
+     The `error' procedure raises an error-exception object whose
+     message field is MESSAGE and parameters field is the list of
+     values OBJ....
+
+     For example:
+
+          > (define (handler exc)
+              (if (error-exception? exc)
+                  (list (error-exception-message exc)
+                        (error-exception-parameters exc))
+                  'not-error-exception))
+          > (with-exception-catcher
+              handler
+              (lambda () (error "unexpected object:" 123)))
+          ("unexpected object:" (123))
+
+
+
+File: gambit-c.info,  Node: Host environment,  Next: I/O and ports,  Prev: Exceptions,  Up: Top
+
+16 Host environment
+*******************
+
+The host environment is the set of resources, such as the filesystem,
+network and processes, that are managed by the operating system within
+which the Scheme program is executing.  This chapter specifies how the
+host environment can be accessed from within the Scheme program.
+
+   In this chapter we say that the Scheme program being executed is a
+process, even though the concept of process does not exist in some
+operating systems supported by Gambit (e.g. MSDOS).
+
+* Menu:
+
+* Handling of file names::                  Handling of file names
+* Filesystem operations::                   Filesystem operations
+* Shell command execution::                 Shell command execution
+* Process termination::                     Process termination
+* Command line arguments::                  Command line arguments
+* Environment variables::                   Environment variables
+* Measuring time::                          Measuring time
+* File information::                        File information
+* Group information::                       Group information
+* User information::                        User information   .
+* Host information::                        Host information
+* Service information::                     Service information
+* Protocol information::                    Protocol information
+* Network information::                     Network information
+
+
+File: gambit-c.info,  Node: Handling of file names,  Next: Filesystem operations,  Prev: Host environment,  Up: Host environment
+
+16.1 Handling of file names
+===========================
+
+Gambit uses a naming convention for files that is compatible with the
+one used by the host environment but extended to allow referring to the
+"home directory" of the current user or some specific user and the
+"installation directories".
+
+   A "path" is a string that denotes a file, for example
+`"src/readme.txt"'.  Each component of a path is separated by a `/'
+under UNIX and Mac OS X and by a `/' or `\' under MSDOS and Microsoft
+Windows.  A leading separator indicates an absolute path under UNIX,
+Mac OS X, MSDOS and Microsoft Windows.  A path which does not contain a
+path separator is relative to the "current working directory" on all
+operating systems.  A volume specifier such as `C:' may prefix a file
+name under MSDOS and Microsoft Windows.
+
+   A path which starts with the characters `~~' denotes a file in an
+installation directory.  If nothing follows the `~~' then the directory
+denoted is the central installation directory.  Otherwise what follows
+the `~~' is the name of the installation directory, for example `~~lib'
+denotes the `lib' installation directory.  Note that the location of
+the installation directories may be overridden by using the
+`-:=DIRECTORY' and `-:~~DIR=DIRECTORY' runtime options or by defining
+the `GAMBCOPT' environment variable.
+
+   A path which starts with the character `~' not followed by `~'
+denotes a file in the user's home directory.  The user's home directory
+is contained in the `HOME' environment variable under UNIX, Mac OS X,
+MSDOS and Microsoft Windows.  Under MSDOS and Microsoft Windows, if the
+`HOME' environment variable is not defined, the environment variables
+`HOMEDRIVE' and `HOMEPATH' are concatenated if they are defined.  If
+this fails to yield a home directory, the central installation
+directory is used instead.
+
+   A path which starts with the characters `~USERNAME' denotes a file
+in the home directory of the given user.  Under UNIX and Mac OS X this
+is found using the password file.  There is no equivalent under MSDOS
+and Microsoft Windows.
+
+ -- procedure: current-directory [NEW-CURRENT-DIRECTORY]
+     The parameter object `current-directory' is bound to the current
+     working directory.  Calling this procedure with no argument returns
+     the absolute "normalized path" of the directory and calling this
+     procedure with one argument sets the directory to
+     NEW-CURRENT-DIRECTORY.  The initial binding of this parameter
+     object is the current working directory of the current process.
+     The path returned by `current-directory' always contains a trailing
+     directory separator.  Modifications of the parameter object do not
+     change the current working directory of the current process (i.e.
+     that is accessible with the UNIX `getcwd()' function and the
+     Microsoft Windows `GetCurrentDirectory' function).  It is an error
+     to mutate the string returned by `current-directory'.
+
+     For example under UNIX:
+
+          > (current-directory)
+          "/Users/feeley/gambit/doc/"
+          > (current-directory "..")
+          > (current-directory)
+          "/Users/feeley/gambit/"
+          > (path-expand "foo" "~~")
+          "/usr/local/Gambit-C/foo"
+          > (parameterize ((current-directory "~~")) (path-expand "foo"))
+          "/usr/local/Gambit-C/foo"
+
+
+ -- procedure: path-expand PATH [ORIGIN-DIRECTORY]
+     The procedure `path-expand' takes the path of a file or directory
+     and returns an expanded path, which is an absolute path when PATH
+     or ORIGIN-DIRECTORY are absolute paths.  The optional
+     ORIGIN-DIRECTORY parameter, which defaults to the current working
+     directory, is the directory used to resolve relative paths.
+     Components of the paths PATH and ORIGIN-DIRECTORY need not exist.
+
+     For example under UNIX:
+
+          > (path-expand "foo")
+          "/Users/feeley/gambit/doc/foo"
+          > (path-expand "~/foo")
+          "/Users/feeley/foo"
+          > (path-expand "~~lib/foo")
+          "/usr/local/Gambit-C/lib/foo"
+          > (path-expand "../foo")
+          "/Users/feeley/gambit/doc/../foo"
+          > (path-expand "foo" "")
+          "foo"
+          > (path-expand "foo" "/tmp")
+          "/tmp/foo"
+          > (path-expand "this/file/does/not/exist")
+          "/Users/feeley/gambit/doc/this/file/does/not/exist"
+          > (path-expand "")
+          "/Users/feeley/gambit/doc/"
+
+
+ -- procedure: path-normalize PATH [ALLOW-RELATIVE? [ORIGIN-DIRECTORY]]
+     The procedure `path-normalize' takes a path of a file or directory
+     and returns its normalized path.  The optional ORIGIN-DIRECTORY
+     parameter, which defaults to the current working directory, is the
+     directory used to resolve relative paths.  All components of the
+     paths PATH and ORIGIN-DIRECTORY must exist, except possibly the
+     last component of PATH.  A normalized path is a path containing no
+     redundant parts and which is consistent with the current structure
+     of the filesystem.  A normalized path of a directory will always
+     end with a path separator (i.e. `/', `\', or `:' depending on the
+     operating system).  The optional ALLOW-RELATIVE? parameter, which
+     defaults to `#f', indicates if the path returned can be expressed
+     relatively to ORIGIN-DIRECTORY: a `#f' requests an absolute path,
+     the symbol `shortest' requests the shortest of the absolute and
+     relative paths, and any other value requests the relative path.
+     The shortest path is useful for interaction with the user because
+     short relative paths are typically easier to read than long
+     absolute paths.
+
+     For example under UNIX:
+
+          > (path-expand "../foo")
+          "/Users/feeley/gambit/doc/../foo"
+          > (path-normalize "../foo")
+          "/Users/feeley/gambit/foo"
+          > (path-normalize "this/file/does/not/exist")
+          *** ERROR IN (console)@3.1 -- No such file or directory
+          (path-normalize "this/file/does/not/exist")
+
+
+ -- procedure: path-extension PATH
+ -- procedure: path-strip-extension PATH
+ -- procedure: path-directory PATH
+ -- procedure: path-strip-directory PATH
+ -- procedure: path-strip-trailing-directory-separator PATH
+ -- procedure: path-volume PATH
+ -- procedure: path-strip-volume PATH
+     These procedures extract various parts of a path, which need not
+     be a normalized path.  The procedure `path-extension' returns the
+     file extension (including the period) or the empty string if there
+     is no extension.  The procedure `path-strip-extension' returns the
+     path with the extension stripped off.  The procedure
+     `path-directory' returns the file's directory (including the last
+     path separator) or the empty string if no directory is specified
+     in the path.  The procedure `path-strip-directory' returns the
+     path with the directory stripped off.  The procedure
+     `path-strip-trailing-directory-separator' returns the path with
+     the directory separator stripped off if one is at the end of the
+     path.  The procedure `path-volume' returns the file's volume
+     (including the last path separator) or the empty string if no
+     volume is specified in the path.  The procedure
+     `path-strip-volume' returns the path with the volume stripped off.
+
+     For example under UNIX:
+
+          > (path-extension "/tmp/foo")
+          ""
+          > (path-extension "/tmp/foo.txt")
+          ".txt"
+          > (path-strip-extension "/tmp/foo.txt")
+          "/tmp/foo"
+          > (path-directory "/tmp/foo.txt")
+          "/tmp/"
+          > (path-strip-directory "/tmp/foo.txt")
+          "foo.txt"
+          > (path-strip-trailing-directory-separator "/usr/local/bin/")
+          "/usr/local/bin"
+          > (path-strip-trailing-directory-separator "/usr/local/bin")
+          "/usr/local/bin"
+          > (path-volume "/tmp/foo.txt")
+          ""
+          > (path-volume "C:/tmp/foo.txt")
+          "" ; result is "C:" under Microsoft Windows
+          > (path-strip-volume "C:/tmp/foo.txt")
+          "C:/tmp/foo.txt" ; result is "/tmp/foo.txt" under Microsoft Windows
+
+
+
+File: gambit-c.info,  Node: Filesystem operations,  Next: Shell command execution,  Prev: Handling of file names,  Up: Host environment
+
+16.2 Filesystem operations
+==========================
+
+ -- procedure: create-directory PATH-OR-SETTINGS
+     This procedure creates a directory.  The argument PATH-OR-SETTINGS
+     is either a string denoting a filesystem path or a list of port
+     settings which must contain a `path:' setting.  Here are the
+     settings allowed:
+
+        * `path:' STRING
+
+          This setting indicates the location of the directory to
+          create in the filesystem.  There is no default value for this
+          setting.
+
+        * `permissions:' 12-BIT-EXACT-INTEGER
+
+          This setting controls the UNIX permissions that will be
+          attached to the file if it is created.  The default value of
+          this setting is `#o777'.
+
+
+     For example:
+
+          > (create-directory "newdir")
+          > (create-directory "newdir")
+          *** ERROR IN (console)@2.1 -- File exists
+          (create-directory "newdir")
+
+
+ -- procedure: create-fifo PATH-OR-SETTINGS
+     This procedure creates a FIFO.  The argument PATH-OR-SETTINGS is
+     either a string denoting a filesystem path or a list of port
+     settings which must contain a `path:' setting.  Here are the
+     settings allowed:
+
+        * `path:' STRING
+
+          This setting indicates the location of the FIFO to create in
+          the filesystem.  There is no default value for this setting.
+
+        * `permissions:' 12-BIT-EXACT-INTEGER
+
+          This setting controls the UNIX permissions that will be
+          attached to the file if it is created.  The default value of
+          this setting is `#o666'.
+
+
+     For example:
+
+          > (create-fifo "fifo")
+          > (define a (open-input-file "fifo"))
+          > (define b (open-output-file "fifo"))
+          > (display "1 22 333" b)
+          > (force-output b)
+          > (read a)
+          1
+          > (read a)
+          22
+
+
+ -- procedure: create-link SOURCE-PATH DESTINATION-PATH
+     This procedure creates a hard link between SOURCE-PATH and
+     DESTINATION-PATH.  The argument SOURCE-PATH must be a string
+     denoting the path of an existing file.  The argument
+     DESTINATION-PATH must be a string denoting the path of the link to
+     create.
+
+
+ -- procedure: create-symbolic-link SOURCE-PATH DESTINATION-PATH
+     This procedure creates a symbolic link between SOURCE-PATH and
+     DESTINATION-PATH.  The argument SOURCE-PATH must be a string
+     denoting the path of an existing file.  The argument
+     DESTINATION-PATH must be a string denoting the path of the
+     symbolic link to create.
+
+
+ -- procedure: rename-file SOURCE-PATH DESTINATION-PATH
+     This procedure renames the file SOURCE-PATH to DESTINATION-PATH.
+     The argument SOURCE-PATH must be a string denoting the path of an
+     existing file.  The argument DESTINATION-PATH must be a string
+     denoting the new path of the file.
+
+
+ -- procedure: copy-file SOURCE-PATH DESTINATION-PATH
+     This procedure copies the file SOURCE-PATH to DESTINATION-PATH.
+     The argument SOURCE-PATH must be a string denoting the path of an
+     existing file.  The argument DESTINATION-PATH must be a string
+     denoting the path of the file to create.
+
+
+ -- procedure: delete-file PATH
+     This procedure deletes the file PATH.  The argument PATH must be a
+     string denoting the path of an existing file.
+
+
+ -- procedure: delete-directory PATH
+     This procedure deletes the directory PATH.  The argument PATH must
+     be a string denoting the path of an existing directory.
+
+
+ -- procedure: directory-files [PATH-OR-SETTINGS]
+     This procedure returns the list of the files in a directory.  The
+     argument PATH-OR-SETTINGS is either a string denoting a filesystem
+     path to a directory or a list of settings which must contain a
+     `path:' setting.  If it is not specified, PATH-OR-SETTINGS
+     defaults to the current directory (the value bound to the
+     `current-directory' parameter object).  Here are the settings
+     allowed:
+
+        * `path:' STRING
+
+          This setting indicates the location of the directory in the
+          filesystem.  There is no default value for this setting.
+
+        * `ignore-hidden:' ( `#f' | `#t' | `dot-and-dot-dot' )
+
+          This setting controls whether hidden-files will be returned.
+          Under UNIX and Mac OS X hidden-files are those that start
+          with a period (such as `.', `..', and `.profile').  Under
+          Microsoft Windows hidden files are the `.' and `..' entries
+          and the files whose "hidden file" attribute is set.  A
+          setting of `#f' will enumerate all the files.  A setting of
+          `#t' will only enumerate the files that are not hidden.  A
+          setting of `dot-and-dot-dot' will enumerate all the files
+          except for the `.' and `..' hidden files.  The default value
+          of this setting is `#t'.
+
+
+     For example:
+
+          > (directory-files)
+          ("complex" "README" "simple")
+          > (directory-files "../include")
+          ("config.h" "config.h.in" "gambit.h" "makefile" "makefile.in")
+          > (directory-files (list path: "../include" ignore-hidden: #f))
+          ("." ".." "config.h" "config.h.in" "gambit.h" "makefile" "makefile.in")
+
+
+
+File: gambit-c.info,  Node: Shell command execution,  Next: Process termination,  Prev: Filesystem operations,  Up: Host environment
+
+16.3 Shell command execution
+============================
+
+ -- procedure: shell-command COMMAND
+     The procedure `shell-command' calls up the shell to execute
+     COMMAND which must be a string.  This procedure returns the exit
+     status of the shell in the form that the C library's `system'
+     routine returns.
+
+     For example under UNIX:
+
+          > (shell-command "ls -sk f*.scm")
+          4 fact.scm   4 fib.scm
+          0
+
+
+
+File: gambit-c.info,  Node: Process termination,  Next: Command line arguments,  Prev: Shell command execution,  Up: Host environment
+
+16.4 Process termination
+========================
+
+ -- procedure: exit [STATUS]
+     The procedure `exit' causes the process to terminate with the
+     status STATUS which must be an exact integer in the range 0 to
+     255.  If it is not specified, STATUS defaults to 0.
+
+     For example under UNIX:
+
+          $ gsi
+          Gambit v4.4.4
+
+          > (exit 42)
+          $ echo $?
+          42
+
+
+
+File: gambit-c.info,  Node: Command line arguments,  Next: Environment variables,  Prev: Process termination,  Up: Host environment
+
+16.5 Command line arguments
+===========================
+
+ -- procedure: command-line
+     This procedure returns a list of strings corresponding to the
+     command line arguments, including the program file name as the
+     first element of the list.  When the interpreter executes a Scheme
+     script, the list returned by `command-line' contains the script's
+     absolute path followed by the remaining command line arguments.
+
+     For example under UNIX:
+
+          $ gsi -:d -e "(pretty-print (command-line))"
+          ("gsi" "-e" "(pretty-print (command-line))")
+          $ cat foo
+          #!/usr/local/Gambit-C/bin/gsi-script
+          (pretty-print (command-line))
+          $ ./foo 1 2 "3 4"
+          ("/u/feeley/./foo" "1" "2" "3 4")
+
+
+
+File: gambit-c.info,  Node: Environment variables,  Next: Measuring time,  Prev: Command line arguments,  Up: Host environment
+
+16.6 Environment variables
+==========================
+
+ -- procedure: getenv NAME [DEFAULT]
+ -- procedure: setenv NAME [NEW-VALUE]
+     The procedure `getenv' returns the value of the environment
+     variable NAME of the current process.  Variable names are denoted
+     with strings.  A string is returned if the environment variable is
+     bound, otherwise DEFAULT is returned if it is specified, otherwise
+     an exception is raised.
+
+     The procedure `setenv' changes the binding of the environment
+     variable NAME to NEW-VALUE which must be a string.  If NEW-VALUE
+     is not specified the binding is removed.
+
+     For example under UNIX:
+
+          > (getenv "HOME")
+          "/Users/feeley"
+          > (getenv "DOES_NOT_EXIST" #f)
+          #f
+          > (setenv "DOES_NOT_EXIST" "it does now")
+          > (getenv "DOES_NOT_EXIST" #f)
+          "it does now"
+          > (setenv "DOES_NOT_EXIST")
+          > (getenv "DOES_NOT_EXIST" #f)
+          #f
+          > (getenv "DOES_NOT_EXIST")
+          *** ERROR IN (console)@7.1 -- Unbound OS environment variable
+          (getenv "DOES_NOT_EXIST")
+
 
 
 File: gambit-c.info,  Node: Measuring time,  Next: File information,  Prev: Environment variables,  Up: Host environment
@@ -635,19 +1286,18 @@ File: gambit-c.info,  Node: Service information,  Next: Protocol information,  P
 
      For example:
 
-          > (service-info "time")
+          > (service-info "http")
           #<service-info #2
-             name: "loopback"
-             aliases: ("loopback-net")
-             number: 2130706432>
-          > (service-info 127)
+             name: "http"
+             aliases: ("www" "www-http")
+             port-number: 80
+             protocol: "udp">
+          > (service-info 80)
           #<service-info #3
-             name: "loopback"
-             aliases: ("loopback-net")
-             number: 2130706432>
-          > (service-info 0)
-          *** ERROR IN (console)@3.1 -- Resource temporarily unavailable
-          (service-info 0)
+             name: "http"
+             aliases: ("www" "www-http")
+             port-number: 80
+             protocol: "udp">
 
 
  -- procedure: service-info? OBJ
@@ -656,7 +1306,7 @@ File: gambit-c.info,  Node: Service information,  Next: Protocol information,  P
 
      For example:
 
-          > (service-info? (service-info "loopback"))
+          > (service-info? (service-info "http"))
           #t
           > (service-info? 123)
           #f
@@ -668,8 +1318,8 @@ File: gambit-c.info,  Node: Service information,  Next: Protocol information,  P
 
      For example:
 
-          > (service-info-name (service-info 127))
-          "loopback"
+          > (service-info-name (service-info 80))
+          "http"
 
 
  -- procedure: service-info-aliases SERVICE-INFO
@@ -678,18 +1328,28 @@ File: gambit-c.info,  Node: Service information,  Next: Protocol information,  P
 
      For example:
 
-          > (service-info-aliases (service-info "loopback"))
-          ("loopback-net")
+          > (service-info-aliases (service-info "http"))
+          ("www" "www-http")
 
 
- -- procedure: service-info-number SERVICE-INFO
-     Returns the service number field of the service-information record
-     SERVICE-INFO.
+ -- procedure: service-info-port-number SERVICE-INFO
+     Returns the service port number field of the service-information
+     record SERVICE-INFO.
 
      For example:
 
-          > (service-info-number (service-info "loopback"))
-          2130706432
+          > (service-info-port-number (service-info "http"))
+          80
+
+
+ -- procedure: service-info-protocol SERVICE-INFO
+     Returns the service protocol name field of the service-information
+     record SERVICE-INFO.
+
+     For example:
+
+          > (service-info-protocol (service-info "http"))
+          "udp"
 
 
 
@@ -710,19 +1370,10 @@ File: gambit-c.info,  Node: Protocol information,  Next: Network information,  P
 
      For example:
 
-          > (protocol-info "loopback")
-          #<protocol-info #2
-             name: "loopback"
-             aliases: ("loopback-net")
-             number: 2130706432>
-          > (protocol-info 127)
-          #<protocol-info #3
-             name: "loopback"
-             aliases: ("loopback-net")
-             number: 2130706432>
-          > (protocol-info 0)
-          *** ERROR IN (console)@3.1 -- Resource temporarily unavailable
-          (protocol-info 0)
+          > (protocol-info "tcp")
+          #<protocol-info #2 name: "tcp" aliases: ("TCP") number: 6>
+          > (protocol-info 6)
+          #<protocol-info #2 name: "tcp" aliases: ("TCP") number: 6>
 
 
  -- procedure: protocol-info? OBJ
@@ -731,7 +1382,7 @@ File: gambit-c.info,  Node: Protocol information,  Next: Network information,  P
 
      For example:
 
-          > (protocol-info? (protocol-info "loopback"))
+          > (protocol-info? (protocol-info "tcp"))
           #t
           > (protocol-info? 123)
           #f
@@ -743,8 +1394,8 @@ File: gambit-c.info,  Node: Protocol information,  Next: Network information,  P
 
      For example:
 
-          > (protocol-info-name (protocol-info 127))
-          "loopback"
+          > (protocol-info-name (protocol-info 6))
+          "tcp"
 
 
  -- procedure: protocol-info-aliases PROTOCOL-INFO
@@ -753,8 +1404,8 @@ File: gambit-c.info,  Node: Protocol information,  Next: Network information,  P
 
      For example:
 
-          > (protocol-info-aliases (protocol-info "loopback"))
-          ("loopback-net")
+          > (protocol-info-aliases (protocol-info "tcp"))
+          ("TCP")
 
 
  -- procedure: protocol-info-number PROTOCOL-INFO
@@ -763,8 +1414,8 @@ File: gambit-c.info,  Node: Protocol information,  Next: Network information,  P
 
      For example:
 
-          > (protocol-info-number (protocol-info "loopback"))
-          2130706432
+          > (protocol-info-number (protocol-info "tcp"))
+          6
 
 
 
@@ -789,15 +1440,12 @@ File: gambit-c.info,  Node: Network information,  Prev: Protocol information,  U
           #<network-info #2
              name: "loopback"
              aliases: ("loopback-net")
-             number: 2130706432>
+             number: 127>
           > (network-info 127)
           #<network-info #3
              name: "loopback"
              aliases: ("loopback-net")
-             number: 2130706432>
-          > (network-info 0)
-          *** ERROR IN (console)@3.1 -- Resource temporarily unavailable
-          (network-info 0)
+             number: 127>
 
 
  -- procedure: network-info? OBJ
@@ -839,7 +1487,7 @@ File: gambit-c.info,  Node: Network information,  Prev: Protocol information,  U
      For example:
 
           > (network-info-number (network-info "loopback"))
-          2130706432
+          127
 
 
 
@@ -861,7 +1509,7 @@ File: gambit-c.info,  Node: I/O and ports,  Next: Lexical syntax and readtables,
 * Vector-ports::                            Vector-ports
 * String-ports::                            String-ports
 * U8vector-ports::                          U8vector-ports
-* Parameter objects related to I/O::        Parameter objects related to I/O
+* Other procedures related to I/O::         Other procedures related to I/O
 
 
 File: gambit-c.info,  Node: Unidirectional and bidirectional ports,  Next: Port classes,  Prev: I/O and ports,  Up: I/O and ports
@@ -1085,8 +1733,8 @@ File: gambit-c.info,  Node: Object-port operations,  Prev: Object-port settings,
      that the next Scheme datum written with the `write' procedure will
      not be confused with the latest datum that was written.  On
      character-ports this is done by writing the character `#\newline'.
-     On ports where successive objects are implicitly distinct (such
-     as "vector ports") this procedure does nothing.
+     On ports where successive objects are implicitly distinct (such as
+     "vector ports") this procedure does nothing.
 
      Regardless of the class of a port P and assuming that the external
      textual representation of the object X is readable, the expression
@@ -1101,17 +1749,38 @@ File: gambit-c.info,  Node: Object-port operations,  Prev: Object-port settings,
           456
 
 
- -- procedure: force-output [PORT]
-     The procedure `force-output' causes the output buffers of the
-     output-port PORT to be drained (i.e. the data is sent to its
-     destination).  If PORT is not specified, the current output-port
-     is used.
+ -- procedure: force-output [PORT [LEVEL]]
+     The procedure `force-output' causes the data that was written to
+     the output-port PORT to be moved closer to its destination
+     according to LEVEL, an exact integer in the range 0 to 2.  If PORT
+     is not specified, the current output-port is used.  If LEVEL is
+     not specified, it defaults to 0.  Values of LEVEL above 0 are
+     equivalent to LEVEL = 0 except for device ports as explained below.
+
+     When LEVEL is 0, the output buffers of PORT which are managed in
+     the Scheme process are drained (i.e.  the output operation that
+     was delayed due to buffering is actually performed).  In the case
+     of a device port the data is passed to the operating system and it
+     becomes its responsibility to transmit the data to the device.  The
+     operating system may implement its own buffering approach which
+     delays the transmission of the data to the device.
+
+     When LEVEL is 1, in addition to the operations for LEVEL = 0 and
+     if the operating system supports the functionality, the operating
+     system is requested to transmit the data to the device.  On UNIX
+     this corresponds to a `fsync' system call.
+
+     When LEVEL is 2, in addition to the operations for LEVEL = 1 and
+     if the operating system supports the functionality, the operating
+     system is requested to wait until the device reports that the data
+     was saved by the device (e.g. actually written to disk in the case
+     of a file).  This operation can take a long time on some operating
+     systems.  On Mac OS X this corresponds to a `fcntl' system call
+     with operation `F_FULLFSYNC'.
 
      For example:
 
-          > (define p (open-tcp-client
-                        (list server-address: "www.iro.umontreal.ca"
-                              port-number: 80)))
+          > (define p (open-tcp-client "www.iro.umontreal.ca:80"))
           > (display "GET /\n" p)
           > (force-output p)
           > (read-line p)
@@ -1138,9 +1807,7 @@ File: gambit-c.info,  Node: Object-port operations,  Prev: Object-port settings,
 
      For example:
 
-          > (define p (open-tcp-client
-                        (list server-address: "www.iro.umontreal.ca"
-                              port-number: 80)))
+          > (define p (open-tcp-client "www.iro.umontreal.ca:80"))
           > (display "GET /\n" p)
           > (close-output-port p)
           > (read-line p)
@@ -1329,12 +1996,17 @@ File: gambit-c.info,  Node: Character-port operations,  Prev: Character-port set
           =>
 
 
- -- procedure: read-line [PORT [SEPARATOR [INCLUDE-SEPARATOR?]]]
+ -- procedure: read-line [PORT [SEPARATOR [INCLUDE-SEPARATOR?
+          [MAX-LENGTH]]]]
      This procedure reads characters from the character input-port PORT
      until a specific SEPARATOR or the end-of-file is encountered and
-     returns a string containing the sequence of characters read.  The
-     SEPARATOR is included at the end of the string only if it was the
-     last character read and INCLUDE-SEPARATOR? is not `#f'.  The
+     returns a string containing the sequence of characters read.  If
+     it is specified, MAX-LENGTH must be a nonnegative exact integer
+     and it places an upper limit on the number of characters that are
+     read.
+
+     The SEPARATOR is included at the end of the string only if it was
+     the last character read and INCLUDE-SEPARATOR? is not `#f'.  The
      SEPARATOR must be a character or `#f' (in which case all the
      characters until the end-of-file are read).  If it is not
      specified, PORT defaults to the current input-port.  If it is not
@@ -1355,26 +2027,33 @@ File: gambit-c.info,  Node: Character-port operations,  Prev: Character-port set
                  (call-with-input-string "1,2,3\n4,5"
                                          (lambda (p) (read-all p read-line))))
           (("1" "2" "3") ("4" "5"))
+          > (read-line (current-input-port) #\newline #f 2)1234
+          "12"
+          > 34
 
 
- -- procedure: read-substring STRING START END [PORT]
+ -- procedure: read-substring STRING START END [PORT [NEED]]
  -- procedure: write-substring STRING START END [PORT]
      These procedures support bulk character I/O.  The part of the
      string STRING starting at index START and ending just before index
      END is used as a character buffer that will be the target of
-     `read-substring' or the source of the `write-substring'.  Up to
-     END-START characters will be transferred.  The number of
-     characters transferred, possibly zero, is returned by these
-     procedures.  Fewer characters will be read by `read-substring' if
-     an end-of-file is read, or a timeout occurs before all the
-     requested characters are transferred and the timeout thunk returns
-     `#f' (see the procedure `input-port-timeout-set!').  Fewer
-     characters will be written by `write-substring' if a timeout
-     occurs before all the requested characters are transferred and the
+     `read-substring' or the source of the `write-substring'.  The
+     `read-substring' also accepts a NEED parameter which must be a
+     nonnegative fixnum.  Up to END-START characters will be
+     transferred.  The number of characters transferred, possibly zero,
+     is returned by these procedures.  Fewer characters will be read by
+     `read-substring' if an end-of-file is read, or a timeout occurs
+     before all the requested characters are transferred and the
      timeout thunk returns `#f' (see the procedure
-     `output-port-timeout-set!').  If it is not specified, PORT
-     defaults to the current input-port and current output-port
-     respectively.
+     `input-port-timeout-set!'), or NEED is specified and at least that
+     many characters have been read (in other words the procedure does
+     not block for more characters but may transfer more characters if
+     they are immediately available).  Fewer characters will be written
+     by `write-substring' if a timeout occurs before all the requested
+     characters are transferred and the timeout thunk returns `#f' (see
+     the procedure `output-port-timeout-set!').  If it is not
+     specified, PORT defaults to the current input-port and current
+     output-port respectively.
 
      For example:
 
@@ -1384,6 +2063,10 @@ File: gambit-c.info,  Node: Character-port operations,  Prev: Character-port set
           > 456789
           > s
           "xx123xxxxx"
+          > (read-substring s 2 10 (current-input-port) 3)abcd
+          5
+          > s
+          "xxabcd\nxxx"
 
 
  -- procedure: input-port-readtable PORT
@@ -1429,7 +2112,7 @@ The following is a list of port settings that are valid for byte-ports.
      output is set.  To set each direction separately the keywords
      `input-char-encoding:' and `output-char-encoding:' must be used
      instead of `char-encoding:'.  The default value of this setting is
-     operating system dependent, but this can be overriden through the
+     operating system dependent, but this can be overridden through the
      runtime options (*note Runtime options::).  The following
      encodings are supported:
 
@@ -1474,6 +2157,24 @@ The following is a list of port settings that are valid for byte-ports.
     `UTF-16BE'
           UTF-16 character encoding with big-endian endianness.  It is
           like `UTF-16LE' except the endianness is set to big-endian.
+
+    `UTF'
+          This encoding combines the UTF-8 and UTF-16 encodings.  When
+          `UTF' is used for an output port, characters will be encoded
+          using the UTF-8 encoding.  The first character, if there is
+          one, is prefixed with a UTF-8 BOM (the three byte sequence EF
+          BB BF in hexadecimal).  When `UTF' is used for an input port,
+          the character encoding depends on the first few bytes.  If
+          the first bytes of the stream are a UTF-16LE BOM (FF FE in
+          hexadecimal), or a UTF-16BE BOM (FE FF in hexadecimal), or a
+          UTF-8 BOM (EF BB BF in hexadecimal), then the BOM is
+          discarded and the remaining bytes of the stream are decoded
+          using the corresponding character encoding.  If a BOM is not
+          present, then the stream is decoded using the UTF-8 encoding.
+          Note that this character encoding for input will correctly
+          handle streams produced using the encodings `UTF', `UTF-8',
+          `UTF-16', `ASCII', and if an explicit BOM is output, the
+          encodings `UTF-16LE', and `UTF-16BE'.
 
     `UCS-2'
           UCS-2 character encoding.  Each character is encoded by a 16
@@ -1522,13 +2223,23 @@ The following is a list of port settings that are valid for byte-ports.
           like `UCS-4LE' except the endianness is set to big-endian.
 
 
+   * `char-encoding-errors:' ( `#f' | `#t' )
+
+     This setting controls whether illegal character encodings are
+     silently replaced with the Unicode character #xfffd (replacement
+     character) or raise an error.  To set each direction separately
+     the keywords `input-char-encoding-errors:' and
+     `output-char-encoding-errors:' must be used instead of
+     `char-encoding-errors:'.  The default value of this setting is
+     `#t'.
+
    * `eol-encoding:' ENCODING
 
      This setting controls the end-of-line encoding of the byte-port.
      To set each direction separately the keywords `input-eol-encoding:'
      and `output-eol-encoding:' must be used instead of
      `eol-encoding:'.  The default value of this setting is operating
-     system dependent, but this can be overriden through the runtime
+     system dependent, but this can be overridden through the runtime
      options (*note Runtime options::).  Note that for output-ports the
      end-of-line encoding is applied before the character encoding, and
      for input-ports it is applied after.  The following encodings are
@@ -1547,7 +2258,7 @@ The following is a list of port settings that are valid for byte-ports.
     `cr'
           For an output-port, writing a `#\newline' character outputs a
           `#\return' character to the stream (Unicode character code
-          10).  For an input-port, a `#\newline' character is read when
+          13).  For an input-port, a `#\newline' character is read when
           a `#\linefeed' character or a `#\return' character is
           encountered on the stream.  Text files created by Classic Mac
           OS applications typically use this end-of-line encoding.
@@ -1622,23 +2333,27 @@ File: gambit-c.info,  Node: Byte-port operations,  Prev: Byte-port settings,  Up
           #u8(33)
 
 
- -- procedure: read-subu8vector U8VECTOR START END [PORT]
+ -- procedure: read-subu8vector U8VECTOR START END [PORT [NEED]]
  -- procedure: write-subu8vector U8VECTOR START END [PORT]
      These procedures support bulk byte I/O.  The part of the u8vector
      U8VECTOR starting at index START and ending just before index END
      is used as a byte buffer that will be the target of
-     `read-subu8vector' or the source of the `write-subu8vector'.  Up
-     to END-START bytes will be transferred.  The number of bytes
-     transferred, possibly zero, is returned by these procedures.
-     Fewer bytes will be read by `read-subu8vector' if an end-of-file
-     is read, or a timeout occurs before all the requested bytes are
-     transferred and the timeout thunk returns `#f' (see the procedure
-     `input-port-timeout-set!').  Fewer bytes will be written by
-     `write-subu8vector' if a timeout occurs before all the requested
-     bytes are transferred and the timeout thunk returns `#f' (see the
-     procedure `output-port-timeout-set!').  If it is not specified,
-     PORT defaults to the current input-port and current output-port
-     respectively.
+     `read-subu8vector' or the source of the `write-subu8vector'.  The
+     `read-subu8vector' also accepts a NEED parameter which must be a
+     nonnegative fixnum.  Up to END-START bytes will be transferred.
+     The number of bytes transferred, possibly zero, is returned by
+     these procedures.  Fewer bytes will be read by `read-subu8vector'
+     if an end-of-file is read, or a timeout occurs before all the
+     requested bytes are transferred and the timeout thunk returns `#f'
+     (see the procedure `input-port-timeout-set!'), or NEED is
+     specified and at least that many bytes have been read (in other
+     words the procedure does not block for more bytes but may transfer
+     more bytes if they are immediately available).  Fewer bytes will
+     be written by `write-subu8vector' if a timeout occurs before all
+     the requested bytes are transferred and the timeout thunk returns
+     `#f' (see the procedure `output-port-timeout-set!').  If it is not
+     specified, PORT defaults to the current input-port and current
+     output-port respectively.
 
      The procedure `read-subu8vector' must be called before any use of
      the port in a character input operation (i.e. a call to the
@@ -1654,6 +2369,10 @@ File: gambit-c.info,  Node: Byte-port operations,  Prev: Byte-port settings,  Up
           > 456789
           > v
           #u8(0 0 49 50 51 0 0 0 0 0)
+          > (read-subu8vector v 2 10 (current-input-port) 3)abcd
+          5
+          > v
+          #u8(0 0 97 98 99 100 10 0 0 0)
 
 
 
@@ -1689,16 +2408,18 @@ File: gambit-c.info,  Node: Filesystem devices,  Next: Process devices,  Prev: D
      `with-input-from-file', to the value `output' for the procedures
      `open-output-file', `call-with-output-file' and
      `with-output-to-file', and to the value `input-output' for the
-     procedure `open-file'.  The procedures `open-file',
-     `open-input-file' and `open-output-file' return the port that is
-     created.  The procedures `call-with-input-file' and
-     `call-with-output-file' call the procedure PROC with the port as
-     single argument, and then return the value(s) of this call after
-     closing the port.  The procedures `with-input-from-file' and
-     `with-output-to-file' dynamically bind the current input-port and
-     current output-port respectively to the port created for the
-     duration of a call to the procedure THUNK with no argument.  The
-     value(s) of the call to THUNK are returned after closing the port.
+     procedure `open-file'.
+
+     The procedures `open-file', `open-input-file' and
+     `open-output-file' return the port that is created.  The
+     procedures `call-with-input-file' and `call-with-output-file' call
+     the procedure PROC with the port as single argument, and then
+     return the value(s) of this call after closing the port.  The
+     procedures `with-input-from-file' and `with-output-to-file'
+     dynamically bind the current input-port and current output-port
+     respectively to the port created for the duration of a call to the
+     procedure THUNK with no argument.  The value(s) of the call to
+     THUNK are returned after closing the port.
 
      The first argument of these procedures is either a string denoting
      a filesystem path or a list of port settings which must contain a
@@ -1820,11 +2541,36 @@ File: gambit-c.info,  Node: Process devices,  Next: Network devices,  Prev: File
 ----------------------
 
  -- procedure: open-process PATH-OR-SETTINGS
-     This procedure starts a new process and returns a port that allows
-     communication with that process on its standard input and standard
-     output.  The default value of the `direction:' setting is
-     `input-output', i.e. the Scheme program can write to the process'
-     standard input and can read from the process' standard output.
+ -- procedure: open-input-process PATH-OR-SETTINGS
+ -- procedure: open-output-process PATH-OR-SETTINGS
+ -- procedure: call-with-input-process PATH-OR-SETTINGS PROC
+ -- procedure: call-with-output-process PATH-OR-SETTINGS PROC
+ -- procedure: with-input-from-process PATH-OR-SETTINGS THUNK
+ -- procedure: with-output-to-process PATH-OR-SETTINGS THUNK
+     All of these procedures start a new operating system process and
+     create a bidirectional port which allows communication with that
+     process on its standard input and standard output.  The
+     `direction:' setting will default to the value `input' for the
+     procedures `open-input-process', `call-with-input-process' and
+     `with-input-from-process', to the value `output' for the
+     procedures `open-output-process', `call-with-output-process' and
+     `with-output-to-process', and to the value `input-output' for the
+     procedure `open-process'.  If the `direction:' setting is `input',
+     the output-port side is closed.  If the `direction:' setting is
+     `output', the input-port side is closed.
+
+     The procedures `open-process', `open-input-process' and
+     `open-output-process' return the port that is created.  The
+     procedures `call-with-input-process' and
+     `call-with-output-process' call the procedure PROC with the port
+     as single argument, and then return the value(s) of this call
+     after closing the port and waiting for the process to terminate.
+     The procedures `with-input-from-process' and
+     `with-output-to-process' dynamically bind the current input-port
+     and current output-port respectively to the port created for the
+     duration of a call to the procedure THUNK with no argument.  The
+     value(s) of the call to THUNK are returned after closing the port
+     and waiting for the process to terminate.
 
      The first argument of this procedure is either a string denoting a
      filesystem path of an executable program or a list of port settings
@@ -1860,31 +2606,60 @@ File: gambit-c.info,  Node: Process devices,  Next: Network devices,  Prev: File
           `(current-directory)'.  The default value of this setting is
           `#f'.
 
+        * `stdin-redirection:' ( `#f' | `#t' )
+
+          This setting indicates how the standard input of the process
+          is redirected.  A setting of `#t' will redirect the standard
+          input from the process-port (i.e. what is written to the
+          process-port will be available on the standard input).  A
+          setting of `#f' will leave the standard input as-is, which
+          typically results in input coming from the console.  The
+          default value of this setting is `#t'.
+
+        * `stdout-redirection:' ( `#f' | `#t' )
+
+          This setting indicates how the standard output of the process
+          is redirected.  A setting of `#t' will redirect the standard
+          output to the process-port (i.e. all output to standard
+          output can be read from the process-port).  A setting of `#f'
+          will leave the standard output as-is, which typically results
+          in the output going to the console.  The default value of
+          this setting is `#t'.
+
         * `stderr-redirection:' ( `#f' | `#t' )
 
           This setting indicates how the standard error of the process
           is redirected.  A setting of `#t' will redirect the standard
-          error to the standard output (i.e. all output to standard
-          error can be read from the process-port).  A setting of `#f'
-          will leave the standard error as-is, which typically results
-          in error messages being output to the console.  The default
+          error to the process-port (i.e. all output to standard error
+          can be read from the process-port).  A setting of `#f' will
+          leave the standard error as-is, which typically results in
+          error messages being output to the console.  The default
           value of this setting is `#f'.
 
         * `pseudo-terminal:' ( `#f' | `#t' )
 
-          This setting indicates what type of device will be bound to
-          the process' standard input and standard output.  A setting
-          of `#t' will use a pseudo-terminal device (this is a device
-          that behaves like a tty device even though there is no real
-          terminal or user directly involved).  A setting of `#f' will
-          use a pair of pipes.  The difference is important for
-          programs which behave differently when they are used
-          interactively, for example shells.  The default value of this
-          setting is `#f'.
+          This setting applies to UNIX.  It indicates what type of
+          device will be bound to the process' standard input and
+          standard output.  A setting of `#t' will use a
+          pseudo-terminal device (this is a device that behaves like a
+          tty device even though there is no real terminal or user
+          directly involved).  A setting of `#f' will use a pair of
+          pipes.  The difference is important for programs which behave
+          differently when they are used interactively, for example
+          shells.  The default value of this setting is `#f'.
+
+        * `show-console:' ( `#f' | `#t' )
+
+          This setting applies to Microsoft Windows.  It controls
+          whether the process' console window will be hidden or
+          visible.  The default value of this setting is `#t' (i.e.
+          show the console window).
 
 
      For example:
 
+          > (with-input-from-process "date" read-line)
+          "Sun Jun 14 15:06:41 EDT 2009"
           > (define p (open-process (list path: "ls"
                                           arguments: '("../examples"))))
           > (read-line p)
@@ -1899,13 +2674,79 @@ File: gambit-c.info,  Node: Process devices,  Next: Network devices,  Prev: File
           "1267650600228229401496703205376"
 
 
+ -- procedure: process-pid PROCESS-PORT
+     This procedure returns the PID (Process Identifier) of the process
+     of PROCESS-PORT.  The PID is a small exact integer.
+
+     For example:
+
+          > (let ((p (open-process "sort")))
+              (process-pid p))
+          318
+
+
+ -- procedure: process-status PROCESS-PORT [TIMEOUT [TIMEOUT-VAL]]
+     This procedure causes the current thread to wait until the process
+     of PROCESS-PORT terminates (normally or not) or until the timeout
+     is reached if TIMEOUT is supplied.  If the timeout is reached,
+     PROCESS-STATUS returns TIMEOUT-VAL if it is supplied, otherwise an
+     unterminated-process-exception object is raised.  The procedure
+     returns the process exit status as encoded by the operating
+     system.  Typically, if the process exited normally the return
+     value is the process exit status multiplied by 256.
+
+     For example:
+
+          > (let ((p (open-process "sort")))
+              (for-each (lambda (x) (pretty-print x p))
+                        '(22 11 33))
+              (close-output-port p)
+              (let ((r (read-all p)))
+                (close-input-port p)
+                (list (process-status p) r)))
+          (0 (11 22 33))
+
+
+ -- procedure: unterminated-process-exception? OBJ
+ -- procedure: unterminated-process-exception-procedure EXC
+ -- procedure: unterminated-process-exception-arguments EXC
+     Unterminated-process-exception objects are raised when a call to
+     the `process-status' procedure reaches its timeout before the
+     target process terminates and a timeout-value parameter is not
+     specified.  The parameter EXC must be an
+     unterminated-process-exception object.
+
+     The procedure `unterminated-process-exception?' returns `#t' when
+     OBJ is an unterminated-process-exception object and `#f' otherwise.
+
+     The procedure `unterminated-process-exception-procedure' returns
+     the procedure that raised EXC.
+
+     The procedure `unterminated-process-exception-arguments' returns
+     the list of arguments of the procedure that raised EXC.
+
+     For example:
+
+          > (define (handler exc)
+              (if (unterminated-process-exception? exc)
+                  (list (unterminated-process-exception-procedure exc)
+                        (unterminated-process-exception-arguments exc))
+                  'not-unterminated-process-exception))
+          > (with-exception-catcher
+              handler
+              (lambda ()
+                (let ((p (open-process "sort")))
+                  (process-status p 1))))
+          (#<procedure #2 process-status> (#<input-output-port #3 (process "sort")>))
+
+
 
 File: gambit-c.info,  Node: Network devices,  Prev: Process devices,  Up: Device-ports
 
 17.7.3 Network devices
 ----------------------
 
- -- procedure: open-tcp-client SETTINGS
+ -- procedure: open-tcp-client PORT-NUMBER-OR-ADDRESS-OR-SETTINGS
      This procedure opens a network connection to a socket server and
      returns a tcp-client-port (a subtype of device-port) that
      represents this connection and allows communication with that
@@ -1917,23 +2758,33 @@ File: gambit-c.info,  Node: Network devices,  Prev: Process devices,  Up: Device
      `close-input-port' procedure.  The `close-port' procedure closes
      both directions of the connection.
 
-     The first argument of this procedure is a list of port settings
-     which must contain a `server-address:' setting and a
-     `port-number:' setting.  Here are the settings allowed in addition
-     to the generic settings of byte-ports:
+     The parameter of this procedure is an IP port number (16-bit
+     nonnegative exact integer), a string of the form `"HOST:PORT"' or
+     a list of port settings.  When the parameter is the number PORT it
+     is handled as if it was the setting `port-number:' PORT.  When the
+     parameter is the string `"HOST:PORT"' it is handled as if it was
+     the setting `server-address:' `"HOST:PORT"'.
+
+     Here are the settings allowed in addition to the generic settings
+     of byte-ports:
 
         * `server-address:' STRING-OR-IP-ADDRESS
 
-          This setting indicates the internet address of the server.
-          It can be a string denoting a host name, which will be
+          This setting indicates the internet address of the server, and
+          possibly the IP port number.  When this parameter is not
+          specified or is `""', the connection requests are sent to the
+          loopback interface (with IP address 127.0.0.1).  The
+          parameter can be a string denoting a host name, which will be
           translated to an IP address by the `host-info' procedure, or
           a 4 element u8vector which contains the 32-bit IPv4 address
           or an 8 element u16vector which contains the 128-bit IPv6
-          address.  There is no default value for this setting.
+          address.  A string of the form `"HOST:PORT"' is handled as if
+          it was the combination of settings `server-address:' `"HOST"'
+          `port-number:' PORT.
 
         * `port-number:' 16-BIT-EXACT-INTEGER
 
-          This setting indicates the IP port-number of the server to
+          This setting indicates the IP port number of the server to
           connect to (e.g. 80 for the standard HTTP server, 23 for the
           standard telnet server).  There is no default value for this
           setting.
@@ -1957,23 +2808,22 @@ File: gambit-c.info,  Node: Network devices,  Prev: Process devices,  Up: Device
           setting does not affect the buffering of the port.
 
 
-     Here is an example of the client-side code that opens a connection
-     to an HTTP server on port 8080 on the same computer (for the
-     server-side code see the example for the procedure
-     `open-tcp-server'):
+     Below is an example of the client-side code that opens a
+     connection to an HTTP server on port 8080 of the loopback
+     interface (with IP address 127.0.0.1).  For the server-side code
+     see the example for the procedure `open-tcp-server'.
 
-          > (define p (open-tcp-client (list server-address: '#u8(127 0 0 1)
-                                             port-number: 8080
+          > (define p (open-tcp-client (list port-number: 8080
                                              eol-encoding: 'cr-lf)))
           > p
           #<input-output-port #2 (tcp-client #u8(127 0 0 1) 8080)>
-          > (display "GET / HTTP/1.1\n" p)
+          > (display "GET /\n" p)
           > (force-output p)
           > (read-line p)
           "<HTML>"
 
 
- -- procedure: open-tcp-server PORT-NUMBER-OR-SETTINGS
+ -- procedure: open-tcp-server PORT-NUMBER-OR-ADDRESS-OR-SETTINGS
      This procedure sets up a socket to accept network connection
      requests from clients and returns a tcp-server-port from which
      network connections to clients are obtained.  Tcp-server-ports are
@@ -1988,38 +2838,52 @@ File: gambit-c.info,  Node: Network devices,  Prev: Process devices,  Up: Device
      cause the network subsystem to stop accepting connections on that
      socket.
 
-     The first argument of this procedure is an IP port-number (16-bit
-     nonnegative exact integer) or a list of port settings which must
-     contain a `port-number:' setting.  Below is a list of the settings
-     allowed in addition to the settings `keep-alive:' and `coalesce:'
-     allowed by the `open-tcp-client' procedure and the generic
-     settings of byte-ports.  The settings which are not listed below
-     apply to the tcp-client-port that is returned by `read' when a
-     connection is accepted and have the same meaning as if they were
-     used in a call to the `open-tcp-client' procedure.
+     The parameter of this procedure is an IP port number (16-bit
+     nonnegative exact integer), a string of the form `"INTF:PORT"' or
+     a list of port settings which must contain a `port-number:'
+     setting.  When the parameter is the number PORT it is handled as
+     if it was the setting `port-number:' PORT.  When the parameter is
+     the string `"INTF:PORT"' it is handled as if it was the setting
+     `server-address:' `"INTF:PORT"'.
+
+     Below is a list of the settings allowed in addition to the settings
+     `keep-alive:' and `coalesce:' allowed by the `open-tcp-client'
+     procedure and the generic settings of byte-ports.  The settings
+     which are not listed below apply to the tcp-client-port that is
+     returned by `read' when a connection is accepted and have the same
+     meaning as if they were used in a call to the `open-tcp-client'
+     procedure.
 
         * `server-address:' STRING-OR-IP-ADDRESS
 
           This setting indicates the internet address of the network
-          interface on which connections requests are accepted.  When
-          this parameter is not specified or is `#f', the connection
-          requests are accepted on all network interfaces (i.e. address
-          INADDR_ANY).  The parameter can be a string denoting a host
-          name, which will be translated to an IP address by the
-          `host-info' procedure, or a 4 element u8vector which contains
-          the 32-bit IPv4 address or an 8 element u16vector which
-          contains the 128-bit IPv6 address.
+          interface on which connections requests are accepted, and
+          possibly the IP port number.  When this parameter is not
+          specified or is `""', the connection requests are accepted
+          only on the loopback interface (with IP address 127.0.0.1).
+          When this parameter is `"*"', the connection requests are
+          accepted on all network interfaces (i.e. address INADDR_ANY).
+          The parameter can be a string denoting a host name, which
+          will be translated to an IP address by the `host-info'
+          procedure, or a 4 element u8vector which contains the 32-bit
+          IPv4 address or an 8 element u16vector which contains the
+          128-bit IPv6 address.  A string of the form `"INTF:PORT"' is
+          handled as if it was the combination of settings
+          `server-address:' `"INTF"' `port-number:' PORT.
 
         * `port-number:' 16-BIT-EXACT-INTEGER
 
-          This setting indicates the IP port-number assigned to the
+          This setting indicates the IP port number assigned to the
           socket which accepts connection requests from clients.  So
           called "well-known ports", which are reserved for standard
-          services, have a port-number below 1024 and can only be
+          services, have a port number below 1024 and can only be
           assigned to a socket by a process with superuser priviledges
           (e.g. 80 for the HTTP service, 23 for the telnet service).
-          No special priviledges are needed to assign higher
-          port-numbers to a socket.  There is no default value for this
+          No special priviledges are needed to assign higher port
+          numbers to a socket.  The special value 0 requests that a
+          currently unused port number be assigned to the socket (the
+          port number assigned can be retrieved using the procedure
+          `tcp-server-socket-info').  There is no default value for this
           setting.
 
         * `backlog:' POSITIVE-EXACT-INTEGER
@@ -2032,30 +2896,66 @@ File: gambit-c.info,  Node: Network devices,  Prev: Process devices,  Up: Device
 
         * `reuse-address:' ( `#f' | `#t' )
 
-          This setting controls whether it is possible to assign a
-          port-number that is currently active.  Note that when a
-          server process terminates, the socket it was using to accept
+          This setting controls whether it is possible to assign a port
+          number that is currently active.  Note that when a server
+          process terminates, the socket it was using to accept
           connection requests does not become inactive immediately.
           Instead it remains active for a few minutes to ensure clean
           termination of the connections.  A setting of `#f' will cause
           an exception to be raised in that case.  A setting of `#t'
-          will allow a port-number to be used even if it is active.
+          will allow a port number to be used even if it is active.
           The default value of this setting is `#t'.
 
 
-     Here is an example of the server-side code that accepts
-     connections on port 8080 (for the client-side code see the example
-     for the procedure `open-tcp-client'):
+     Below is an example of the server-side code that accepts
+     connections on port 8080 of any network interface.  For the
+     client-side code see the example for the procedure
+     `open-tcp-client'.
 
-          > (define s (open-tcp-server (list port-number: 8080
+          > (define s (open-tcp-server (list server-address: "*"
+                                             port-number: 8080
                                              eol-encoding: 'cr-lf)))
           > (define p (read s))  ; blocks until client connects
           > p
           #<input-output-port #2 (tcp-client 8080)>
           > (read-line p)
-          "GET / HTTP/1.1"
+          "GET /"
           > (display "<HTML>\n" p)
           > (force-output p)
+
+
+ -- procedure: tcp-service-register! PORT-NUMBER-OR-ADDRESS-OR-SETTINGS
+          THUNK [THREAD-GROUP]
+ -- procedure: tcp-service-unregister!
+          PORT-NUMBER-OR-ADDRESS-OR-SETTINGS
+     The procedure `tcp-service-register!' sets up a socket to accept
+     network connection requests from clients and creates a "service"
+     thread which processes the incoming connections.  The parameter
+     PORT-NUMBER-OR-ADDRESS-OR-SETTINGS has the same meaning as for the
+     procedure `open-tcp-server'.
+
+     For each connection established the service thread creates a
+     "handler" thread which executes a call to the procedure THUNK with
+     no argument.  The handler thread's current input-port and current
+     output-port are both set to the tcp-client-port created for the
+     connection.  There is no need for the THUNK to close the
+     tcp-client-port, as this is done by the handler thread when the
+     THUNK returns normally.
+
+     The procedure `tcp-service-unregister!' terminates the service
+     thread which was registered by `tcp-service-register!' with the
+     same network interface and port number (if a service thread is
+     still registered).  The procedure `tcp-service-register!'
+     implicitly calls `tcp-service-unregister!' before registering the
+     new service thread.
+
+          > (tcp-service-register!
+             8000
+             (lambda () (display "hello\n")))
+          > (define p (open-tcp-client 8000))
+          > (read-line p)
+          "hello"
+          > (tcp-service-unregister! 8000)
 
 
 
@@ -2080,7 +2980,7 @@ File: gambit-c.info,  Node: Directory-ports,  Next: Vector-ports,  Prev: Device-
      not known in advance and may be large.  Note that the order in
      which the names are returned is operating-system dependent.
 
-     The first argument of this procedure is either a string denoting a
+     The parameter of this procedure is either a string denoting a
      filesystem path to a directory or a list of port settings which
      must contain a `path:' setting.  Here are the settings allowed in
      addition to the generic settings of object-ports:
@@ -2157,17 +3057,21 @@ File: gambit-c.info,  Node: Vector-ports,  Next: String-ports,  Prev: Directory-
      The procedures `open-vector', `open-input-vector' and
      `open-output-vector' return the port that is created.  The
      procedures `call-with-input-vector' and `call-with-output-vector'
-     call the procedure PROC with the port as single argument, and then
-     return the value(s) of this call after closing the port.  The
-     procedures `with-input-from-vector' and `with-output-to-vector'
-     dynamically bind the current input-port and current output-port
-     respectively to the port created for the duration of a call to the
-     procedure THUNK with no argument.  The value(s) of the call to
-     THUNK are returned after closing the port.
+     create a vector port, call the procedure PROC with the port as
+     single argument and then close the port.  The procedures
+     `with-input-from-vector' and `with-output-to-vector' create a
+     vector port, dynamically bind the current input-port and current
+     output-port respectively to the port created for the duration of a
+     call to the procedure THUNK with no argument, and then close the
+     port.  The procedures `call-with-input-vector' and
+     `with-input-from-vector' return the value returned by the
+     procedures PROC and THUNK respectively.  The procedures
+     `call-with-output-vector' and `with-output-to-vector' return the
+     vector accumulated in the port (see `get-output-vector').
 
-     The first argument of these procedures is either a vector of the
+     The first parameter of these procedures is either a vector of the
      elements used to initialize the stream or a list of port settings.
-     If it is not specified, the argument of the `open-vector',
+     If it is not specified, the parameter of the `open-vector',
      `open-input-vector', and `open-output-vector' procedures defaults
      to an empty list of port settings.  Here are the settings allowed
      in addition to the generic settings of object-ports:
@@ -2196,6 +3100,7 @@ File: gambit-c.info,  Node: Vector-ports,  Next: String-ports,  Prev: Directory-
           > (write 1 p)
           > (write 2 p)
           > (write 3 p)
+          > (force-output p)
           > (read p)
           1
           > (read p)
@@ -2205,6 +3110,8 @@ File: gambit-c.info,  Node: Vector-ports,  Next: String-ports,  Prev: Directory-
           3
           > (read p)
           #!eof
+          > (with-output-to-vector '() (lambda () (write 1) (write 2)))
+          #(1 2)
 
 
  -- procedure: open-vector-pipe [VECTOR-OR-SETTINGS1
@@ -2254,7 +3161,7 @@ File: gambit-c.info,  Node: Vector-ports,  Next: String-ports,  Prev: Directory-
 
  -- procedure: get-output-vector VECTOR-PORT
      The procedure `get-output-vector' takes an output vector-port or a
-     bidirectional vector-port as argument and removes all the objects
+     bidirectional vector-port as parameter and removes all the objects
      currently on the output-side, returning them in a vector.  The port
      remains open and subsequent output to the port and calls to the
      procedure `get-output-vector' are possible.
@@ -2293,6 +3200,25 @@ File: gambit-c.info,  Node: String-ports,  Next: U8vector-ports,  Prev: Vector-p
      Note that these procedures are a superset of the procedures
      specified in the "Basic String Ports SRFI" (SRFI 6).
 
+     For example:
+
+          > (define p (open-string))
+          > (write 1 p)
+          > (write 2 p)
+          > (write 3 p)
+          > (force-output p)
+          > (read-char p)
+          #\1
+          > (read-char p)
+          #\2
+          > (close-output-port p)
+          > (read-char p)
+          #\3
+          > (read-char p)
+          #!eof
+          > (with-output-to-string '() (lambda () (write 1) (write 2)))
+          "12"
+
 
  -- procedure: object->string OBJ [N]
      This procedure converts the object OBJ to its external
@@ -2302,9 +3228,18 @@ File: gambit-c.info,  Node: String-ports,  Next: U8vector-ports,  Prev: Vector-p
      be truncated to N characters and the last 3 characters will be set
      to periods.  Note that the current readtable is used.
 
+     For example:
+
+          > (object->string (expt 2 100))
+          "1267650600228229401496703205376"
+          > (object->string (expt 2 100) 30)
+          "126765060022822940149670320..."
+          > (object->string (cons car cdr))
+          "(#<procedure #2 car> . #<procedure #3 cdr>)"
+
 
 
-File: gambit-c.info,  Node: U8vector-ports,  Next: Parameter objects related to I/O,  Prev: String-ports,  Up: I/O and ports
+File: gambit-c.info,  Node: U8vector-ports,  Next: Other procedures related to I/O,  Prev: String-ports,  Up: I/O and ports
 
 17.11 U8vector-ports
 ====================
@@ -2323,12 +3258,31 @@ File: gambit-c.info,  Node: U8vector-ports,  Next: Parameter objects related to 
      subtype of byte-ports.  These procedures are the u8vector-port
      analog of the procedures specified in the vector-ports section.
 
+     For example:
+
+          > (define p (open-u8vector))
+          > (write 1 p)
+          > (write 2 p)
+          > (write 3 p)
+          > (force-output p)
+          > (read-u8 p)
+          49
+          > (read-u8 p)
+          50
+          > (close-output-port p)
+          > (read-u8 p)
+          51
+          > (read-u8 p)
+          #!eof
+          > (with-output-to-u8vector '() (lambda () (write 1) (write 2)))
+          #u8(49 50)
+
 
 
-File: gambit-c.info,  Node: Parameter objects related to I/O,  Prev: U8vector-ports,  Up: I/O and ports
+File: gambit-c.info,  Node: Other procedures related to I/O,  Prev: U8vector-ports,  Up: I/O and ports
 
-17.12 Parameter objects related to I/O
-======================================
+17.12 Other procedures related to I/O
+=====================================
 
  -- procedure: current-input-port [NEW-VALUE]
  -- procedure: current-output-port [NEW-VALUE]
@@ -2337,6 +3291,34 @@ File: gambit-c.info,  Node: Parameter objects related to I/O,  Prev: U8vector-po
      These procedures are parameter objects which represent
      respectively: the current input-port, the current output-port, the
      current error-port, and the current readtable.
+
+
+ -- procedure: print [`port:' PORT] OBJ...
+ -- procedure: println [`port:' PORT] OBJ...
+     The `print' procedure writes a representation of each OBJ, from
+     left to right, to PORT.  When a compound object is encountered
+     (pair, list, vector, box) the elements of that object are
+     recursively written without the surrounding tokens (parentheses,
+     spaces, dots, etc).  Strings, symbols, keywords and characters are
+     written like the `display' procedure.  If there are more than one
+     OBJ, the first OBJ must not be a keyword object.  If it is not
+     specified, PORT defaults to the current output-port.  The
+     procedure `print' returns an unspecified value.
+
+     The `println' procedure does the same thing as the `print'
+     procedure and then writes an end of line to PORT.
+
+     For example:
+
+          > (println "2*2 is " (* 2 2) " and 2+2 is " (+ 2 2))
+          2*2 is 4 and 2+2 is 4
+          > (define x (list "<i>" (list "<tt>" 123 "</tt>") "</i>"))
+          > (println x)
+          <i><tt>123</tt></i>
+          > (define p (open-output-string))
+          > (print port: p 1 #\2 "345")
+          > (get-output-string p)
+          "12345"
 
 
 
@@ -2371,11 +3353,11 @@ objects, that is the encoding of Scheme objects using characters.
 Readtables affect the behavior of the reader (i.e. the `read' procedure
 and the parser used by the `load' procedure and the interpreter and
 compiler) and the printer (i.e. the procedures `write', `display',
-`pretty-print', and `pp', and the procedure used by the REPL to print
-results).  To preserve write/read invariance the printer and reader
-must be using compatible readtables.  For example a symbol which
-contains upper case letters will be printed with special escapes if the
-readtable indicates that the reader is case-insensitive.
+`print', `println', `pretty-print', and `pp', and the procedure used by
+the REPL to print results).  To preserve write/read invariance the
+printer and reader must be using compatible readtables.  For example a
+symbol which contains upper case letters will be printed with special
+escapes if the readtable indicates that the reader is case-insensitive.
 
    Readtables are immutable records whose fields specify various textual
 representation aspects.  There are accessor procedures to retrieve the
@@ -2652,6 +3634,60 @@ to a new value.
           (buf = #u8(0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0))
 
 
+ -- procedure: readtable-write-cdr-read-macros? READTABLE
+ -- procedure: readtable-write-cdr-read-macros?-set READTABLE NEW-VALUE
+ -- procedure: readtable-write-extended-read-macros? READTABLE
+ -- procedure: readtable-write-extended-read-macros?-set READTABLE
+          NEW-VALUE
+     The procedure `readtable-write-cdr-read-macros?' returns the
+     content of the `write-cdr-read-macros?' field of READTABLE.  The
+     procedure `readtable-write-extended-read-macros?' returns the
+     content of the `write-extended-read-macros?' field of READTABLE.
+
+     At all times the printer uses read-macros in its output for datums
+     of the form `(quote DATUM)', `(quasiquote DATUM)', `(unquote
+     DATUM)', and `(unquote-splicing DATUM)'.  That is the following
+     read-macro notations will be used respectively: `'DATUM', ``DATUM',
+     `,DATUM', and `,@DATUM'.  Moreover, normally the read-macros will
+     not be used when the form appears in the cdr of a list, for
+     example `(foo quote bar)', `(foo . (quote bar))' and `(foo .
+     'bar)' will all be printed as `(foo quote bar)'.
+
+     When the content of the `write-cdr-read-macros?' field is not
+     `#f', the printer will use read-macros when the forms appear in
+     the cdr of a list.  For example `(foo quote bar)' will be printed
+     as `(foo . 'bar)'.  When the content of the
+     `write-extended-read-macros?' field is not `#f', the printer will
+     also use extended read-macros, for example `#'DATUM' in place of
+     `(syntax DATUM)'.
+
+     The procedure `readtable-write-cdr-read-macros?-set' returns a
+     copy of READTABLE where only the `write-cdr-read-macros?' field
+     has been changed to NEW-VALUE.  The procedure
+     `readtable-write-extended-read-macros?-set' returns a copy of
+     READTABLE where only the `write-extended-read-macros?' field has
+     been changed to NEW-VALUE.
+
+     For example:
+
+          > (output-port-readtable-set!
+              (repl-output-port)
+              (readtable-write-extended-read-macros?-set
+                (output-port-readtable (repl-output-port))
+                #t))
+          > '(foo (syntax bar))
+          (foo #'bar)
+          > '(foo syntax bar)
+          (foo syntax bar)
+          > (output-port-readtable-set!
+              (repl-output-port)
+              (readtable-write-cdr-read-macros?-set
+                (output-port-readtable (repl-output-port))
+                #t))
+          > '(foo syntax bar)
+          (foo . #'bar)
+
+
  -- procedure: readtable-max-write-level READTABLE
  -- procedure: readtable-max-write-level-set READTABLE NEW-VALUE
      The procedure `readtable-max-write-level' returns the content of
@@ -2720,6 +3756,43 @@ to a new value.
           "(a ...)"
           > (wr '(a #(b (c c) #u8(9 9 9) b) . a) 0)
           "(...)"
+
+
+ -- procedure: readtable-max-unescaped-char READTABLE
+ -- procedure: readtable-max-unescaped-char-set READTABLE NEW-VALUE
+     The procedure `readtable-max-unescaped-char' returns the content
+     of the `max-unescaped-char' field of READTABLE.  The printer will
+     display using an escape sequence any character within symbols,
+     strings and character objects greater than `max-unescaped-char'
+
+     The procedure `readtable-max-unescaped-char-set' returns a copy of
+     READTABLE where only the `max-unescaped-char' field has been
+     changed to NEW-VALUE, which must be a character.
+
+     For example:
+
+          > (define rt (output-port-readtable (repl-output-port)))
+          > (readtable-max-unescaped-char rt)
+          #\delete
+          > (string (integer->char 233))
+          "\351"
+          > (define (f c)
+              (with-output-to-string
+               (list readtable: (readtable-max-unescaped-char-set rt c))
+               (lambda () (write (string (integer->char 233))))))
+          > (f #\delete)
+          "\"\\351\""
+          > (string-length (f #\delete))
+          6
+          > (f #\U0010ffff)
+          "\"\351\""
+          > (string-length (f #\U0010ffff))
+          3
+          > (output-port-readtable-set!
+             (repl-output-port)
+             (readtable-max-unescaped-char-set rt #\U0010ffff))
+          > (string (integer->char 233))
+          "é"
 
 
  -- procedure: readtable-start-syntax READTABLE
@@ -2796,10 +3869,13 @@ following:
 `#\return'
      Unicode character 13
 
+`#\esc'
+     Unicode character 27
+
 `#\space'
      Unicode character 32 (space character)
 
-`#\rubout'
+`#\delete'
      Unicode character 127
 
 `#\xHH'
@@ -3445,6 +4521,18 @@ object type, and the following data types are added to C:
      denotes an array of nonnull UTF-8 encoded strings terminated with
      a null pointer
 
+`UTF-16-string'
+     denotes UTF-16 encoded strings (null terminated string of `char',
+     i.e. `char*')
+
+`nonnull-UTF-16-string'
+     denotes nonnull UTF-16 encoded strings (null terminated string of
+     `char', i.e. `char*')
+
+`nonnull-UTF-16-string-list'
+     denotes an array of nonnull UTF-16 encoded strings terminated with
+     a null pointer
+
 `UCS-2-string'
      denotes UCS-2 encoded strings (null terminated string of 16 bit
      unsigned integers, i.e. `___UCS_2*')
@@ -3574,25 +4662,25 @@ object type, and the following data types are added to C:
 `float64'
      `float64'
 
-`(struct "C-STRUCT-ID" [TAG [RELEASE-FUNCTION]])'
+`(struct "C-STRUCT-ID" [TAGS [RELEASE-FUNCTION]])'
      `struct C-STRUCT-ID'  (where C-STRUCT-ID is the name of a C
-     structure; see below for the meaning of TAG and RELEASE-FUNCTION)
+     structure; see below for the meaning of TAGS and RELEASE-FUNCTION)
 
-`(union "C-UNION-ID" [TAG [RELEASE-FUNCTION]])'
+`(union "C-UNION-ID" [TAGS [RELEASE-FUNCTION]])'
      `union C-UNION-ID'  (where C-UNION-ID is the name of a C union;
-     see below for the meaning of TAG and RELEASE-FUNCTION)
+     see below for the meaning of TAGS and RELEASE-FUNCTION)
 
-`(type "C-TYPE-ID" [TAG [RELEASE-FUNCTION]])'
+`(type "C-TYPE-ID" [TAGS [RELEASE-FUNCTION]])'
      `C-TYPE-ID'  (where C-TYPE-ID is an identifier naming a C type;
-     see below for the meaning of TAG and RELEASE-FUNCTION)
+     see below for the meaning of TAGS and RELEASE-FUNCTION)
 
-`(pointer TYPE [TAG [RELEASE-FUNCTION]])'
+`(pointer TYPE [TAGS [RELEASE-FUNCTION]])'
      `T*'  (where T is the C equivalent of TYPE which must be the
-     Scheme notation of a C type; see below for the meaning of TAG and
+     Scheme notation of a C type; see below for the meaning of TAGS and
      RELEASE-FUNCTION)
 
-`(nonnull-pointer TYPE [TAG [RELEASE-FUNCTION]])'
-     same as `(pointer TYPE [TAG [RELEASE-FUNCTION]])' except the
+`(nonnull-pointer TYPE [TAGS [RELEASE-FUNCTION]])'
+     same as `(pointer TYPE [TAGS [RELEASE-FUNCTION]])' except the
      `NULL' pointer is not allowed
 
 `(function (TYPE1...) RESULT-TYPE)'
@@ -3628,6 +4716,15 @@ object type, and the following data types are added to C:
 
 `nonnull-UTF-8-string-list'
      `nonnull-UTF-8-string-list'
+
+`UTF-16-string'
+     `UTF-16-string'
+
+`nonnull-UTF-16-string'
+     `nonnull-UTF-16-string'
+
+`nonnull-UTF-16-string-list'
+     `nonnull-UTF-16-string-list'
 
 `UCS-2-string'
      `UCS-2-string'
@@ -3688,20 +4785,36 @@ from the C heap is performed).  Deallocation of the copy on the C heap
 is under the control of the release function attached to the foreign
 object (see below).
 
-   For type checking on the Scheme side, a TAG can be specified within
-a foreign type specification.  The TAG must be `#f' or a symbol.  When
-it is not specified the TAG defaults to a symbol whose name, as
-returned by `symbol->string', is the C type declaration for that type.
-For example the default tag for the type `(pointer (pointer char))' is
-the symbol `char**'.  Two foreign types are compatible (i.e. can be
-converted from one to the other) if they have identical tags or if at
-least one of the tags is `#f'.  For the safest code the `#f' tag should
-be used sparingly, as it completely bypasses type checking.  The
-external representation of Scheme foreign objects (used by the `write'
-procedure) contains the tag if it is not `#f', and the hexadecimal
+   The optional TAGS field of foreign type specifications is used for
+type checking on the Scheme side.  The TAGS field must be `#f', a
+symbol or a non-empty list of symbols.  When it is not specified the
+TAGS field defaults to a symbol whose name, as returned by
+`symbol->string', is the C type declaration for that type.  For example
+the symbol `char**' is the default for the type `(pointer (pointer
+char))'.  A TAGS field that is a single symbol is equivalent to a list
+containing only that symbol.  The first symbol in the list of tags is
+the primary tag.  For example the primary tag of the type `(pointer
+char)' is `char*' and the primary tag of the type `(pointer char (foo
+bar))' is `foo'.
+
+   Type compatibility between two foreign types depends on their tags.
+An instance of a foreign type T can be used where a foreign type E is
+expected if and only if
+
+   * T's TAGS field is `#f', or
+
+   * E's TAGS field is `#f', or
+
+   * T's primary tag is a member of E's tags.
+
+
+   For the safest code a TAGS field of `#f' should be used sparingly,
+as it completely bypasses type checking.  The external representation
+of Scheme foreign objects (used by the `write' procedure) contains the
+primary tag (if the TAGS field is not `#f'), and the hexadecimal
 address denoted by the internal pointer, for example `#<char** #2
-0x2AAC535C>'.  Note that the hexadecimal address is in C notation, which
-can be easily transferred to a C debugger with a "cut-and-paste".
+0x2AAC535C>'.  Note that the hexadecimal address is in C notation,
+which can be easily transferred to a C debugger with a "cut-and-paste".
 
    A RELEASE-FUNCTION can also be specified within a foreign type
 specification.  The RELEASE-FUNCTION must be `#f' or a string naming a
@@ -3724,19 +4837,21 @@ must be performed.  For such cases a user supplied RELEASE-FUNCTION is
 needed.
 
    The RELEASE-FUNCTION is invoked at most once for any foreign object.
-After the RELEASE-FUNCTION is invoked, the foreign object is
-considered "released" and can no longer be used in a foreign type
-conversion.  When the garbage collector detects that a foreign object
-is no longer reachable by the program, it will invoke the
-RELEASE-FUNCTION if the foreign object is not yet released.  When there
-is a need to release the foreign object promptly, the program can
-explicitly call `(foreign-release! OBJ)' which invokes the
-RELEASE-FUNCTION if the foreign object is not yet released, and does
-nothing otherwise.  The call `(foreign-released? OBJ)' returns a
-boolean indicating whether the foreign object OBJ has been released yet
-or not.  Finally, the call `(foreign-address OBJ)' returns the address
-denoted by the internal pointer of foreign object OBJ or 0 if it has
-been released.
+After the RELEASE-FUNCTION is invoked, the foreign object is considered
+"released" and can no longer be used in a foreign type conversion.
+When the garbage collector detects that a foreign object is no longer
+reachable by the program, it will invoke the RELEASE-FUNCTION if the
+foreign object is not yet released.  When there is a need to release
+the foreign object promptly, the program can explicitly call
+`(foreign-release! OBJ)' which invokes the RELEASE-FUNCTION if the
+foreign object is not yet released, and does nothing otherwise.  The
+call `(foreign-released? OBJ)' returns a boolean indicating whether the
+foreign object OBJ has been released yet or not.  The call
+`(foreign-address OBJ)' returns the address denoted by the internal
+pointer of foreign object OBJ or 0 if it has been released.  The call
+`(foreign? OBJ)' tests that OBJ is a foreign object.  Finally the call
+`(foreign-tags OBJ)' returns the list of tags of foreign object OBJ, or
+`#f'.
 
    The following table gives the C types to which each Scheme type can
 be converted:
@@ -3746,8 +4861,8 @@ Scheme type
 
 boolean `#f'
      `scheme-object'; `bool'; `pointer'; `function'; `char-string';
-     `ISO-8859-1-string'; `UTF-8-string'; `UCS-2-string';
-     `UCS-4-string'; `wchar_t-string'
+     `ISO-8859-1-string'; `UTF-8-string'; `UTF-16-string';
+     `UCS-2-string'; `UCS-4-string'; `wchar_t-string'
 
 boolean `#t'
      `scheme-object'; `bool'
@@ -3766,14 +4881,14 @@ inexact real
 string
      `scheme-object'; `bool'; `char-string'; `nonnull-char-string';
      `ISO-8859-1-string'; `nonnull-ISO-8859-1-string'; `UTF-8-string';
-     `nonnull-UTF-8-string'; `UCS-2-string'; `nonnull-UCS-2-string';
-     `UCS-4-string'; `nonnull-UCS-4-string'; `wchar_t-string';
-     `nonnull-wchar_t-string'
+     `nonnull-UTF-8-string'; `UTF-16-string'; `nonnull-UTF-16-string';
+     `UCS-2-string'; `nonnull-UCS-2-string'; `UCS-4-string';
+     `nonnull-UCS-4-string'; `wchar_t-string'; `nonnull-wchar_t-string'
 
 foreign object
      `scheme-object'; `bool';
      `struct'/`union'/`type'/`pointer'/`nonnull-pointer' with the
-     appropriate tag
+     appropriate tags
 
 vector
      `scheme-object'; `bool'
@@ -3808,14 +4923,14 @@ bool
 `float'; `double'; `float32'; `float64'
      inexact real
 
-`char-string'; `ISO-8859-1-string'; `UTF-8-string'; `UCS-2-string'; `UCS-4-string'; `wchar_t-string'
+`char-string'; `ISO-8859-1-string'; `UTF-8-string'; `UTF-16-string'; `UCS-2-string'; `UCS-4-string'; `wchar_t-string'
      string or `#f' if it is equal to `NULL'
 
-`nonnull-char-string'; `nonnull-ISO-8859-1-string'; `nonnull-UTF-8-string'; `nonnull-UCS-2-string'; `nonnull-UCS-4-string'; `nonnull-wchar_t-string'
+`nonnull-char-string'; `nonnull-ISO-8859-1-string'; `nonnull-UTF-8-string'; `nonnull-UTF-16-string'; `nonnull-UCS-2-string'; `nonnull-UCS-4-string'; `nonnull-wchar_t-string'
      string
 
 `struct'/`union'/`type'/`pointer'/`nonnull-pointer'
-     foreign object with the appropriate tag or `#f' in the case of a
+     foreign object with the appropriate tags or `#f' in the case of a
      `pointer' equal to `NULL'
 
 `function'
@@ -3836,12 +4951,13 @@ type is expected, an extended Scheme boolean can be passed (`#f' is
 converted to 0 and all other values are converted to 1).
 
    The Scheme boolean `#f' can be passed to the C environment where a
-`char-string', `ISO-8859-1-string', `UTF-8-string', `UCS-2-string',
-`UCS-4-string', `wchar_t-string', `pointer' or `function' type is
-expected.  In this case, `#f' is converted to the `NULL' pointer.  C
-`bool's are extended booleans so any value different from 0 represents
-true.  Thus, a C `bool' passed to the Scheme environment is mapped as
-follows: 0 to `#f' and all other values to `#t'.
+`char-string', `ISO-8859-1-string', `UTF-8-string', `UTF-16-string',
+`UCS-2-string', `UCS-4-string', `wchar_t-string', `pointer' or
+`function' type is expected.  In this case, `#f' is converted to the
+`NULL' pointer.  C `bool's are extended booleans so any value different
+from 0 represents true.  Thus, a C `bool' passed to the Scheme
+environment is mapped as follows: 0 to `#f' and all other values to
+`#t'.
 
    A Scheme character passed to the C environment where any C character
 type is expected is converted to the corresponding character in the C
@@ -3878,13 +4994,12 @@ Scheme string containing a copy of the C string (unless the C string is
 equal to `NULL', in which case it is converted to `#f').
 
    A foreign type passed to the Scheme environment causes the creation
-and initialization of a Scheme foreign object with the appropriate tag
+and initialization of a Scheme foreign object with the appropriate tags
 (except for the case of a `pointer' equal to `NULL' which is converted
 to `#f').  A Scheme foreign object can be passed where a foreign type
-is expected, on the condition that the tags are appropriate (identical
-or one is `#f') and the Scheme foreign object is not yet released.  The
-value `#f' is also acceptable for a `pointer' type, and is converted to
-`NULL'.
+is expected, on the condition that the tags are compatible and the
+Scheme foreign object is not yet released.  The value `#f' is also
+acceptable for a `pointer' type, and is converted to `NULL'.
 
    Scheme procedures defined with the `c-define' special form can be
 passed where the `function' and `nonnull-function' types are expected.
@@ -3899,46 +5014,46 @@ File: gambit-c.info,  Node: c-declare,  Next: c-initialize,  Prev: mapping of ty
 19.2 The `c-declare' special form
 =================================
 
-Synopsis:
+ -- special form: c-declare c-declaration
+     Initially, the C file produced by `gsc' contains only an
+     `#include' of `gambit.h'.  This header file provides a number of
+     macro and procedure declarations to access the Scheme object
+     representation.  The special form `c-declare' adds c-declaration
+     (which must be a string containing the C declarations) to the C
+     file.  This string is copied to the C file on a new line so it can
+     start with preprocessor directives.  All types of C declarations
+     are allowed (including type declarations, variable declarations,
+     function declarations, `#include' directives, `#define's, and so
+     on).  These declarations are visible to subsequent `c-declare's,
+     `c-initialize's, and `c-lambda's, and `c-define's in the same
+     module.  The most common use of this special form is to declare
+     the external functions that are referenced in `c-lambda' special
+     forms.  Such functions must either be declared explicitly or by
+     including a header file which contains the appropriate C
+     declarations.
 
-     (c-declare c-declaration)
+     The `c-declare' special form does not return a value.  It can only
+     appear at top level.
 
-   Initially, the C file produced by `gsc' contains only an `#include'
-of `gambit.h'.  This header file provides a number of macro and
-procedure declarations to access the Scheme object representation.  The
-special form `c-declare' adds c-declaration (which must be a string
-containing the C declarations) to the C file.  This string is copied to
-the C file on a new line so it can start with preprocessor directives.
-All types of C declarations are allowed (including type declarations,
-variable declarations, function declarations, `#include' directives,
-`#define's, and so on).  These declarations are visible to subsequent
-`c-declare's, `c-initialize's, and `c-lambda's, and `c-define's in the
-same module.  The most common use of this special form is to declare
-the external functions that are referenced in `c-lambda' special forms.
-Such functions must either be declared explicitly or by including a
-header file which contains the appropriate C declarations.
+     For example:
 
-   The `c-declare' special form does not return a value.  It can only
-appear at top level.
+          (c-declare #<<c-declare-end
 
-   For example:
+          #include <stdio.h>
 
-     (c-declare #<<c-declare-end
+          extern char *getlogin ();
 
-     #include <stdio.h>
+          #ifdef sparc
+          char *host = "sparc";
+          #else
+          char *host = "unknown";
+          #endif
 
-     extern char *getlogin ();
+          FILE *tfile;
 
-     #ifdef sparc
-     char *host = "sparc";
-     #else
-     char *host = "unknown";
-     #endif
+          c-declare-end
+          )
 
-     FILE *tfile;
-
-     c-declare-end
-     )
 
 
 File: gambit-c.info,  Node: c-initialize,  Next: c-lambda,  Prev: c-declare,  Up: C-interface
@@ -3946,26 +5061,24 @@ File: gambit-c.info,  Node: c-initialize,  Next: c-lambda,  Prev: c-declare,  Up
 19.3 The `c-initialize' special form
 ====================================
 
-Synopsis:
+ -- special form: c-initialize c-code
+     Just after the program is loaded and before control is passed to
+     the Scheme code, each C file is initialized by calling its
+     associated initialization function.  The body of this function is
+     normally empty but it can be extended by using the `c-initialize'
+     form.  Each occurence of the `c-initialize' form adds code to the
+     body of the initialization function in the order of appearance in
+     the source file.  c-code must be a string containing the C code to
+     execute.  This string is copied to the C file on a new line so it
+     can start with preprocessor directives.
 
-     (c-initialize c-code)
+     The `c-initialize' special form does not return a value.  It can
+     only appear at top level.
 
-   Just after the program is loaded and before control is passed to the
-Scheme code, each C file is initialized by calling its associated
-initialization function.  The body of this function is normally empty
-but it can be extended by using the `c-initialize' form.  Each
-occurence of the `c-initialize' form adds code to the body of the
-initialization function in the order of appearance in the source file.
-c-code must be a string containing the C code to execute.  This string
-is copied to the C file on a new line so it can start with preprocessor
-directives.
+     For example:
 
-   The `c-initialize' special form does not return a value.  It can
-only appear at top level.
+          (c-initialize "tfile = tmpfile ();")
 
-   For example:
-
-     (c-initialize "tfile = tmpfile ();")
 
 
 File: gambit-c.info,  Node: c-lambda,  Next: c-define,  Prev: c-initialize,  Up: C-interface
@@ -3973,110 +5086,114 @@ File: gambit-c.info,  Node: c-lambda,  Next: c-define,  Prev: c-initialize,  Up:
 19.4 The `c-lambda' special form
 ================================
 
-Synopsis:
+ -- special form: c-lambda (type1...) result-type c-name-or-code
+     The `c-lambda' special form makes it possible to create a Scheme
+     procedure that will act as a representative of some C function or
+     C code sequence.  The first subform is a list containing the type
+     of each argument.  The type of the function's result is given
+     next.  Finally, the last subform is a string that either contains
+     the name of the C function to call or some sequence of C code to
+     execute.  Variadic C functions are not supported.  The resulting
+     Scheme procedure takes exactly the number of arguments specified
+     and delivers them in the same order to the C function.  When the
+     Scheme procedure is called, the arguments will be converted to
+     their C representation and then the C function will be called.
+     The result returned by the C function will be converted to its
+     Scheme representation and this value will be returned from the
+     Scheme procedure call.  An error will be signaled if some
+     conversion is not possible.  The temporary memory allocated from
+     the C heap for the conversion of the arguments and result will be
+     reclaimed whether there is an error or not.
 
-     (c-lambda (type1...) result-type c-name-or-code)
+     When c-name-or-code is not a valid C identifier, it is treated as
+     an arbitrary piece of C code.  Within the C code the variables
+     `___arg1', `___arg2', etc. can be referenced to access the
+     converted arguments.  Similarly, the result to be returned from the
+     call should be assigned to the variable `___result' except when
+     the result is of type `struct', `union', `type', `pointer',
+     `nonnull-pointer', `function' or `nonnull-function' in which case
+     a pointer must be assigned to the variable `___result_voidstar'
+     which is of type `void*'.  For results of type `pointer',
+     `nonnull-pointer', `function' and `nonnull-function', the value
+     assigned to the variable `___result_voidstar' must be the pointer
+     or function cast to `void*'.  For results of type `struct',
+     `union', and `type', the value assigned to the variable
+     `___result_voidstar' must be a pointer to a memory allocated block
+     containing a copy of the result.  Note that this block will be
+     reclaimed by the RELEASE-FUNCTION associated with the type.  If no
+     result needs to be returned, the result-type should be `void' and
+     no assignment to the variable `___result' or `___result_voidstar'
+     should take place.  Note that the C code should not contain
+     `return' statements as this is meaningless.  Control must always
+     fall off the end of the C code.  The C code is copied to the C
+     file on a new line so it can start with preprocessor directives.
+     Moreover the C code is always placed at the head of a compound
+     statement whose lifetime encloses the C to Scheme conversion of
+     the result.  Consequently, temporary storage (strings in
+     particular) declared at the head of the C code can be returned by
+     assigning them to `___result' or `___result_voidstar'.  In the
+     c-name-or-code, the macro `___AT_END' may be defined as the piece
+     of C code to execute before control is returned to Scheme but
+     after the result is converted to its Scheme representation.  This
+     is mainly useful to deallocate temporary storage contained in the
+     result.
 
-   The `c-lambda' special form makes it possible to create a Scheme
-procedure that will act as a representative of some C function or C code
-sequence.  The first subform is a list containing the type of each
-argument.  The type of the function's result is given next.  Finally,
-the last subform is a string that either contains the name of the C
-function to call or some sequence of C code to execute.  Variadic C
-functions are not supported.  The resulting Scheme procedure takes
-exactly the number of arguments specified and delivers them in the same
-order to the C function.  When the Scheme procedure is called, the
-arguments will be converted to their C representation and then the C
-function will be called.  The result returned by the C function will be
-converted to its Scheme representation and this value will be returned
-from the Scheme procedure call.  An error will be signaled if some
-conversion is not possible.  The temporary memory allocated from the C
-heap for the conversion of the arguments and result will be reclaimed
-whether there is an error or not.
+     When passed to the Scheme environment, the C `void' type is
+     converted to the void object.
 
-   When c-name-or-code is not a valid C identifier, it is treated as an
-arbitrary piece of C code.  Within the C code the variables `___arg1',
-`___arg2', etc. can be referenced to access the converted arguments.
-Similarly, the result to be returned from the call should be assigned
-to the variable `___result' except when the result is of type `struct',
-`union', `type', `pointer', `nonnull-pointer', `function' or
-`nonnull-function' in which case a pointer must be assigned to the
-variable `___result_voidstar' which is of type `void*'.  For results of
-type `pointer', `nonnull-pointer', `function' and `nonnull-function',
-the value assigned to the variable `___result_voidstar' must be the
-pointer or function cast to `void*'.  For results of type `struct',
-`union', and `type', the value assigned to the variable
-`___result_voidstar' must be a pointer to a memory allocated block
-containing a copy of the result.  Note that this block will be
-reclaimed by the RELEASE-FUNCTION associated with the type.  If no
-result needs to be returned, the result-type should be `void' and no
-assignment to the variable `___result' or `___result_voidstar' should
-take place.  Note that the C code should not contain `return'
-statements as this is meaningless.  Control must always fall off the
-end of the C code.  The C code is copied to the C file on a new line so
-it can start with preprocessor directives.  Moreover the C code is
-always placed at the head of a compound statement whose lifetime
-encloses the C to Scheme conversion of the result.  Consequently,
-temporary storage (strings in particular) declared at the head of the C
-code can be returned by assigning them to `___result' or
-`___result_voidstar'.  In the c-name-or-code, the macro `___AT_END' may
-be defined as the piece of C code to execute before control is returned
-to Scheme but after the result is converted to its Scheme
-representation.  This is mainly useful to deallocate temporary storage
-contained in the result.
+     For example:
 
-   When passed to the Scheme environment, the C `void' type is
-converted to the void object.
+          (define fopen
+            (c-lambda (nonnull-char-string nonnull-char-string)
+                      (pointer "FILE")
+             "fopen"))
 
-   For example:
+          (define fgetc
+            (c-lambda ((pointer "FILE"))
+                      int
+             "fgetc"))
 
-     (define fopen
-       (c-lambda (nonnull-char-string nonnull-char-string)
-                 (pointer "FILE")
-        "fopen"))
+          (let ((f (fopen "datafile" "r")))
+            (if f (write (fgetc f))))
 
-     (define fgetc
-       (c-lambda ((pointer "FILE"))
-                 int
-        "fgetc"))
+          (define char-code
+            (c-lambda (char) int "___result = ___arg1;"))
 
-     (let ((f (fopen "datafile" "r")))
-       (if f (write (fgetc f))))
+          (define host
+            ((c-lambda () nonnull-char-string "___result = host;")))
 
-     (define char-code (c-lambda (char) int "___result = ___arg1;"))
+          (define stdin
+            ((c-lambda () (pointer "FILE") "___result_voidstar = stdin;")))
 
-     (define host ((c-lambda () nonnull-char-string "___result = host;")))
+          ((c-lambda () void
+          #<<c-lambda-end
+            printf( "hello\n" );
+            printf( "world\n" );
+          c-lambda-end
+          ))
 
-     (define stdin ((c-lambda () (pointer "FILE") "___result = stdin;")))
+          (define pack-1-char
+            (c-lambda (char)
+                      nonnull-char-string
+          #<<c-lambda-end
+             ___result = malloc (2);
+             if (___result != NULL) { ___result[0] = ___arg1; ___result[1] = 0; }
+             #define ___AT_END if (___result != NULL) free (___result);
+          c-lambda-end
+          ))
 
-     ((c-lambda () void
-     #<<c-lambda-end
-       printf( "hello\n" );
-       printf( "world\n" );
-     c-lambda-end
-     ))
+          (define pack-2-chars
+            (c-lambda (char char)
+                      nonnull-char-string
+          #<<c-lambda-end
+             char s[3];
+             s[0] = ___arg1;
+             s[1] = ___arg2;
+             s[2] = 0;
+             ___result = s;
+          c-lambda-end
+          ))
 
-     (define pack-1-char
-       (c-lambda (char)
-                 nonnull-char-string
-     #<<c-lambda-end
-        ___result = malloc (2);
-        if (___result != NULL) { ___result[0] = ___arg1; ___result[1] = 0; }
-        #define ___AT_END if (___result != NULL) free (___result);
-     c-lambda-end
-     ))
-
-     (define pack-2-chars
-       (c-lambda (char char)
-                 nonnull-char-string
-     #<<c-lambda-end
-        char s[3];
-        s[0] = ___arg1;
-        s[1] = ___arg2;
-        s[2] = 0;
-        ___result = s;
-     c-lambda-end
-     ))
 
 
 File: gambit-c.info,  Node: c-define,  Next: c-define-type,  Prev: c-lambda,  Up: C-interface
@@ -4084,57 +5201,58 @@ File: gambit-c.info,  Node: c-define,  Next: c-define-type,  Prev: c-lambda,  Up
 19.5 The `c-define' special form
 ================================
 
-Synopsis:
+ -- special form: c-define (variable define-formals) (type1...)
+          result-type c-name scope body
+     The `c-define' special form makes it possible to create a C
+     function that will act as a representative of some Scheme
+     procedure.  A C function named c-name as well as a Scheme
+     procedure bound to the variable variable are defined.  The
+     parameters of the Scheme procedure are define-formals and its body
+     is at the end of the form.  The type of each argument of the C
+     function, its result type and c-name (which must be a string) are
+     specified after the parameter specification of the Scheme
+     procedure.  When the C function c-name is called from C, its
+     arguments are converted to their Scheme representation and passed
+     to the Scheme procedure.  The result of the Scheme procedure is
+     then converted to its C representation and the C function c-name
+     returns it to its caller.
 
-     (c-define (variable define-formals) (type1...) result-type c-name scope
-       body)
+     The scope of the C function can be changed with the scope
+     parameter, which must be a string.  This string is placed
+     immediately before the declaration of the C function.  So if scope
+     is the string `"static"', the scope of c-name is local to the
+     module it is in, whereas if scope is the empty string, c-name is
+     visible from other modules.
 
-   The `c-define' special form makes it possible to create a C function
-that will act as a representative of some Scheme procedure.  A C
-function named c-name as well as a Scheme procedure bound to the
-variable variable are defined.  The parameters of the Scheme procedure
-are define-formals and its body is at the end of the form.  The type of
-each argument of the C function, its result type and c-name (which must
-be a string) are specified after the parameter specification of the
-Scheme procedure.  When the C function c-name is called from C, its
-arguments are converted to their Scheme representation and passed to
-the Scheme procedure.  The result of the Scheme procedure is then
-converted to its C representation and the C function c-name returns it
-to its caller.
+     The `c-define' special form does not return a value.  It can only
+     appear at top level.
 
-   The scope of the C function can be changed with the scope parameter,
-which must be a string.  This string is placed immediately before the
-declaration of the C function.  So if scope is the string `"static"',
-the scope of c-name is local to the module it is in, whereas if scope
-is the empty string, c-name is visible from other modules.
+     For example:
 
-   The `c-define' special form does not return a value.  It can only
-appear at top level.
+          (c-define (proc x #!optional (y x) #!rest z) (int int char float) int "f" ""
+            (write (cons x (cons y z)))
+            (newline)
+            (+ x y))
 
-   For example:
+          (proc 1 2 #\x 1.5) => 3 and prints (1 2 #\x 1.5)
+          (proc 1)           => 2 and prints (1 1)
 
-     (c-define (proc x #!optional (y x) #!rest z) (int int char float) int "f" ""
-       (write (cons x (cons y z)))
-       (newline)
-       (+ x y))
+          ; if f is called from C with the call  f (1, 2, 'x', 1.5)
+          ; the value 3 is returned and (1 2 #\x 1.5) is printed.
+          ; f has to be called with 4 arguments.
 
-     (proc 1 2 #\x 1.5) => 3 and prints (1 2 #\x 1.5)
-     (proc 1)           => 2 and prints (1 1)
+     The `c-define' special form is particularly useful when the
+     driving part of an application is written in C and Scheme
+     procedures are called directly from C.  The Scheme part of the
+     application is in a sense a "server" that is providing services to
+     the C part.  The Scheme procedures that are to be called from C
+     need to be defined using the `c-define' special form.  Before it
+     can be used, the Scheme part must be initialized with a call to
+     the function `___setup'.  Before the program terminates, it must
+     call the function `___cleanup' so that the Scheme part may do final
+     cleanup.  A sample application is given in the file
+     `tests/server.scm'.
 
-     ; if f is called from C with the call  f (1, 2, 'x', 1.5)
-     ; the value 3 is returned and (1 2 #\x 1.5) is printed.
-     ; f has to be called with 4 arguments.
-
-   The `c-define' special form is particularly useful when the driving
-part of an application is written in C and Scheme procedures are called
-directly from C.  The Scheme part of the application is in a sense a
-"server" that is providing services to the C part.  The Scheme
-procedures that are to be called from C need to be defined using the
-`c-define' special form.  Before it can be used, the Scheme part must
-be initialized with a call to the function `___setup'.  Before the
-program terminates, it must call the function `___cleanup' so that the
-Scheme part may do final cleanup.  A sample application is given in the
-file `tests/server.scm'.
 
 
 File: gambit-c.info,  Node: c-define-type,  Next: continuations,  Prev: c-define,  Up: C-interface
@@ -4142,436 +5260,439 @@ File: gambit-c.info,  Node: c-define-type,  Next: continuations,  Prev: c-define
 19.6 The `c-define-type' special form
 =====================================
 
-Synopsis:
-
-     (c-define-type name type [c-to-scheme scheme-to-c [cleanup]])
-
-   This form associates the type identifier name to the C type type.
-The name must not clash with predefined types (e.g. `char-string',
-`ISO-8859-1', etc.) or with types previously defined with
-`c-define-type' in the same file.  The `c-define-type' special form
-does not return a value.  It can only appear at top level.
-
-   If only the two parameters name and type are supplied then after
-this definition, the use of name in a type specification is synonymous
-to type.
-
-   For example:
-
-     (c-define-type FILE "FILE")
-     (c-define-type FILE* (pointer FILE))
-     (c-define-type time-struct-ptr (pointer (struct "tms")))
-     (define fopen (c-lambda (char-string char-string) FILE* "fopen"))
-     (define fgetc (c-lambda (FILE*) int "fgetc"))
-
-   Note that identifiers are not case-sensitive in standard Scheme but
-it is good programming practice to use a name with the same case as in
-C.
-
-   If four or more parameters are supplied, then type must be a string
-naming the C type, c-to-scheme and scheme-to-c must be strings
-suffixing the C macros that convert data of that type between C and
-Scheme.  If cleanup is supplied it must be a boolean indicating whether
-it is necessary to perform a cleanup operation (such as freeing memory)
-when data of that type is converted from Scheme to C (it defaults to
-`#t').  The cleanup information is used when the C stack is unwound due
-to a continuation invocation (see *Note continuations::).  Although it
-is safe to always specify `#t', it is more efficient in time and space
-to specify `#f' because the unwinding mechanism can skip C-interface
-frames which only contain conversions of data types requiring no
-cleanup.  Two pairs of C macros need to be defined for conversions
-performed by `c-lambda' forms and two pairs for conversions performed
-by `c-define' forms:
-
-     ___BEGIN_CFUN_scheme-to-c(___SCMOBJ, type, int)
-     ___END_CFUN_scheme-to-c(___SCMOBJ, type, int)
-
-     ___BEGIN_CFUN_c-to-scheme(type, ___SCMOBJ)
-     ___END_CFUN_c-to-scheme(type, ___SCMOBJ)
-
-     ___BEGIN_SFUN_c-to-scheme(type, ___SCMOBJ, int)
-     ___END_SFUN_c-to-scheme(type, ___SCMOBJ, int)
-
-     ___BEGIN_SFUN_scheme-to-c(___SCMOBJ, type)
-     ___END_SFUN_scheme-to-c(___SCMOBJ, type)
-
-   The macros prefixed with `___BEGIN' perform the conversion and those
-prefixed with `___END' perform any cleanup necessary (such as freeing
-memory temporarily allocated for the conversion).  The macro
-`___END_CFUN_scheme-to-c' must free the result of the conversion if it
-is memory allocated, and `___END_SFUN_scheme-to-c' must not (i.e. it is
-the responsibility of the caller to free the result).
-
-   The first parameter of these macros is the C variable that contains
-the value to be converted, and the second parameter is the C variable in
-which to store the converted value.  The third parameter, when present,
-is the index (starting at 1) of the parameter of the `c-lambda' or
-`c-define' form that is being converted (this is useful for reporting
-precise error information when a conversion is impossible).
-
-   To allow for type checking, the first three `___BEGIN' macros must
-expand to an unterminated compound statement prefixed by an `if',
-conditional on the absence of type check error:
-
-     if ((___err = CONVERSION_OPERATION) == ___FIX(___NO_ERR)) {
-
-   The last `___BEGIN' macro must expand to an unterminated compound
-statement:
-
-     { ___err = CONVERSION_OPERATION;
-
-   If type check errors are impossible then a `___BEGIN' macro can
-simply expand to an unterminated compound statement performing the
-conversion:
-
-     { CONVERSION_OPERATION;
-
-   The `___END' macros must expand to a statement, or to nothing if no
-cleanup is required, followed by a closing brace (to terminate the
-compound statement started at the corresponding `___BEGIN' macro).
-
-   The CONVERSION_OPERATION is typically a function call that returns
-an error code value of type `___SCMOBJ' (the error codes are defined in
-`gambit.h', and the error code `___FIX(___UNKNOWN_ERR)' is available
-for generic errors).  CONVERSION_OPERATION can also set the variable
-`___errmsg' of type `___SCMOBJ' to a specific Scheme string error
-message.
-
-   Below is a simple example showing how to interface to an `EBCDIC'
-character type.  Memory allocation is not needed for conversion and type
-check errors are impossible when converting EBCDIC to Scheme characters,
-but they are possible when converting from Scheme characters to EBCDIC
-since Gambit supports Unicode characters.
-
-     (c-declare #<<c-declare-end
-
-     typedef char EBCDIC; /* EBCDIC encoded characters */
-
-     void put_char (EBCDIC c) { ... } /* EBCDIC I/O functions */
-     EBCDIC get_char (void) { ... }
-
-     char EBCDIC_to_ISO_8859_1[256] = { ... }; /* conversion tables */
-     char ISO_8859_1_to_EBCDIC[256] = { ... };
-
-     ___SCMOBJ SCMOBJ_to_EBCDIC (___SCMOBJ src, EBCDIC *dst)
-     {
-       int x = ___INT(src); /* convert from Scheme character to int */
-       if (x > 255) return ___FIX(___UNKNOWN_ERR);
-       *dst = ISO_8859_1_to_EBCDIC[x];
-       return ___FIX(___NO_ERR);
-     }
-
-     #define ___BEGIN_CFUN_SCMOBJ_to_EBCDIC(src,dst,i) \
-     if ((___err = SCMOBJ_to_EBCDIC (src, &dst)) == ___FIX(___NO_ERR)) {
-     #define ___END_CFUN_SCMOBJ_to_EBCDIC(src,dst,i) }
-
-     #define ___BEGIN_CFUN_EBCDIC_to_SCMOBJ(src,dst) \
-     { dst = ___CHR(EBCDIC_to_ISO_8859_1[src]);
-     #define ___END_CFUN_EBCDIC_to_SCMOBJ(src,dst) }
-
-     #define ___BEGIN_SFUN_EBCDIC_to_SCMOBJ(src,dst,i) \
-     { dst = ___CHR(EBCDIC_to_ISO_8859_1[src]);
-     #define ___END_SFUN_EBCDIC_to_SCMOBJ(src,dst,i) }
-
-     #define ___BEGIN_SFUN_SCMOBJ_to_EBCDIC(src,dst) \
-     { ___err = SCMOBJ_to_EBCDIC (src, &dst);
-     #define ___END_SFUN_SCMOBJ_to_EBCDIC(src,dst) }
-
-     c-declare-end
-     )
-
-     (c-define-type EBCDIC "EBCDIC" "EBCDIC_to_SCMOBJ" "SCMOBJ_to_EBCDIC" #f)
-
-     (define put-char (c-lambda (EBCDIC) void "put_char"))
-     (define get-char (c-lambda () EBCDIC "get_char"))
-
-     (c-define (write-EBCDIC c) (EBCDIC) void "write_EBCDIC" ""
-       (write-char c))
-
-     (c-define (read-EBCDIC) () EBCDIC "read_EBCDIC" ""
-       (read-char))
-
-   Below is a more complex example that requires memory allocation when
-converting from C to Scheme.  It is an interface to a 2D `point' type
-which is represented in Scheme by a pair of integers.  The conversion
-of the `x' and `y' components is done by calls to the conversion macros
-for the `int' type (defined in `gambit.h').  Note that no cleanup is
-necessary when converting from Scheme to C (i.e. the last parameter of
-the `c-define-type' is `#f').
-
-     (c-declare #<<c-declare-end
-
-     typedef struct { int x, y; } point;
-
-     void line_to (point p) { ... }
-     point get_mouse (void) { ... }
-     point add_points (point p1, point p2) { ... }
-
-     ___SCMOBJ SCMOBJ_to_POINT (___SCMOBJ src, point *dst, int arg_num)
-     {
-       ___SCMOBJ ___err = ___FIX(___NO_ERR);
-       if (!___PAIRP(src))
-         ___err = ___FIX(___UNKNOWN_ERR);
-       else
-         {
-           ___SCMOBJ car = ___CAR(src);
-           ___SCMOBJ cdr = ___CDR(src);
-           ___BEGIN_CFUN_SCMOBJ_TO_INT(car,dst->x,arg_num)
-           ___BEGIN_CFUN_SCMOBJ_TO_INT(cdr,dst->y,arg_num)
-           ___END_CFUN_SCMOBJ_TO_INT(cdr,dst->y,arg_num)
-           ___END_CFUN_SCMOBJ_TO_INT(car,dst->x,arg_num)
-         }
-       return ___err;
-     }
-
-     ___SCMOBJ POINT_to_SCMOBJ (point src, ___SCMOBJ *dst, int arg_num)
-     {
-       ___SCMOBJ ___err = ___FIX(___NO_ERR);
-       ___SCMOBJ x_scmobj;
-       ___SCMOBJ y_scmobj;
-       ___BEGIN_SFUN_INT_TO_SCMOBJ(src.x,x_scmobj,arg_num)
-       ___BEGIN_SFUN_INT_TO_SCMOBJ(src.y,y_scmobj,arg_num)
-       *dst = ___EXT(___make_pair) (x_scmobj, y_scmobj, ___STILL);
-       if (___FIXNUMP(*dst))
-         ___err = *dst; /* return allocation error */
-       ___END_SFUN_INT_TO_SCMOBJ(src.y,y_scmobj,arg_num)
-       ___END_SFUN_INT_TO_SCMOBJ(src.x,x_scmobj,arg_num)
-       return ___err;
-     }
-
-     #define ___BEGIN_CFUN_SCMOBJ_to_POINT(src,dst,i) \
-     if ((___err = SCMOBJ_to_POINT (src, &dst, i)) == ___FIX(___NO_ERR)) {
-     #define ___END_CFUN_SCMOBJ_to_POINT(src,dst,i) }
-
-     #define ___BEGIN_CFUN_POINT_to_SCMOBJ(src,dst) \
-     if ((___err = POINT_to_SCMOBJ (src, &dst, ___RETURN_POS)) == ___FIX(___NO_ERR)) {
-     #define ___END_CFUN_POINT_to_SCMOBJ(src,dst) \
-     ___EXT(___release_scmobj) (dst); }
-
-     #define ___BEGIN_SFUN_POINT_to_SCMOBJ(src,dst,i) \
-     if ((___err = POINT_to_SCMOBJ (src, &dst, i)) == ___FIX(___NO_ERR)) {
-     #define ___END_SFUN_POINT_to_SCMOBJ(src,dst,i) \
-     ___EXT(___release_scmobj) (dst); }
-
-     #define ___BEGIN_SFUN_SCMOBJ_to_POINT(src,dst) \
-     { ___err = SCMOBJ_to_POINT (src, &dst, ___RETURN_POS);
-     #define ___END_SFUN_SCMOBJ_to_POINT(src,dst) }
-
-     c-declare-end
-     )
-
-     (c-define-type point "point" "POINT_to_SCMOBJ" "SCMOBJ_to_POINT" #f)
-
-     (define line-to (c-lambda (point) void "line_to"))
-     (define get-mouse (c-lambda () point "get_mouse"))
-     (define add-points (c-lambda (point point) point "add_points"))
-
-     (c-define (write-point p) (point) void "write_point" ""
-       (write p))
-
-     (c-define (read-point) () point "read_point" ""
-       (read))
-
-   An example that requires memory allocation when converting from C to
-Scheme and Scheme to C is shown below.  It is an interface to a
-"null-terminated array of strings" type which is represented in Scheme
-by a list of strings.  Note that some cleanup is necessary when
-converting from Scheme to C.
-
-     (c-declare #<<c-declare-end
-
-     #include <stdlib.h>
-     #include <unistd.h>
-
-     extern char **environ;
-
-     char **get_environ (void) { return environ; }
-
-     void free_strings (char **strings)
-     {
-       char **ptr = strings;
-       while (*ptr != NULL)
-         {
-           ___EXT(___release_string) (*ptr);
-           ptr++;
-         }
-       free (strings);
-     }
-
-     ___SCMOBJ SCMOBJ_to_STRINGS (___SCMOBJ src, char ***dst, int arg_num)
-     {
-       /*
-        * Src is a list of Scheme strings.  Dst will be a null terminated
-        * array of C strings.
-        */
-
-       int i;
-       ___SCMOBJ lst = src;
-       int len = 4; /* start with a small result array */
-       char **result = (char**) malloc (len * sizeof (char*));
-
-       if (result == NULL)
-         return ___FIX(___HEAP_OVERFLOW_ERR);
-
-       i = 0;
-       result[i] = NULL; /* always keep array null terminated */
-
-       while (___PAIRP(lst))
-         {
-           ___SCMOBJ scm_str = ___CAR(lst);
-           char *c_str;
-           ___SCMOBJ ___err;
-
-           if (i >= len-1) /* need to grow the result array? */
-             {
-               char **new_result;
-               int j;
-
-               len = len * 3 / 2;
-               new_result = (char**) malloc (len * sizeof (char*));
-               if (new_result == NULL)
-                 {
-                   free_strings (result);
-                   return ___FIX(___HEAP_OVERFLOW_ERR);
-                 }
-               for (j=i; j>=0; j--)
-                 new_result[j] = result[j];
-               free (result);
-               result = new_result;
-             }
-
-           ___err = ___EXT(___SCMOBJ_to_CHARSTRING) (scm_str, &c_str, arg_num);
-
-           if (___err != ___FIX(___NO_ERR))
-             {
-               free_strings (result);
-               return ___err;
-             }
-
-           result[i++] = c_str;
-           result[i] = NULL;
-           lst = ___CDR(lst);
-         }
-
-       if (!___NULLP(lst))
-         {
-           free_strings (result);
-           return ___FIX(___UNKNOWN_ERR);
-         }
-
-       /*
-        * Note that the caller is responsible for calling free_strings
-        * when it is done with the result.
-        */
-
-       *dst = result;
-       return ___FIX(___NO_ERR);
-     }
-
-     ___SCMOBJ STRINGS_to_SCMOBJ (char **src, ___SCMOBJ *dst, int arg_num)
-     {
-       ___SCMOBJ ___err = ___FIX(___NO_ERR);
-       ___SCMOBJ result = ___NUL; /* start with the empty list */
-       int i = 0;
-
-       while (src[i] != NULL)
-         i++;
-
-       /* build the list of strings starting at the tail */
-
-       while (--i >= 0)
-         {
-           ___SCMOBJ scm_str;
-           ___SCMOBJ new_result;
-
-           /*
-            * Invariant: result is either the empty list or a ___STILL pair
-            * with reference count equal to 1.  This is important because
-            * it is possible that ___CHARSTRING_to_SCMOBJ and ___make_pair
-            * will invoke the garbage collector and we don't want the
-            * reference in result to become invalid (which would be the
-            * case if result was a ___MOVABLE pair or if it had a zero
-            * reference count).
-            */
-
-           ___err = ___EXT(___CHARSTRING_to_SCMOBJ) (src[i], &scm_str, arg_num);
-
-           if (___err != ___FIX(___NO_ERR))
-             {
-               ___EXT(___release_scmobj) (result); /* allow GC to reclaim result */
-               return ___FIX(___UNKNOWN_ERR);
-             }
-
-           /*
-            * Note that scm_str will be a ___STILL object with reference
-            * count equal to 1, so there is no risk that it will be
-            * reclaimed or moved if ___make_pair invokes the garbage
-            * collector.
-            */
-
-           new_result = ___EXT(___make_pair) (scm_str, result, ___STILL);
-
-           /*
-            * We can zero the reference count of scm_str and result (if
-            * not the empty list) because the pair now references these
-            * objects and the pair is reachable (it can't be reclaimed
-            * or moved by the garbage collector).
-            */
-
-           ___EXT(___release_scmobj) (scm_str);
-           ___EXT(___release_scmobj) (result);
-
-           result = new_result;
-
-           if (___FIXNUMP(result))
-             return result; /* allocation failed */
-         }
-
-       /*
-        * Note that result is either the empty list or a ___STILL pair
-        * with a reference count equal to 1.  There will be a call to
-        * ___release_scmobj later on (in ___END_CFUN_STRINGS_to_SCMOBJ
-        * or ___END_SFUN_STRINGS_to_SCMOBJ) that will allow the garbage
-        * collector to reclaim the whole list of strings when the Scheme
-        * world no longer references it.
-        */
-
-       *dst = result;
-       return ___FIX(___NO_ERR);
-     }
-
-     #define ___BEGIN_CFUN_SCMOBJ_to_STRINGS(src,dst,i) \
-     if ((___err = SCMOBJ_to_STRINGS (src, &dst, i)) == ___FIX(___NO_ERR)) {
-     #define ___END_CFUN_SCMOBJ_to_STRINGS(src,dst,i) \
-     free_strings (dst); }
-
-     #define ___BEGIN_CFUN_STRINGS_to_SCMOBJ(src,dst) \
-     if ((___err = STRINGS_to_SCMOBJ (src, &dst, ___RETURN_POS)) == ___FIX(___NO_ERR)) {
-     #define ___END_CFUN_STRINGS_to_SCMOBJ(src,dst) \
-     ___EXT(___release_scmobj) (dst); }
-
-     #define ___BEGIN_SFUN_STRINGS_to_SCMOBJ(src,dst,i) \
-     if ((___err = STRINGS_to_SCMOBJ (src, &dst, i)) == ___FIX(___NO_ERR)) {
-     #define ___END_SFUN_STRINGS_to_SCMOBJ(src,dst,i) \
-     ___EXT(___release_scmobj) (dst); }
-
-     #define ___BEGIN_SFUN_SCMOBJ_to_STRINGS(src,dst) \
-     { ___err = SCMOBJ_to_STRINGS (src, &dst, ___RETURN_POS);
-     #define ___END_SFUN_SCMOBJ_to_STRINGS(src,dst) }
-
-     c-declare-end
-     )
-
-     (c-define-type char** "char**" "STRINGS_to_SCMOBJ" "SCMOBJ_to_STRINGS")
-
-     (define execv (c-lambda (char-string char**) int "execv"))
-     (define get-environ (c-lambda () char** "get_environ"))
-
-     (c-define (write-strings x) (char**) void "write_strings" ""
-       (write x))
-
-     (c-define (read-strings) () char** "read_strings" ""
-       (read))
+ -- special form: c-define-type name type [c-to-scheme scheme-to-c
+          [cleanup]]
+     This form associates the type identifier name to the C type type.
+     The name must not clash with predefined types (e.g. `char-string',
+     `ISO-8859-1', etc.) or with types previously defined with
+     `c-define-type' in the same file.  The `c-define-type' special
+     form does not return a value.  It can only appear at top level.
+
+     If only the two parameters name and type are supplied then after
+     this definition, the use of name in a type specification is
+     synonymous to type.
+
+     For example:
+
+          (c-define-type FILE "FILE")
+          (c-define-type FILE* (pointer FILE))
+          (c-define-type time-struct-ptr (pointer (struct "tms")))
+          (define fopen (c-lambda (char-string char-string) FILE* "fopen"))
+          (define fgetc (c-lambda (FILE*) int "fgetc"))
+
+     Note that identifiers are not case-sensitive in standard Scheme
+     but it is good programming practice to use a name with the same
+     case as in C.
+
+     If four or more parameters are supplied, then type must be a
+     string naming the C type, c-to-scheme and scheme-to-c must be
+     strings suffixing the C macros that convert data of that type
+     between C and Scheme.  If cleanup is supplied it must be a boolean
+     indicating whether it is necessary to perform a cleanup operation
+     (such as freeing memory) when data of that type is converted from
+     Scheme to C (it defaults to `#t').  The cleanup information is
+     used when the C stack is unwound due to a continuation invocation
+     (see *note continuations::).  Although it is safe to always
+     specify `#t', it is more efficient in time and space to specify
+     `#f' because the unwinding mechanism can skip C-interface frames
+     which only contain conversions of data types requiring no cleanup.
+     Two pairs of C macros need to be defined for conversions performed
+     by `c-lambda' forms and two pairs for conversions performed by
+     `c-define' forms:
+
+          ___BEGIN_CFUN_scheme-to-c(___SCMOBJ, type, int)
+          ___END_CFUN_scheme-to-c(___SCMOBJ, type, int)
+
+          ___BEGIN_CFUN_c-to-scheme(type, ___SCMOBJ)
+          ___END_CFUN_c-to-scheme(type, ___SCMOBJ)
+
+          ___BEGIN_SFUN_c-to-scheme(type, ___SCMOBJ, int)
+          ___END_SFUN_c-to-scheme(type, ___SCMOBJ, int)
+
+          ___BEGIN_SFUN_scheme-to-c(___SCMOBJ, type)
+          ___END_SFUN_scheme-to-c(___SCMOBJ, type)
+
+     The macros prefixed with `___BEGIN' perform the conversion and
+     those prefixed with `___END' perform any cleanup necessary (such as
+     freeing memory temporarily allocated for the conversion).  The
+     macro `___END_CFUN_scheme-to-c' must free the result of the
+     conversion if it is memory allocated, and
+     `___END_SFUN_scheme-to-c' must not (i.e. it is the responsibility
+     of the caller to free the result).
+
+     The first parameter of these macros is the C variable that
+     contains the value to be converted, and the second parameter is
+     the C variable in which to store the converted value.  The third
+     parameter, when present, is the index (starting at 1) of the
+     parameter of the `c-lambda' or `c-define' form that is being
+     converted (this is useful for reporting precise error information
+     when a conversion is impossible).
+
+     To allow for type checking, the first three `___BEGIN' macros must
+     expand to an unterminated compound statement prefixed by an `if',
+     conditional on the absence of type check error:
+
+          if ((___err = CONVERSION_OPERATION) == ___FIX(___NO_ERR)) {
+
+     The last `___BEGIN' macro must expand to an unterminated compound
+     statement:
+
+          { ___err = CONVERSION_OPERATION;
+
+     If type check errors are impossible then a `___BEGIN' macro can
+     simply expand to an unterminated compound statement performing the
+     conversion:
+
+          { CONVERSION_OPERATION;
+
+     The `___END' macros must expand to a statement, or to nothing if no
+     cleanup is required, followed by a closing brace (to terminate the
+     compound statement started at the corresponding `___BEGIN' macro).
+
+     The CONVERSION_OPERATION is typically a function call that returns
+     an error code value of type `___SCMOBJ' (the error codes are
+     defined in `gambit.h', and the error code `___FIX(___UNKNOWN_ERR)'
+     is available for generic errors).  CONVERSION_OPERATION can also
+     set the variable `___errmsg' of type `___SCMOBJ' to a specific
+     Scheme string error message.
+
+     Below is a simple example showing how to interface to an `EBCDIC'
+     character type.  Memory allocation is not needed for conversion
+     and type check errors are impossible when converting EBCDIC to
+     Scheme characters, but they are possible when converting from
+     Scheme characters to EBCDIC since Gambit supports Unicode
+     characters.
+
+          (c-declare #<<c-declare-end
+
+          typedef char EBCDIC; /* EBCDIC encoded characters */
+
+          void put_char (EBCDIC c) { ... } /* EBCDIC I/O functions */
+          EBCDIC get_char (void) { ... }
+
+          char EBCDIC_to_ISO_8859_1[256] = { ... }; /* conversion tables */
+          char ISO_8859_1_to_EBCDIC[256] = { ... };
+
+          ___SCMOBJ SCMOBJ_to_EBCDIC (___SCMOBJ src, EBCDIC *dst)
+          {
+            int x = ___INT(src); /* convert from Scheme character to int */
+            if (x > 255) return ___FIX(___UNKNOWN_ERR);
+            *dst = ISO_8859_1_to_EBCDIC[x];
+            return ___FIX(___NO_ERR);
+          }
+
+          #define ___BEGIN_CFUN_SCMOBJ_to_EBCDIC(src,dst,i) \
+          if ((___err = SCMOBJ_to_EBCDIC (src, &dst)) == ___FIX(___NO_ERR)) {
+          #define ___END_CFUN_SCMOBJ_to_EBCDIC(src,dst,i) }
+
+          #define ___BEGIN_CFUN_EBCDIC_to_SCMOBJ(src,dst) \
+          { dst = ___CHR(EBCDIC_to_ISO_8859_1[src]);
+          #define ___END_CFUN_EBCDIC_to_SCMOBJ(src,dst) }
+
+          #define ___BEGIN_SFUN_EBCDIC_to_SCMOBJ(src,dst,i) \
+          { dst = ___CHR(EBCDIC_to_ISO_8859_1[src]);
+          #define ___END_SFUN_EBCDIC_to_SCMOBJ(src,dst,i) }
+
+          #define ___BEGIN_SFUN_SCMOBJ_to_EBCDIC(src,dst) \
+          { ___err = SCMOBJ_to_EBCDIC (src, &dst);
+          #define ___END_SFUN_SCMOBJ_to_EBCDIC(src,dst) }
+
+          c-declare-end
+          )
+
+          (c-define-type EBCDIC "EBCDIC" "EBCDIC_to_SCMOBJ" "SCMOBJ_to_EBCDIC" #f)
+
+          (define put-char (c-lambda (EBCDIC) void "put_char"))
+          (define get-char (c-lambda () EBCDIC "get_char"))
+
+          (c-define (write-EBCDIC c) (EBCDIC) void "write_EBCDIC" ""
+            (write-char c))
+
+          (c-define (read-EBCDIC) () EBCDIC "read_EBCDIC" ""
+            (read-char))
+
+     Below is a more complex example that requires memory allocation
+     when converting from C to Scheme.  It is an interface to a 2D
+     `point' type which is represented in Scheme by a pair of integers.
+     The conversion of the `x' and `y' components is done by calls to
+     the conversion macros for the `int' type (defined in `gambit.h').
+     Note that no cleanup is necessary when converting from Scheme to C
+     (i.e. the last parameter of the `c-define-type' is `#f').
+
+          (c-declare #<<c-declare-end
+
+          typedef struct { int x, y; } point;
+
+          void line_to (point p) { ... }
+          point get_mouse (void) { ... }
+          point add_points (point p1, point p2) { ... }
+
+          ___SCMOBJ SCMOBJ_to_POINT (___SCMOBJ src, point *dst, int arg_num)
+          {
+            ___SCMOBJ ___err = ___FIX(___NO_ERR);
+            if (!___PAIRP(src))
+              ___err = ___FIX(___UNKNOWN_ERR);
+            else
+              {
+                ___SCMOBJ car = ___CAR(src);
+                ___SCMOBJ cdr = ___CDR(src);
+                ___BEGIN_CFUN_SCMOBJ_TO_INT(car,dst->x,arg_num)
+                ___BEGIN_CFUN_SCMOBJ_TO_INT(cdr,dst->y,arg_num)
+                ___END_CFUN_SCMOBJ_TO_INT(cdr,dst->y,arg_num)
+                ___END_CFUN_SCMOBJ_TO_INT(car,dst->x,arg_num)
+              }
+            return ___err;
+          }
+
+          ___SCMOBJ POINT_to_SCMOBJ (point src, ___SCMOBJ *dst, int arg_num)
+          {
+            ___SCMOBJ ___err = ___FIX(___NO_ERR);
+            ___SCMOBJ x_scmobj;
+            ___SCMOBJ y_scmobj;
+            ___BEGIN_SFUN_INT_TO_SCMOBJ(src.x,x_scmobj,arg_num)
+            ___BEGIN_SFUN_INT_TO_SCMOBJ(src.y,y_scmobj,arg_num)
+            *dst = ___EXT(___make_pair) (x_scmobj, y_scmobj, ___STILL);
+            if (___FIXNUMP(*dst))
+              ___err = *dst; /* return allocation error */
+            ___END_SFUN_INT_TO_SCMOBJ(src.y,y_scmobj,arg_num)
+            ___END_SFUN_INT_TO_SCMOBJ(src.x,x_scmobj,arg_num)
+            return ___err;
+          }
+
+          #define ___BEGIN_CFUN_SCMOBJ_to_POINT(src,dst,i) \
+          if ((___err = SCMOBJ_to_POINT (src, &dst, i)) == ___FIX(___NO_ERR)) {
+          #define ___END_CFUN_SCMOBJ_to_POINT(src,dst,i) }
+
+          #define ___BEGIN_CFUN_POINT_to_SCMOBJ(src,dst) \
+          if ((___err = POINT_to_SCMOBJ (src, &dst, ___RETURN_POS)) == ___FIX(___NO_ERR)) {
+          #define ___END_CFUN_POINT_to_SCMOBJ(src,dst) \
+          ___EXT(___release_scmobj) (dst); }
+
+          #define ___BEGIN_SFUN_POINT_to_SCMOBJ(src,dst,i) \
+          if ((___err = POINT_to_SCMOBJ (src, &dst, i)) == ___FIX(___NO_ERR)) {
+          #define ___END_SFUN_POINT_to_SCMOBJ(src,dst,i) \
+          ___EXT(___release_scmobj) (dst); }
+
+          #define ___BEGIN_SFUN_SCMOBJ_to_POINT(src,dst) \
+          { ___err = SCMOBJ_to_POINT (src, &dst, ___RETURN_POS);
+          #define ___END_SFUN_SCMOBJ_to_POINT(src,dst) }
+
+          c-declare-end
+          )
+
+          (c-define-type point "point" "POINT_to_SCMOBJ" "SCMOBJ_to_POINT" #f)
+
+          (define line-to (c-lambda (point) void "line_to"))
+          (define get-mouse (c-lambda () point "get_mouse"))
+          (define add-points (c-lambda (point point) point "add_points"))
+
+          (c-define (write-point p) (point) void "write_point" ""
+            (write p))
+
+          (c-define (read-point) () point "read_point" ""
+            (read))
+
+     An example that requires memory allocation when converting from C
+     to Scheme and Scheme to C is shown below.  It is an interface to a
+     "null-terminated array of strings" type which is represented in
+     Scheme by a list of strings.  Note that some cleanup is necessary
+     when converting from Scheme to C.
+
+          (c-declare #<<c-declare-end
+
+          #include <stdlib.h>
+          #include <unistd.h>
+
+          extern char **environ;
+
+          char **get_environ (void) { return environ; }
+
+          void free_strings (char **strings)
+          {
+            char **ptr = strings;
+            while (*ptr != NULL)
+              {
+                ___EXT(___release_string) (*ptr);
+                ptr++;
+              }
+            free (strings);
+          }
+
+          ___SCMOBJ SCMOBJ_to_STRINGS (___SCMOBJ src, char ***dst, int arg_num)
+          {
+            /*
+             * Src is a list of Scheme strings.  Dst will be a null terminated
+             * array of C strings.
+             */
+
+            int i;
+            ___SCMOBJ lst = src;
+            int len = 4; /* start with a small result array */
+            char **result = (char**) malloc (len * sizeof (char*));
+
+            if (result == NULL)
+              return ___FIX(___HEAP_OVERFLOW_ERR);
+
+            i = 0;
+            result[i] = NULL; /* always keep array null terminated */
+
+            while (___PAIRP(lst))
+              {
+                ___SCMOBJ scm_str = ___CAR(lst);
+                char *c_str;
+                ___SCMOBJ ___err;
+
+                if (i >= len-1) /* need to grow the result array? */
+                  {
+                    char **new_result;
+                    int j;
+
+                    len = len * 3 / 2;
+                    new_result = (char**) malloc (len * sizeof (char*));
+                    if (new_result == NULL)
+                      {
+                        free_strings (result);
+                        return ___FIX(___HEAP_OVERFLOW_ERR);
+                      }
+                    for (j=i; j>=0; j--)
+                      new_result[j] = result[j];
+                    free (result);
+                    result = new_result;
+                  }
+
+                ___err = ___EXT(___SCMOBJ_to_CHARSTRING) (scm_str, &c_str, arg_num);
+
+                if (___err != ___FIX(___NO_ERR))
+                  {
+                    free_strings (result);
+                    return ___err;
+                  }
+
+                result[i++] = c_str;
+                result[i] = NULL;
+                lst = ___CDR(lst);
+              }
+
+            if (!___NULLP(lst))
+              {
+                free_strings (result);
+                return ___FIX(___UNKNOWN_ERR);
+              }
+
+            /*
+             * Note that the caller is responsible for calling free_strings
+             * when it is done with the result.
+             */
+
+            *dst = result;
+            return ___FIX(___NO_ERR);
+          }
+
+          ___SCMOBJ STRINGS_to_SCMOBJ (char **src, ___SCMOBJ *dst, int arg_num)
+          {
+            ___SCMOBJ ___err = ___FIX(___NO_ERR);
+            ___SCMOBJ result = ___NUL; /* start with the empty list */
+            int i = 0;
+
+            while (src[i] != NULL)
+              i++;
+
+            /* build the list of strings starting at the tail */
+
+            while (--i >= 0)
+              {
+                ___SCMOBJ scm_str;
+                ___SCMOBJ new_result;
+
+                /*
+                 * Invariant: result is either the empty list or a ___STILL pair
+                 * with reference count equal to 1.  This is important because
+                 * it is possible that ___CHARSTRING_to_SCMOBJ and ___make_pair
+                 * will invoke the garbage collector and we don't want the
+                 * reference in result to become invalid (which would be the
+                 * case if result was a ___MOVABLE pair or if it had a zero
+                 * reference count).
+                 */
+
+                ___err = ___EXT(___CHARSTRING_to_SCMOBJ) (src[i], &scm_str, arg_num);
+
+                if (___err != ___FIX(___NO_ERR))
+                  {
+                    ___EXT(___release_scmobj) (result); /* allow GC to reclaim result */
+                    return ___FIX(___UNKNOWN_ERR);
+                  }
+
+                /*
+                 * Note that scm_str will be a ___STILL object with reference
+                 * count equal to 1, so there is no risk that it will be
+                 * reclaimed or moved if ___make_pair invokes the garbage
+                 * collector.
+                 */
+
+                new_result = ___EXT(___make_pair) (scm_str, result, ___STILL);
+
+                /*
+                 * We can zero the reference count of scm_str and result (if
+                 * not the empty list) because the pair now references these
+                 * objects and the pair is reachable (it can't be reclaimed
+                 * or moved by the garbage collector).
+                 */
+
+                ___EXT(___release_scmobj) (scm_str);
+                ___EXT(___release_scmobj) (result);
+
+                result = new_result;
+
+                if (___FIXNUMP(result))
+                  return result; /* allocation failed */
+              }
+
+            /*
+             * Note that result is either the empty list or a ___STILL pair
+             * with a reference count equal to 1.  There will be a call to
+             * ___release_scmobj later on (in ___END_CFUN_STRINGS_to_SCMOBJ
+             * or ___END_SFUN_STRINGS_to_SCMOBJ) that will allow the garbage
+             * collector to reclaim the whole list of strings when the Scheme
+             * world no longer references it.
+             */
+
+            *dst = result;
+            return ___FIX(___NO_ERR);
+          }
+
+          #define ___BEGIN_CFUN_SCMOBJ_to_STRINGS(src,dst,i) \
+          if ((___err = SCMOBJ_to_STRINGS (src, &dst, i)) == ___FIX(___NO_ERR)) {
+          #define ___END_CFUN_SCMOBJ_to_STRINGS(src,dst,i) \
+          free_strings (dst); }
+
+          #define ___BEGIN_CFUN_STRINGS_to_SCMOBJ(src,dst) \
+          if ((___err = STRINGS_to_SCMOBJ (src, &dst, ___RETURN_POS)) == ___FIX(___NO_ERR)) {
+          #define ___END_CFUN_STRINGS_to_SCMOBJ(src,dst) \
+          ___EXT(___release_scmobj) (dst); }
+
+          #define ___BEGIN_SFUN_STRINGS_to_SCMOBJ(src,dst,i) \
+          if ((___err = STRINGS_to_SCMOBJ (src, &dst, i)) == ___FIX(___NO_ERR)) {
+          #define ___END_SFUN_STRINGS_to_SCMOBJ(src,dst,i) \
+          ___EXT(___release_scmobj) (dst); }
+
+          #define ___BEGIN_SFUN_SCMOBJ_to_STRINGS(src,dst) \
+          { ___err = SCMOBJ_to_STRINGS (src, &dst, ___RETURN_POS);
+          #define ___END_SFUN_SCMOBJ_to_STRINGS(src,dst) }
+
+          c-declare-end
+          )
+
+          (c-define-type char** "char**" "STRINGS_to_SCMOBJ" "SCMOBJ_to_STRINGS")
+
+          (define execv (c-lambda (char-string char**) int "execv"))
+          (define get-environ (c-lambda () char** "get_environ"))
+
+          (c-define (write-strings x) (char**) void "write_strings" ""
+            (write x))
+
+          (c-define (read-strings) () char** "read_strings" ""
+            (read))
+
 
 
 File: gambit-c.info,  Node: continuations,  Prev: c-define-type,  Up: C-interface
@@ -4648,11 +5769,12 @@ File: gambit-c.info,  Node: Copyright and license,  Next: General index,  Prev: 
 21 Copyright and license
 ************************
 
-The Gambit-C system is Copyright (C) 1994-2006 by Marc Feeley, all
-rights reserved.  The Gambit-C system Version 4.0 beta 20 is licensed
-under two licenses: the Apache License, Version 2.0, and the GNU LESSER
-GENERAL PUBLIC LICENSE, Version 2.1.  You have the option to choose
-which of these two licenses to abide by.  The licenses are copied below.
+The Gambit-C system release v4.4.4 is Copyright (C) 1994-2009 by Marc
+Feeley, all rights reserved.  The Gambit-C system release v4.4.4 is
+licensed under two licenses: the Apache License, Version 2.0, and the
+GNU LESSER GENERAL PUBLIC LICENSE, Version 2.1.  You have the option to
+choose which of these two licenses to abide by.  The licenses are
+copied below.
 
 
                                    Apache License

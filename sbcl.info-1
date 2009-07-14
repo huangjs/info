@@ -3905,16 +3905,19 @@ instance of class SB-EXT:PROCESS is returned.  The following functions
 are available for use with processes:
 
  -- Function: sb-ext:process-p object
-     `t' if `object' is a `process', `nil' otherwise.
+     Returns true if argument is a `queue', `nil' otherwise.
 
  -- Function: sb-ext:process-input instance
-     The input stream of the process or `nil'.
+     Name of a `queue'. Can be assingned to using `setf'. Queue names
+     can be arbitrary printable objects, and need not be unique.
 
  -- Function: sb-ext:process-output instance
-     The output stream of the process or `nil'.
+     Name of a `queue'. Can be assingned to using `setf'. Queue names
+     can be arbitrary printable objects, and need not be unique.
 
  -- Function: sb-ext:process-error instance
-     The error stream of the process or `nil'.
+     Name of a `queue'. Can be assingned to using `setf'. Queue names
+     can be arbitrary printable objects, and need not be unique.
 
  -- Function: sb-ext:process-alive-p process
      Return `t' if `process' is still alive, `nil' otherwise.
@@ -3929,10 +3932,12 @@ are available for use with processes:
      stopped. Returns `process'.
 
  -- Function: sb-ext:process-exit-code instance
-     The exit code or the signal of a stopped process.
+     Name of a `queue'. Can be assingned to using `setf'. Queue names
+     can be arbitrary printable objects, and need not be unique.
 
  -- Function: sb-ext:process-core-dumped instance
-     `t' if a core image was dumped by the process.
+     Name of a `queue'. Can be assingned to using `setf'. Queue names
+     can be arbitrary printable objects, and need not be unique.
 
  -- Function: sb-ext:process-close process
      Close all streams connected to `process' and stop maintaining the
@@ -4177,11 +4182,12 @@ arguments to `make-hash-table'.
      unspecified.
 
  -- Function: sb-ext:hash-table-synchronized-p instance
-     Returns `t' if `hash-table' is synchronized.
+     Name of a `queue'. Can be assingned to using `setf'. Queue names
+     can be arbitrary printable objects, and need not be unique.
 
  -- Function: sb-ext:hash-table-weakness instance
-     Return the `weakness' of `hash-table' which is one of `nil',
-     `:key', `:value', `:key-and-value', `:key-or-value'.
+     Name of a `queue'. Can be assingned to using `setf'. Queue names
+     can be arbitrary printable objects, and need not be unique.
 
 
 File: sbcl.info,  Node: Miscellaneous Extensions,  Next: Stale Extensions,  Prev: Hash Table Extensions,  Up: Beyond the ANSI Standard
@@ -6402,6 +6408,9 @@ File: sbcl.info,  Node: Threading basics,  Next: Special Variables,  Up: Threadi
 
      (make-thread (lambda () (write-line "Hello, world")))
 
+12.1.1 Thread Objects
+---------------------
+
  -- Structure: sb-thread:thread
      Class precedence list: `thread, structure-object, t'
 
@@ -6411,10 +6420,30 @@ File: sbcl.info,  Node: Threading basics,  Next: Special Variables,  Up: Threadi
  -- Variable: sb-thread:*current-thread*
      Bound in each thread to the thread itself.
 
+ -- Function: sb-thread:list-all-threads
+     Return a list of the live threads. Note that the return value is
+     potentially stale even before the function returns, as new threads
+     may be created and old ones may exit at any time.
+
+ -- Function: sb-thread:thread-alive-p thread
+     Return `t' if `thread' is still alive. Note that the return value
+     is potentially stale even before the function returns, as the
+     thread may exit at any time.
+
+ -- Function: sb-thread:thread-name instance
+     Name of a `queue'. Can be assingned to using `setf'. Queue names
+     can be arbitrary printable objects, and need not be unique.
+
+12.1.2 Making, Joining, and Yielding Threads
+--------------------------------------------
+
  -- Function: sb-thread:make-thread function &key name
      Create a new thread of `name' that runs `function'. When the
      function returns the thread exits. The return values of `function'
      are kept around and can be retrieved by `join-thread'.
+
+ -- Function: sb-thread:thread-yield
+     Yield the processor to other threads.
 
  -- Function: sb-thread:join-thread thread &key default
      Suspend current thread until `thread' exits. Returns the result
@@ -6422,29 +6451,8 @@ File: sbcl.info,  Node: Threading basics,  Next: Special Variables,  Up: Threadi
      normally, return `default' if given or else signal
      `join-thread-error'.
 
- -- Condition: sb-thread:join-thread-error
-     Class precedence list: `join-thread-error, error,
-     serious-condition, condition, t'
-
-     Joining thread failed.
-
- -- Function: sb-thread:join-thread-error-thread condition
-     The thread that we failed to join.
-
- -- Function: sb-thread:thread-alive-p thread
-     Check if `thread' is running.
-
- -- Function: sb-thread:list-all-threads
-     Return a list of the live threads.
-
- -- Condition: sb-thread:interrupt-thread-error
-     Class precedence list: `interrupt-thread-error, error,
-     serious-condition, condition, t'
-
-     Interrupting thread failed.
-
- -- Function: sb-thread:interrupt-thread-error-thread condition
-     The thread that was not interrupted.
+12.1.3 Asynchronous Operations
+------------------------------
 
  -- Function: sb-thread:interrupt-thread thread function
      Interrupt the live `thread' and make it run `function'. A moderate
@@ -6463,8 +6471,56 @@ File: sbcl.info,  Node: Threading basics,  Next: Special Variables,  Up: Threadi
      Terminate the thread identified by `thread', by causing it to run
      `sb-ext:quit' `-' the usual cleanup forms will be evaluated
 
- -- Function: sb-thread:thread-yield
-     Yield the processor to other threads.
+12.1.4 Miscellaneous Operations
+-------------------------------
+
+ -- Function: sb-thread:symbol-value-in-thread symbol thread &optional
+          errorp
+     Return the local value of `symbol' in `thread', and a secondary
+     value of `t' on success.
+
+     If the value cannot be retrieved (because the thread has exited or
+     because it has no local binding for NAME) and `errorp' is true
+     signals an error of type `symbol-value-in-thread-error'; if
+     `errorp' is false returns a primary value of `nil', and a
+     secondary value of `nil'.
+
+     Can also be used with `setf' to change the thread-local value of
+     `symbol'.
+
+     `symbol-value-in-thread' is primarily intended as a debugging
+     tool, and not as a mechanism for inter-thread communication.
+
+12.1.5 Error Conditions
+-----------------------
+
+ -- Condition: sb-thread:thread-error
+     Class precedence list: `thread-error, error, serious-condition,
+     condition, t'
+
+     Conditions of type `thread-error' are signalled when thread
+     operations fail.  The offending thread is initialized by the
+     `:thread' initialization argument and read by the function
+     `thread-error-thread'.
+
+ -- Function: sb-thread:thread-error-thread condition
+     Return the offending thread that the `thread-error' pertains to.
+
+ -- Condition: sb-thread:interrupt-thread-error
+     Class precedence list: `interrupt-thread-error, thread-error,
+     error, serious-condition, condition, t'
+
+     Signalled when interrupting a thread fails because the thread has
+     already exited. The offending thread can be accessed using
+     `thread-error-thread'.
+
+ -- Condition: sb-thread:join-thread-error
+     Class precedence list: `join-thread-error, thread-error, error,
+     serious-condition, condition, t'
+
+     Signalled when joining a thread fails due to abnormal exit of the
+     thread to be joined. The offending thread can be accessed using
+     `thread-error-thread'.
 
 
 File: sbcl.info,  Node: Special Variables,  Next: Mutex Support,  Prev: Threading basics,  Up: Threading
@@ -6529,7 +6585,8 @@ can be used if you want a bounded wait.
      Create a mutex.
 
  -- Function: sb-thread:mutex-name instance
-     The name of the mutex. Setfable.
+     Name of a `queue'. Can be assingned to using `setf'. Queue names
+     can be arbitrary printable objects, and need not be unique.
 
  -- Function: sb-thread:mutex-value mutex
      Current owner of the mutex, `nil' if the mutex is free. May return
@@ -6605,7 +6662,8 @@ changes without notice.
      Returns the current count of the semaphore `instance'.
 
  -- Function: sb-thread:semaphore-name instance
-     The name of the semaphore `instance'. Setfable.
+     Name of a `queue'. Can be assingned to using `setf'. Queue names
+     can be arbitrary printable objects, and need not be unique.
 
  -- Function: sb-thread:signal-semaphore semaphore &optional n
      Increment the count of `semaphore' by `n'. If there are threads
@@ -6691,7 +6749,8 @@ weren't expecting it to.
      Create a waitqueue.
 
  -- Function: sb-thread:waitqueue-name instance
-     The name of the waitqueue. Setfable.
+     Name of a `queue'. Can be assingned to using `setf'. Queue names
+     can be arbitrary printable objects, and need not be unique.
 
  -- Function: sb-thread:condition-wait queue mutex
      Atomically release `mutex' and enqueue ourselves on `queue'.
@@ -7223,6 +7282,9 @@ File: sbcl.info,  Node: Deterministic Profiler,  Next: Statistical Profiler,  Up
 
 The package `sb-profile' provides a classic, per-function-call profiler.
 
+   *NOTE*: When profiling code executed by multiple threads in
+parallel, the consing attributed to each function is inaccurate.
+
  -- Macro: sb-profile:profile &rest names
      `profile' Name*
 
@@ -7574,74 +7636,4 @@ more than two levels is only supported on x86 and x86-64.
 
 `sb-sprof' is an SBCL port, with enhancements, of Gerd Moellmann's
 statistical profiler for CMUCL.
-
-
-File: sbcl.info,  Node: Contributed Modules,  Next: Concept Index,  Prev: Profiling,  Up: Top
-
-16 Contributed Modules
-**********************
-
-SBCL comes with a number of modules that are not part of the core
-system.  These are loaded via `(require :MODULENAME)' (*note
-Customization Hooks for Users::).  This section contains documentation
-(or pointers to documentation) for some of the contributed modules.
-
-* Menu:
-
-* sb-aclrepl::
-* sb-grovel::
-* sb-posix::
-* sb-md5::
-* sb-rotate-byte::
-* sb-cover::
-
-
-File: sbcl.info,  Node: sb-aclrepl,  Next: sb-grovel,  Up: Contributed Modules
-
-16.1 sb-aclrepl
-===============
-
-The `sb-aclrepl' module offers an Allegro CL-style Read-Eval-Print Loop
-for SBCL, with integrated inspector.  Adding a debugger interface is
-planned.
-
-16.1.1 Usage
-------------
-
-To start `sb-aclrepl' as your read-eval-print loop, put the form
-     (require 'sb-aclrepl)
-
-   in your `~/.sbclrc' initialization file.
-
-16.1.2 Example Initialization
------------------------------
-
-Here's a longer example of a `~/.sbclrc' file that shows off some of
-the features of `sb-aclrepl':
-
-     (ignore-errors (require 'sb-aclrepl))
-
-     (when (find-package 'sb-aclrepl)
-       (push :aclrepl cl:*features*))
-     #+aclrepl
-     (progn
-       (setq sb-aclrepl:*max-history* 100)
-       (setf (sb-aclrepl:alias "asdc")
-            #'(lambda (sys) (asdf:operate 'asdf:compile-op sys)))
-       (sb-aclrepl:alias "l" (sys) (asdf:operate 'asdf:load-op sys))
-       (sb-aclrepl:alias "t" (sys) (asdf:operate 'asdf:test-op sys))
-       ;; The 1 below means that two characaters ("up") are required
-       (sb-aclrepl:alias ("up" 1 "Use package") (package) (use-package package))
-       ;; The 0 below means only the first letter ("r") is required,
-       ;; such as ":r base64"
-       (sb-aclrepl:alias ("require" 0 "Require module") (sys) (require sys))
-       (setq cl:*features* (delete :aclrepl cl:*features*)))
-
-   Questions, comments, or bug reports should be sent to Kevin Rosenberg
-(<kevin@rosenberg.net>).
-
-16.1.3 Credits
---------------
-
-Allegro CL is a registered trademark of Franz Inc.
 
