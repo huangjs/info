@@ -1,4 +1,4 @@
-This is sbcl.info, produced by makeinfo version 4.11 from sbcl.texinfo.
+This is sbcl.info, produced by makeinfo version 4.12 from sbcl.texinfo.
 
 INFO-DIR-SECTION Software development
 START-INFO-DIR-ENTRY
@@ -17,7 +17,7 @@ END-INFO-DIR-ENTRY
 
 Indirect:
 sbcl.info-1: 646
-sbcl.info-2: 301204
+sbcl.info-2: 301189
 
 Tag Table:
 (Indirect)
@@ -258,192 +258,192 @@ Ref: Generic-Function sb-gray:stream-write-char229164
 Ref: Generic-Function sb-gray:stream-write-string229403
 Node: Gray Streams examples229814
 Node: Character counting input stream230508
-Node: Output prefixing character stream234459
-Node: Simple Streams237397
-Node: Package Locks238182
-Node: Package Lock Concepts238792
-Node: Package Lock Overview239114
-Node: Implementation Packages239916
-Node: Package Lock Violations240565
-Node: Package Locks in Compiled Code242281
-Node: Operations Violating Package Locks243456
-Node: Package Lock Dictionary246724
-Ref: Condition sb-ext:package-lock-violation247619
-Ref: Condition sb-ext:package-locked-error247890
-Ref: Condition sb-ext:symbol-package-locked-error248225
-Ref: Function sb-ext:package-locked-p248855
-Ref: Function sb-ext:lock-package249032
-Ref: Function sb-ext:unlock-package249234
-Ref: Function sb-ext:package-implemented-by-list249443
-Ref: Function sb-ext:package-implements-list249649
-Ref: Function sb-ext:add-implementation-package249852
-Ref: Function sb-ext:remove-implementation-package250121
-Ref: Macro sb-ext:without-package-locks250411
-Ref: Macro sb-ext:with-unlocked-packages250581
-Node: Threading251698
-Node: Threading basics252578
-Ref: Structure sb-thread:thread252814
-Ref: Variable sb-thread:*current-thread*253003
-Ref: Function sb-thread:list-all-threads253093
-Ref: Function sb-thread:thread-alive-p253332
-Ref: Function sb-thread:thread-name253551
-Ref: Function sb-thread:make-thread253823
-Ref: Function sb-thread:thread-yield254077
-Ref: Function sb-thread:join-thread254158
-Ref: Function sb-thread:interrupt-thread254493
-Ref: Function sb-thread:terminate-thread255243
-Ref: Function sb-thread:symbol-value-in-thread255493
-Ref: Condition sb-thread:thread-error256250
-Ref: Function sb-thread:thread-error-thread256601
-Ref: Condition sb-thread:interrupt-thread-error256726
-Ref: Condition sb-thread:join-thread-error257051
-Node: Special Variables257371
-Node: Mutex Support258030
-Ref: Structure sb-thread:mutex259053
-Ref: Function sb-thread:make-mutex259160
-Ref: Function sb-thread:mutex-name259240
-Ref: Function sb-thread:mutex-value259420
-Ref: Function sb-thread:get-mutex259582
-Ref: Function sb-thread:release-mutex260518
-Ref: Macro sb-thread:with-mutex261032
-Ref: Macro sb-thread:with-recursive-lock261310
-Node: Semaphores261648
-Ref: Structure sb-thread:semaphore261885
-Ref: Function sb-thread:make-semaphore262143
-Ref: Function sb-thread:semaphore-count262261
-Ref: Function sb-thread:semaphore-name262371
-Ref: Function sb-thread:signal-semaphore262555
-Ref: Function sb-thread:wait-on-semaphore262750
-Node: Waitqueue/condition variables262936
-Ref: Structure sb-thread:waitqueue265219
-Ref: Function sb-thread:make-waitqueue265338
-Ref: Function sb-thread:waitqueue-name265413
-Ref: Function sb-thread:condition-wait265597
-Ref: Function sb-thread:condition-notify265859
-Ref: Function sb-thread:condition-broadcast266085
-Node: Sessions/Debugging266180
-Node: Foreign threads267631
-Node: Implementation (Linux x86/x86-64)268742
-Node: Timers271108
-Ref: Structure sb-ext:timer272326
-Ref: Function sb-ext:make-timer272508
-Ref: Function sb-ext:timer-name273109
-Ref: Function sb-ext:timer-scheduled-p273181
-Ref: Function sb-ext:schedule-timer273383
-Ref: Function sb-ext:unschedule-timer273784
-Ref: Function sb-ext:list-all-timers273984
-Node: Networking274070
-Node: Sockets Overview274682
-Node: General Sockets275745
-Ref: Class sb-bsd-sockets:socket275896
-Ref: Generic-Function sb-bsd-sockets:socket-bind276561
-Ref: Generic-Function sb-bsd-sockets:socket-accept276870
-Ref: Generic-Function sb-bsd-sockets:socket-connect277050
-Ref: Generic-Function sb-bsd-sockets:socket-peername277229
-Ref: Generic-Function sb-bsd-sockets:socket-name277392
-Ref: Generic-Function sb-bsd-sockets:socket-receive277559
-Ref: Generic-Function sb-bsd-sockets:socket-send278251
-Ref: Generic-Function sb-bsd-sockets:socket-listen278935
-Ref: Generic-Function sb-bsd-sockets:socket-open-p279231
-Ref: Generic-Function sb-bsd-sockets:socket-close279353
-Ref: Generic-Function sb-bsd-sockets:socket-make-stream279583
-Ref: Method sb-bsd-sockets:socket-make-stream ((socket socket) &key input output (element-type 'character) (buffering full) (external-format default) timeout)280096
-Ref: Function sb-bsd-sockets:socket-error280810
-Ref: Generic-Function sb-bsd-sockets:non-blocking-mode280859
-Node: Socket Options280961
-Ref: Function sb-bsd-sockets:sockopt-reuse-address281443
-Ref: Function sb-bsd-sockets:sockopt-keep-alive281617
-Ref: Function sb-bsd-sockets:sockopt-oob-inline281788
-Ref: Function sb-bsd-sockets:sockopt-bsd-compatible281959
-Ref: Function sb-bsd-sockets:sockopt-pass-credentials282159
-Ref: Function sb-bsd-sockets:sockopt-debug282360
-Ref: Function sb-bsd-sockets:sockopt-dont-route282522
-Ref: Function sb-bsd-sockets:sockopt-broadcast282693
-Ref: Function sb-bsd-sockets:sockopt-tcp-nodelay282863
-Node: INET Domain Sockets283034
-Ref: Class sb-bsd-sockets:inet-socket283656
-Ref: Function sb-bsd-sockets:make-inet-address283973
-Ref: Function sb-bsd-sockets:get-protocol-by-name284172
-Node: Local (Unix) Domain Sockets284387
-Ref: Class sb-bsd-sockets:local-socket284908
-Node: Name Service285117
-Ref: Class sb-bsd-sockets:host-ent285600
-Ref: Function sb-bsd-sockets:get-host-by-name286038
-Ref: Function sb-bsd-sockets:get-host-by-address286347
-Ref: Generic-Function sb-bsd-sockets:host-ent-address286599
-Node: Profiling286711
-Node: Deterministic Profiler287106
-Ref: Macro sb-profile:profile287461
-Ref: Macro sb-profile:unprofile288084
-Ref: Function sb-profile:report288449
-Ref: Function sb-profile:reset288728
-Node: Statistical Profiler288812
-Ref: Macro sb-sprof:with-profiling293898
-Ref: Macro sb-sprof:with-sampling296260
-Ref: Function sb-sprof:report296419
-Ref: Function sb-sprof:reset298125
-Ref: Function sb-sprof:start-profiling298180
-Ref: Function sb-sprof:stop-profiling300068
-Ref: Function sb-sprof:profile-call-counts300141
-Ref: Function sb-sprof:unprofile-call-counts300551
-Ref: Variable sb-sprof:*max-samples*300753
-Ref: Variable sb-sprof:*sample-interval*300983
-Node: Contributed Modules301204
-Node: sb-aclrepl301723
-Node: sb-grovel303318
-Node: sb-posix312337
-Ref: sb-posix-Footnote-1313421
-Node: Lisp names for C names313572
-Node: Types314725
-Node: File-descriptors315397
-Ref: Type sb-posix:file-descriptor315524
-Ref: Type sb-posix:file-descriptor-designator315900
-Ref: Function sb-posix:file-descriptor316097
-Node: Filenames316222
-Ref: Type sb-posix:filename316335
-Ref: Type sb-posix:filename-designator317553
-Ref: Function sb-posix:filename317750
-Node: Function Parameters317847
-Node: Function Return Values319068
-Node: Lisp objects and C structures319865
-Ref: Class sb-posix:flock321220
-Ref: Class sb-posix:passwd322298
-Ref: Class sb-posix:stat323773
-Ref: Class sb-posix:termios325351
-Ref: Class sb-posix:timeval326290
-Node: Functions with idiosyncratic bindings326812
-Ref: Function sb-posix:getcwd327113
-Ref: Function sb-posix:readlink327235
-Ref: Function sb-posix:syslog327365
-Node: sb-md5327664
-Ref: Function sb-md5:md5sum-file327870
-Ref: Function sb-md5:md5sum-sequence327992
-Ref: Function sb-md5:md5sum-stream328215
-Ref: Function sb-md5:md5sum-string328377
-Node: sb-queue329283
-Ref: Structure sb-queue:queue329521
-Ref: Function sb-queue:dequeue329767
-Ref: Function sb-queue:enqueue329997
-Ref: Function sb-queue:list-queue-contents330099
-Ref: Function sb-queue:make-queue330299
-Ref: Function sb-queue:queue-count330463
-Ref: Function sb-queue:queue-empty-p330688
-Ref: Function sb-queue:queue-name330787
-Ref: Function sb-queue:queuep330966
-Node: sb-rotate-byte331065
-Ref: Function sb-rotate-byte:rotate-byte331653
-Node: sb-cover331968
-Ref: Function sb-cover:report333139
-Ref: Function sb-cover:reset-coverage333891
-Ref: Function sb-cover:clear-coverage333993
-Ref: Function sb-cover:save-coverage334273
-Ref: Function sb-cover:save-coverage-in-file334650
-Ref: Function sb-cover:restore-coverage334816
-Ref: Function sb-cover:restore-coverage-from-file334967
-Node: Concept Index335137
-Node: Function Index344294
-Node: Variable Index375425
-Node: Type Index378299
-Node: Colophon385225
+Node: Output prefixing character stream234458
+Node: Simple Streams237395
+Node: Package Locks238180
+Node: Package Lock Concepts238790
+Node: Package Lock Overview239112
+Node: Implementation Packages239914
+Node: Package Lock Violations240563
+Node: Package Locks in Compiled Code242279
+Node: Operations Violating Package Locks243454
+Node: Package Lock Dictionary246722
+Ref: Condition sb-ext:package-lock-violation247617
+Ref: Condition sb-ext:package-locked-error247888
+Ref: Condition sb-ext:symbol-package-locked-error248223
+Ref: Function sb-ext:package-locked-p248853
+Ref: Function sb-ext:lock-package249030
+Ref: Function sb-ext:unlock-package249232
+Ref: Function sb-ext:package-implemented-by-list249441
+Ref: Function sb-ext:package-implements-list249647
+Ref: Function sb-ext:add-implementation-package249850
+Ref: Function sb-ext:remove-implementation-package250119
+Ref: Macro sb-ext:without-package-locks250409
+Ref: Macro sb-ext:with-unlocked-packages250579
+Node: Threading251696
+Node: Threading basics252576
+Ref: Structure sb-thread:thread252812
+Ref: Variable sb-thread:*current-thread*253001
+Ref: Function sb-thread:list-all-threads253091
+Ref: Function sb-thread:thread-alive-p253330
+Ref: Function sb-thread:thread-name253549
+Ref: Function sb-thread:make-thread253821
+Ref: Function sb-thread:thread-yield254075
+Ref: Function sb-thread:join-thread254156
+Ref: Function sb-thread:interrupt-thread254491
+Ref: Function sb-thread:terminate-thread255241
+Ref: Function sb-thread:symbol-value-in-thread255491
+Ref: Condition sb-thread:thread-error256248
+Ref: Function sb-thread:thread-error-thread256599
+Ref: Condition sb-thread:interrupt-thread-error256724
+Ref: Condition sb-thread:join-thread-error257049
+Node: Special Variables257369
+Node: Mutex Support258028
+Ref: Structure sb-thread:mutex259051
+Ref: Function sb-thread:make-mutex259158
+Ref: Function sb-thread:mutex-name259238
+Ref: Function sb-thread:mutex-value259418
+Ref: Function sb-thread:get-mutex259580
+Ref: Function sb-thread:release-mutex260516
+Ref: Macro sb-thread:with-mutex261030
+Ref: Macro sb-thread:with-recursive-lock261308
+Node: Semaphores261646
+Ref: Structure sb-thread:semaphore261883
+Ref: Function sb-thread:make-semaphore262141
+Ref: Function sb-thread:semaphore-count262259
+Ref: Function sb-thread:semaphore-name262369
+Ref: Function sb-thread:signal-semaphore262553
+Ref: Function sb-thread:wait-on-semaphore262748
+Node: Waitqueue/condition variables262934
+Ref: Structure sb-thread:waitqueue265217
+Ref: Function sb-thread:make-waitqueue265336
+Ref: Function sb-thread:waitqueue-name265411
+Ref: Function sb-thread:condition-wait265595
+Ref: Function sb-thread:condition-notify265857
+Ref: Function sb-thread:condition-broadcast266083
+Node: Sessions/Debugging266178
+Node: Foreign threads267629
+Node: Implementation (Linux x86/x86-64)268740
+Node: Timers271106
+Ref: Structure sb-ext:timer272324
+Ref: Function sb-ext:make-timer272506
+Ref: Function sb-ext:timer-name273107
+Ref: Function sb-ext:timer-scheduled-p273179
+Ref: Function sb-ext:schedule-timer273381
+Ref: Function sb-ext:unschedule-timer273782
+Ref: Function sb-ext:list-all-timers273982
+Node: Networking274068
+Node: Sockets Overview274680
+Node: General Sockets275743
+Ref: Class sb-bsd-sockets:socket275894
+Ref: Generic-Function sb-bsd-sockets:socket-bind276559
+Ref: Generic-Function sb-bsd-sockets:socket-accept276868
+Ref: Generic-Function sb-bsd-sockets:socket-connect277048
+Ref: Generic-Function sb-bsd-sockets:socket-peername277227
+Ref: Generic-Function sb-bsd-sockets:socket-name277390
+Ref: Generic-Function sb-bsd-sockets:socket-receive277557
+Ref: Generic-Function sb-bsd-sockets:socket-send278249
+Ref: Generic-Function sb-bsd-sockets:socket-listen278920
+Ref: Generic-Function sb-bsd-sockets:socket-open-p279216
+Ref: Generic-Function sb-bsd-sockets:socket-close279338
+Ref: Generic-Function sb-bsd-sockets:socket-make-stream279568
+Ref: Method sb-bsd-sockets:socket-make-stream ((socket socket) &key input output (element-type 'character) (buffering full) (external-format default) timeout)280081
+Ref: Function sb-bsd-sockets:socket-error280795
+Ref: Generic-Function sb-bsd-sockets:non-blocking-mode280844
+Node: Socket Options280946
+Ref: Function sb-bsd-sockets:sockopt-reuse-address281428
+Ref: Function sb-bsd-sockets:sockopt-keep-alive281602
+Ref: Function sb-bsd-sockets:sockopt-oob-inline281773
+Ref: Function sb-bsd-sockets:sockopt-bsd-compatible281944
+Ref: Function sb-bsd-sockets:sockopt-pass-credentials282144
+Ref: Function sb-bsd-sockets:sockopt-debug282345
+Ref: Function sb-bsd-sockets:sockopt-dont-route282507
+Ref: Function sb-bsd-sockets:sockopt-broadcast282678
+Ref: Function sb-bsd-sockets:sockopt-tcp-nodelay282848
+Node: INET Domain Sockets283019
+Ref: Class sb-bsd-sockets:inet-socket283641
+Ref: Function sb-bsd-sockets:make-inet-address283958
+Ref: Function sb-bsd-sockets:get-protocol-by-name284157
+Node: Local (Unix) Domain Sockets284372
+Ref: Class sb-bsd-sockets:local-socket284893
+Node: Name Service285102
+Ref: Class sb-bsd-sockets:host-ent285585
+Ref: Function sb-bsd-sockets:get-host-by-name286023
+Ref: Function sb-bsd-sockets:get-host-by-address286332
+Ref: Generic-Function sb-bsd-sockets:host-ent-address286584
+Node: Profiling286696
+Node: Deterministic Profiler287091
+Ref: Macro sb-profile:profile287446
+Ref: Macro sb-profile:unprofile288069
+Ref: Function sb-profile:report288434
+Ref: Function sb-profile:reset288713
+Node: Statistical Profiler288797
+Ref: Macro sb-sprof:with-profiling293883
+Ref: Macro sb-sprof:with-sampling296245
+Ref: Function sb-sprof:report296404
+Ref: Function sb-sprof:reset298110
+Ref: Function sb-sprof:start-profiling298165
+Ref: Function sb-sprof:stop-profiling300053
+Ref: Function sb-sprof:profile-call-counts300126
+Ref: Function sb-sprof:unprofile-call-counts300536
+Ref: Variable sb-sprof:*max-samples*300738
+Ref: Variable sb-sprof:*sample-interval*300968
+Node: Contributed Modules301189
+Node: sb-aclrepl301708
+Node: sb-grovel303303
+Node: sb-posix312322
+Ref: sb-posix-Footnote-1313406
+Node: Lisp names for C names313557
+Node: Types314710
+Node: File-descriptors315382
+Ref: Type sb-posix:file-descriptor315509
+Ref: Type sb-posix:file-descriptor-designator315885
+Ref: Function sb-posix:file-descriptor316082
+Node: Filenames316207
+Ref: Type sb-posix:filename316320
+Ref: Type sb-posix:filename-designator317538
+Ref: Function sb-posix:filename317735
+Node: Function Parameters317832
+Node: Function Return Values319053
+Node: Lisp objects and C structures319850
+Ref: Class sb-posix:flock321205
+Ref: Class sb-posix:passwd322283
+Ref: Class sb-posix:stat323758
+Ref: Class sb-posix:termios325336
+Ref: Class sb-posix:timeval326275
+Node: Functions with idiosyncratic bindings326797
+Ref: Function sb-posix:getcwd327098
+Ref: Function sb-posix:readlink327220
+Ref: Function sb-posix:syslog327350
+Node: sb-md5327649
+Ref: Function sb-md5:md5sum-file327855
+Ref: Function sb-md5:md5sum-sequence327977
+Ref: Function sb-md5:md5sum-stream328200
+Ref: Function sb-md5:md5sum-string328362
+Node: sb-queue329268
+Ref: Structure sb-queue:queue329506
+Ref: Function sb-queue:dequeue329752
+Ref: Function sb-queue:enqueue329982
+Ref: Function sb-queue:list-queue-contents330084
+Ref: Function sb-queue:make-queue330284
+Ref: Function sb-queue:queue-count330448
+Ref: Function sb-queue:queue-empty-p330673
+Ref: Function sb-queue:queue-name330772
+Ref: Function sb-queue:queuep330951
+Node: sb-rotate-byte331050
+Ref: Function sb-rotate-byte:rotate-byte331638
+Node: sb-cover331953
+Ref: Function sb-cover:report333124
+Ref: Function sb-cover:reset-coverage333876
+Ref: Function sb-cover:clear-coverage333978
+Ref: Function sb-cover:save-coverage334258
+Ref: Function sb-cover:save-coverage-in-file334635
+Ref: Function sb-cover:restore-coverage334801
+Ref: Function sb-cover:restore-coverage-from-file334952
+Node: Concept Index335122
+Node: Function Index344279
+Node: Variable Index375410
+Node: Type Index378284
+Node: Colophon385628
 
 End Tag Table
