@@ -111,6 +111,7 @@ GNU Emacs Lisp
 * ECB: (ecb).				Emacs Code Browser
 
 Lisp Programming
+* ANSI CL: (ansicl).                    ANSI Common Lisp Specification
 * ecl: (ecl).				Embeddable Common Lisp (ECL) User's
 					Manual
 * ecldev: (ecldev).			Embeddable Common Lisp (ECL)
