@@ -15,9 +15,8 @@ File: dir,	Node: Top	This is the top of the INFO tree
 * Menu:
 
 Emacs
-* AUCTeX: (auctex).			A sophisticated TeX environment for
-					Emacs.
-* Gnus: (gnus).         The newsreader Gnus.
+* AUCTeX: (auctex).			A sophisticated TeX environment for Emacs.
+* Gnus: (gnus).                         The newsreader Gnus.
 * Imaxima: (imaxima).			Image support for the computer algebra
 					system Maxima. Interactive math minor
 					mode.
@@ -46,18 +45,15 @@ Emacs
 					Application Development with Semantic.
 					_Infrastructure for parser based text
 					analysis in Emacs_
-* SLIME: (slime).			Superior Lisp Interaction Mode for
-					Emacs.
+* SLIME: (slime).			Superior Lisp Interaction Mode for Emacs.
 * Speedbar: (speedbar). 		File/Tag summarizing utility.
 
 Software development
-* Vmgen: (vmgen).               Virtual machine interpreter generator
+* Vmgen: (vmgen).                       Virtual machine interpreter generator
 * asdf: (asdf). 			Another system definition facility
-* Autoconf: (autoconf). 		Create source code configuration
-					scripts.
-* Gforth: (gforth).			A fast interpreter for the Forth
-					language.
-* bison: (bison).       GNU parser generator (Yacc replacement).
+* Autoconf: (autoconf). 		Create source code configuration scripts.
+* Gforth: (gforth).			A fast interpreter for the Forth language.
+* bison: (bison).                       GNU parser generator (Yacc replacement).
 * sbcl: (sbcl). 			The Steel Bank Common Lisp compiler
 * sbcl-internals: (sbcl-internals).	SBCL internal documentation
 
@@ -66,8 +62,7 @@ GNU programming tools
 * Libtool: (libtool).			Generic shared library support script.
 
 C++ libraries
-* autosprintf: (autosprintf).		Support for printf format strings in
-					C++.
+* autosprintf: (autosprintf).		Support for printf format strings in C++.
 
 Utilities
 * Bash: (bash). 			The GNU Bourne-Again SHell.
@@ -76,12 +71,11 @@ Programming
 * Cpp: (cpp).				The GNU C preprocessor.
 * Cpplib: (cppinternals).		Cpplib internals.
 * cvsclient: (cvsclient).		The CVS client/server protocol.
-* flex: (flex).      Fast lexical analyzer generator (lex replacement).
+* flex: (flex).                         Fast lexical analyzer generator
+                                        (lex replacement).
 * gcc: (gcc).				The GNU Compiler Collection.
-* gccinstall: (gccinstall).		Installing the GNU Compiler
-					Collection.
-* gccint: (gccint).			Internals of the GNU Compiler
-					Collection.
+* gccinstall: (gccinstall).		Installing the GNU Compiler Collection.
+* gccint: (gccint).			Internals of the GNU Compiler Collection.
 * gfortran: (gfortran). 		The GNU Fortran 95 Compiler.
 * NASM: (nasm). 			The Netwide Assembler for x86.
 
@@ -95,11 +89,11 @@ The Algorithmic Language Scheme
 * Guile Reference: (guile).		The Guile reference manual.
 * Guile Tutorial: (guile-tut).		The Guile tutorial.
 * R5RS: (r5rs). 			The Revised(5) Report on Scheme.
-* data-rep: (data-rep).  Data Representation in Guile -- how to use
-                         Guile objects in your C code.
+* data-rep: (data-rep).                 Data Representation in Guile -- how to use
+                                        Guile objects in your C code.
 
 Individual utilities
-* awk: (gawk)Invoking gawk.                     Text scanning and processing.
+* awk: (gawk)Invoking gawk.             Text scanning and processing.
 * cmp: (diff)Invoking cmp.		Compare 2 files byte by byte.
 * diff: (diff)Invoking diff.		Compare 2 files line by line.
 * diff3: (diff)Invoking diff3.		Compare 3 files line by line.
@@ -112,10 +106,8 @@ GNU Emacs Lisp
 
 Lisp Programming
 * ANSI CL: (ansicl).                    ANSI Common Lisp Specification
-* ecl: (ecl).				Embeddable Common Lisp (ECL) User's
-					Manual
-* ecldev: (ecldev).			Embeddable Common Lisp (ECL)
-					Developer's Manual
+* ecl: (ecl).				Embeddable Common Lisp (ECL) User's Manual
+* ecldev: (ecldev).			Embeddable Common Lisp (ECL) Developer's Manual
 * ACL2: (acl2-doc-emacs).		Applicative Common Lisp
 * Iterate: (iterate).			A better Loop in Common Lisp
 * CFFI Manual: (cffi-manual).		Common Foreign Function Interface
@@ -162,10 +154,9 @@ Library of useful routines for 'C' programing
 * GLIB: (glib). 			Useful routines for 'C' programming
 
 GNU libraries
-* gmp: (gmp).				GNU Multiple Precision Arithmetic
-					Library.
+* gmp: (gmp).				GNU Multiple Precision Arithmetic Library.
 * mpfr: (mpfr). 			Multiple Precision Floating-Point
-					Reliable Library.
+                                        Reliable Library.
 
 Math
 * GNUPLOT: (gnuplot).			An Interactive Plotting Program
@@ -184,8 +175,7 @@ Scientific software
 Libraries
 * History: (history).			The GNU history library API.
 * Readline: (readline). 		The GNU readline library API.
-* RLuserman: (rluserman).		The GNU readline library User's
-					Manual.
+* RLuserman: (rluserman).		The GNU readline library User's Manual.
 
 Texinfo documentation system
 * Web2c: (web2c).			TeX, Metafont, and companion programs.
@@ -215,8 +205,7 @@ Texinfo documentation system
 * vftovp: (web2c)vftovp invocation.	Virtual font -> virtual pl.
 * vptovf: (web2c)vptovf invocation.	Virtual pl -> virtual font.
 * weave: (web2c)weave invocation.	WEB to TeX.
-* Info: (info). 			How to use the documentation browsing
-					system.
+* Info: (info). 			How to use the documentation browsing system.
 * info standalone: (info-stnd). 	Read Info documents without Emacs.
 * infokey: (info-stnd)Invoking infokey. Compile Info customizations.
 * LaTeX2e: (latex).			LaTeXe help 1.6.
@@ -235,23 +224,21 @@ GNU organization
 * Standards: (standards).		GNU coding standards.
 
 Archiving
-* Tar: (tar).                   Making tape (or disk) archives.
+* Tar: (tar).                           Making tape (or disk) archives.
 
 Network Applications
-* Wget: (wget). 			The non-interactive network
-					downloader.
+* Wget: (wget). 			The non-interactive network downloader.
+* Gawkinet: (gawkinet).                 TCP/IP Internetworking With `gawk'.
+* W3m: (emacs-w3m).                     The w3m web browser.
 
 TeX
-* DVI-to-Postscript: (dvips).		Translating TeX DVI files to
-					PostScript.
+* DVI-to-Postscript: (dvips).		Translating TeX DVI files to PostScript.
 * afm2tfm: (dvips)Invoking afm2tfm.	Making Type 1 fonts available to TeX.
 * dvips: (dvips)Invoking Dvips. 	DVI-to-PostScript translator.
-* AUCTeX: (auctex).			A sophisticated TeX environment for
-					Emacs.
+* AUCTeX: (auctex).			A sophisticated TeX environment for Emacs.
 * preview-latex: (preview-latex).	Preview LaTeX fragments in Emacs
 * cogre: (cogre).			Graphs & UML for Emacs
-* dc: (dc).				Arbritrary precision RPN "Desktop
-					Calculator".
+* dc: (dc).				Arbritrary precision RPN "Desktop Calculator".
 * ede: (ede).				Objects for Emacs
 * eieio: (eieio).			Objects for Emacs
 * Gambit-C: (gambit-c). 		A portable implementation of Scheme.
@@ -263,17 +250,10 @@ TeX
 					translates LaTeX to RTF.
 * m4: (m4).				A powerful macro processor.
 * Octave: (octave).			Interactive language for numerical
-					computations.
+                                        computations.
 
 Text creation and manipulation
-* Gawk: (gawk).                 A text scanning and processing language.
-This is gawk.info, produced by makeinfo version 4.11 from gawk.texi.
-
-
-Network applications
-* Gawkinet: (gawkinet).         TCP/IP Internetworking With `gawk'.
-This is gawkinet.info, produced by makeinfo version 4.11 from gawkinet.texi.
-
+* Gawk: (gawk).                         A text scanning and processing language.
 
 Miscellaneous
-* UUCP: (uucp).                 Transfer mail and news across phone lines.
+* UUCP: (uucp).                         Transfer mail and news across phone lines.
