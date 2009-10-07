@@ -244,6 +244,7 @@ TeX
 * Gambit-C: (gambit-c). 		A portable implementation of Scheme.
 * gsi: (gambit-c) interpreter.		Gambit interpreter.
 * gsc: (gambit-c) compiler.		Gambit compiler.
+* Gauche: (gauche-refe).                Scheme implementation from Shiro Kawai
 * Gzip: (gzip). 			The the GNU `gzip' command for
 					compressing files.
 * Latex2rtf: (latex2rtf).		LaTeX2RTF , a converter that
