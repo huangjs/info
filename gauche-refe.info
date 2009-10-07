@@ -1,0 +1,437 @@
+This is gauche-refe.info, produced by makeinfo version 4.13 from
+gauche-refe.texi.
+
+INFO-DIR-SECTION The Algorithmic Language Scheme
+START-INFO-DIR-ENTRY
+* Gauche: (gauche-refe.info).	        An R5RS Scheme implementation.
+END-INFO-DIR-ENTRY
+
+
+Indirect:
+gauche-refe.info-1: 243
+gauche-refe.info-2: 295953
+gauche-refe.info-3: 593334
+gauche-refe.info-4: 884771
+gauche-refe.info-5: 1181469
+gauche-refe.info-6: 1299989
+gauche-refe.info-7: 1590453
+
+Tag Table:
+(Indirect)
+Node: Top243
+Node: Introduction816
+Node: Overview of Gauche2362
+Node: Notations5398
+Node: Concepts7995
+Node: Standard conformance8390
+Node: Multibyte Strings14506
+Node: Multibyte scripts17180
+Node: Case-sensitivity19312
+Node: Integrated Object System21363
+Node: Module system25550
+Node: Compilation27591
+Node: Programming in Gauche29604
+Node: Invoking Gosh29966
+Node: Interactive development35881
+Node: Writing Scheme scripts37170
+Node: Debugging41443
+Node: Platform-dependent features42785
+Node: Profiling and tuning46466
+Node: Using profiler47681
+Node: Performance tips52096
+Node: Writing Gauche modules56775
+Node: Using extension packages59803
+Node: Core syntax63808
+Node: Lexical structure64137
+Node: Literals69445
+Node: Making Procedures70232
+Node: Assignments74285
+Node: Conditionals79528
+Node: Binding constructs85064
+Node: Sequencing91213
+Node: Iteration92504
+Node: Quasiquotation95149
+Node: Definitions99838
+Node: Modules102592
+Node: Module semantics103043
+Node: Modules and libraries107501
+Node: Defining and selecting modules109185
+Node: Using modules110601
+Node: Module inheritance112990
+Node: Module introspection115503
+Node: Predefined modules120439
+Node: Macros121457
+Node: Hygienic Macros122103
+Node: Traditional Macros122804
+Node: Macro expansion123489
+Node: Macro utilities124142
+Node: Core library125679
+Node: Equivalence126213
+Node: Numbers130002
+Node: Number classes130909
+Node: Numerical predicates131946
+Node: Numerical comparison134193
+Node: Arithmetics135194
+Node: Numerical conversions141805
+Node: Bitwise operations146557
+Node: Booleans149607
+Node: Pairs and Lists150155
+Node: Pair and null class150928
+Node: List predicates151665
+Node: List constructors152279
+Node: List accessors and modifiers153538
+Node: Other list procedures155672
+Node: Symbols158050
+Node: Keywords159408
+Node: Identifiers162436
+Node: Characters162679
+Node: Character set169339
+Node: Strings172367
+Node: String syntax174491
+Node: String Predicates177003
+Node: String Constructors177462
+Node: String interpolation179208
+Node: String Accessors & Modifiers182335
+Node: String Comparison184418
+Node: String utilities185050
+Node: Incomplete strings192225
+Node: Regular expression193867
+Node: Vectors214019
+Node: Hashtables217554
+Node: Treemaps225345
+Node: Weak pointers232716
+Node: Control features234748
+Node: Procedures235012
+Node: Mapping235696
+Node: Combinators236899
+Node: Optional argument parsing240784
+Node: Procedure arity246050
+Node: Applicable objects247482
+Node: Continuation249234
+Node: Multiple values252631
+Node: Delayed evaluation253830
+Node: Exceptions256984
+Node: Exception handling overview258046
+Node: Signalling exceptions264880
+Node: Handling exceptions268307
+Node: Conditions277057
+Node: Eval and repl288345
+Node: Input and output291325
+Node: Ports291631
+Node: Port and threads293741
+Node: Common port operations295953
+Node: File ports302151
+Node: String ports312274
+Node: Coding-aware ports316420
+Node: Input318080
+Node: Reading data318432
+Node: Read-time constructor323845
+Node: Input utility functions327396
+Node: Output329196
+Node: Loading Programs339945
+Node: Loading Scheme file340243
+Node: Loading dynamic library344978
+Node: Require and provide346433
+Node: Autoload349800
+Node: Operations on libraries351636
+Node: Comparison and sorting357075
+Node: System interface360716
+Node: Program termination362290
+Node: Environment Inquiry367488
+Node: Filesystems369320
+Node: Directories369747
+Node: Directory manipulation377706
+Node: Pathnames380549
+Node: File stats383715
+Node: Other file operations389426
+Node: Unix groups and users391393
+Node: Locale393907
+Node: Signal395877
+Node: Signals and signal sets396634
+Node: Sending signals399405
+Node: Handling signals400233
+Node: Masking and waiting signals407316
+Node: Signals and threads409895
+Node: System inquiry412605
+Node: Time419760
+Node: Unix process management424504
+Node: I/O multiplexing432599
+Node: Miscellaneous system calls436224
+Node: Development helper API439062
+Node: Debugging aid439345
+Node: Profiler API440783
+Node: Object system442026
+Node: Introduction to the object system442618
+Node: General Inquiry462530
+Node: Class464046
+Node: Defining class464370
+Node: Inheritance471438
+Node: Class object477512
+Node: Slot definition object480406
+Node: Class redefinition481827
+Node: Class definition examples486367
+Node: Instance490748
+Node: Creating instance491028
+Node: Accessing instance493913
+Node: Changing classes498075
+Node: Generic function and method502690
+Node: Metaobject protocol507169
+Node: Class instantiation508384
+Node: Customizing slot access514337
+Node: Method instantiation514736
+Node: Customizing method application514993
+Node: Library modules - Overview515480
+Node: Finding libraries you need517437
+Node: Library directory - data containers519348
+Node: Library directory - strings and characters522628
+Node: Library directory - data exchange524788
+Node: Library directory - files526674
+Node: Library directory - processes527433
+Node: Library directory - networking528115
+Node: Library directory - input and output529242
+Node: Library directory - time529505
+Node: Library directory - bits and bytes529748
+Node: Naming convention of libraries530646
+Node: Library modules - Gauche extensions531898
+Node: Arrays533411
+Node: Character code conversion542971
+Node: Supported character encoding schemes544033
+Node: Autodetecting the encoding scheme550368
+Node: Conversion ports551580
+Node: Extended port procedures558548
+Node: Collection framework559856
+Node: Mapping over collection562670
+Node: Selection and searching in collection569966
+Node: Miscellaneous operations on collection575014
+Node: Fundamental iterator creators576394
+Node: Implementing collections583482
+Node: Configuration parameters584813
+Node: Dictionary framework585687
+Node: Generic functions for dictionaries586292
+Node: Generic dictionaries589850
+Node: Low-level file operations593334
+Node: Hooks598926
+Node: Interactive session601229
+Node: Listener604015
+Node: User-level logging614567
+Node: Singleton621362
+Node: Slot with validator622760
+Node: Networking625756
+Node: Socket address627089
+Node: High-level network functions633394
+Node: Low-level socket interface641283
+Node: Netdb interface655568
+Node: Parameters661918
+Node: Parsing command-line options666374
+Node: High Level Process Interface677334
+Node: Process object677961
+Node: Process ports687643
+Node: Reloading modules696358
+Node: Simple dispatcher699908
+Node: Sequence framework703647
+Node: Fundamental sequence accessors704713
+Node: Slicing sequence706237
+Node: Mapping over sequences707531
+Node: Other operations over sequences710440
+Node: Implementing sequence714862
+Node: Syslog715042
+Node: Termios717763
+Node: Unit testing724657
+Node: Threads729928
+Node: Thread programming tips731098
+Node: Thread procedures734104
+Node: Synchronization primitives739567
+Node: Thread exceptions748181
+Node: Measure timings750493
+Node: Uniform vectors755150
+Node: Uvector basic operations759367
+Node: Uvector conversion operations764217
+Node: Uvector numeric operations770229
+Node: Uvector block I/O775248
+Node: Comparing version numbers778319
+Node: Virtual ports782923
+Node: Library modules - SRFIs798742
+Node: Feature conditional799853
+Node: List library802799
+Node: SRFI-1 List constructors803509
+Node: SRFI-1 List predicates804651
+Node: SRFI-1 List selectors805928
+Node: SRFI-1 List miscellaneous routines809092
+Node: SRFI-1 Fold811686
+Node: SRFI-1 Filtering & Partitioning816309
+Node: SRFI-1 Searching817724
+Node: SRFI-1 Deletion819728
+Node: SRFI-1 Association lists820614
+Node: SRFI-1 Set operations821690
+Node: Homogeneous vectors824083
+Node: A compatible let form with signatures and rest arguments824513
+Node: Feature-based program configuration language825552
+Node: Record types828386
+Node: Let-values830955
+Node: String library832627
+Node: SRFI-13 General conventions833998
+Node: SRFI-13 String predicates836225
+Node: SRFI-13 String Constructors837163
+Node: SRFI-13 String Selection837814
+Node: SRFI-13 String Comparison840664
+Node: SRFI-13 String Prefixes & Suffixes842034
+Node: SRFI-13 String searching842920
+Node: SRFI-13 String case mapping844992
+Node: SRFI-13 String reverse & append845564
+Node: SRFI-13 String mapping846912
+Node: SRFI-13 String rotation848098
+Node: SRFI-13 other string operations848468
+Node: SRFI-13 String filtering849903
+Node: SRFI-13 Low-level string procedures850272
+Node: Character-set library851064
+Node: SRFI-14 Character-set constructors851742
+Node: SRFI-14 Character-set Comparison853375
+Node: SRFI-14 Character-set iteration853798
+Node: SRFI-14 Character-set query854601
+Node: SRFI-14 Character-set algebra855162
+Node: SRFI-14 Predefined character-set856426
+Node: Time data types and procedures857338
+Node: SRFI-19 Time types858013
+Node: SRFI-19 Time queries859148
+Node: SRFI-19 Time procedures860377
+Node: SRFI-19 Date862342
+Node: SRFI-19 Date reader and writer867054
+Node: Sources of random bits870623
+Node: Localization873618
+Node: A program argument processor878244
+Node: Eager comprehensions884771
+Node: Vector library894598
+Node: Requiring extensions899534
+Node: Library modules - Utilities900671
+Node: Binary I/O903376
+Node: Packing Binary Data913609
+Node: Rational-less arithmetic921049
+Node: Database independent access layer923090
+Node: DBI user API926161
+Node: Writing drivers for DBI936156
+Node: Generic DBM interface943703
+Node: Opening and closing a dbm database945694
+Node: Accessing a dbm database950035
+Node: Iterating on a database950879
+Node: Managing dbm database instance952215
+Node: Writing a dbm implementation954464
+Node: File-system dbm956617
+Node: GDBM interface958305
+Node: NDBM interface960269
+Node: Original DBM interface961384
+Node: Filtering file content962526
+Node: Filesystem utilities965642
+Node: Directory utilities966810
+Node: Pathname utilities976192
+Node: File attribute utilities980406
+Node: File operations984418
+Node: Mathematic constants988879
+Node: Mersenne-Twister random number generator989435
+Node: RFC822 message parsing992454
+Node: Base64 encoding/decoding1003055
+Node: HTTP cookie handling1004977
+Node: FTP1008558
+Node: HMAC keyed-hashing1016539
+Node: HTTP1018420
+Node: IP packets1023803
+Node: ICMP packets1025207
+Node: MD5 message digest1027633
+Node: MIME message handling1028719
+Node: Quoted-printable encoding/decoding1040864
+Node: SHA message digest1043402
+Node: URI parsing and construction1045166
+Node: Zlib compression library1052230
+Node: SLIB1063598
+Node: Functional XML parser1064585
+Node: SSAX data types1066940
+Node: SSAX low-level parsing code1073249
+Node: SSAX higher-level parsers and scanners1084808
+Node: SSAX Highest-level parsers - XML to SXML1088101
+Node: SXML Query Language1096230
+Node: SXPath basic converters and applicators1097576
+Node: SXPath query language1106752
+Node: SXPath extension1109214
+Node: Manipulating SXML structure1113532
+Node: SXML predicates1114247
+Node: SXML accessors1115488
+Node: SXML modifiers1121914
+Node: SXPath auxiliary utilities1125058
+Node: SXML to markup conversion1125970
+Node: Serializing XML and HTML from SXML1128061
+Node: Simple SXML serializing1128847
+Node: Custom SXML serializing1130636
+Node: CSV tables1134711
+Node: Calculate difference of text streams1136522
+Node: Localized messages1138914
+Node: Simple HTML document construction1144048
+Node: Parsing input stream1149601
+Node: Showing progress on text terminals1154274
+Node: SQL parsing and construction1160787
+Node: Transliterate characters1162718
+Node: Lazy text construction1168148
+Node: Combination library1170353
+Node: Message digester framework1173880
+Node: Determine isomorphism1175629
+Node: The longest common subsequence1177070
+Node: Additional list library1181469
+Node: Pattern matching1188568
+Node: Queue1201280
+Node: Red black tree1205526
+Node: SLIB-compatible record type1211477
+Node: Relation framework1214037
+Node: Sparse data containers1220310
+Node: Sparse vectors1223461
+Node: Sparse tables1229063
+Node: Stream library1231078
+Node: Trie1241731
+Node: Topological sort1250201
+Node: CGI Utility1251056
+Node: CGI testing1266007
+Node: References1270747
+Ref: r5rs1270911
+Ref: onecont1271198
+Ref: myers861271383
+Ref: mop1271514
+Ref: dylan1271628
+Ref: fairthreads1271905
+Ref: rfc13211272034
+Ref: rfc20451272159
+Ref: rfc23961272356
+Ref: rfc26161272531
+Ref: rfc28221272669
+Ref: rfc29651272787
+Ref: rfc31741272927
+Ref: rfc35481273077
+Ref: srfi-01273221
+Ref: srfi-11273363
+Ref: srfi-21273472
+Ref: srfi-41273644
+Ref: srfi-61273768
+Ref: srfi-81273885
+Ref: srfi-91274025
+Ref: srfi-101274147
+Ref: srfi-111274266
+Ref: srfi-131274401
+Ref: srfi-141274518
+Ref: srfi-171274640
+Ref: srfi-181274754
+Ref: srfi-191274873
+Ref: srfi-211275005
+Ref: srfi-221275135
+Ref: srfi-231275295
+Ref: srfi-251275420
+Ref: srfi-261275556
+Ref: srfi-271275714
+Ref: srfi-281275836
+Ref: srfi-371275956
+Ref: ssax1276100
+Ref: MT1276293
+Ref: oleg11276582
+Ref: oleg21276699
+Node: C to Scheme mapping1276840
+Node: Function and Syntax Index1299989
+Node: Module Index1590453
+Node: Class Index1601202
+Node: Variable Index1613722
+
+End Tag Table

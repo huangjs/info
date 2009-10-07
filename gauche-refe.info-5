@@ -1,0 +1,3271 @@
+This is gauche-refe.info, produced by makeinfo version 4.13 from
+gauche-refe.texi.
+
+INFO-DIR-SECTION The Algorithmic Language Scheme
+START-INFO-DIR-ENTRY
+* Gauche: (gauche-refe.info).	        An R5RS Scheme implementation.
+END-INFO-DIR-ENTRY
+
+
+File: gauche-refe.info,  Node: Additional list library,  Next: Pattern matching,  Prev: The longest common subsequence,  Up: Library modules - Utilities
+
+11.46 `util.list' - Additional list library
+===========================================
+
+ -- Module: util.list
+     This module provides list utility functions which are not in srfi-1
+     (*Note List library::) but generally useful.
+
+     See also *note Collection framework:: and *note Sequence
+     framework::, for these modules also defines useful generic
+     functions that can be used for lists.
+
+ -- Function: take* list k &optional fill? padding
+     Returns a list that consists of the first K elements in LIST, like
+     SRFI-1's `take', except this procedure is more tolerant.  That is,
+     if LIST is shorter than K, `take*' doesn't signals an error.
+     Instead, it returns a copy of LIST by default (or the optional
+     argument FILL? is `#f').   If FILL? is true, PADDING is added to
+     the result to make its length K.  The default value of PADDING is
+     `#f'.
+
+          (take* '(a b c d) 3)       => (a b c)
+          (take* '(a b c d) 6)       => (a b c d)
+          (take* '(a b c d) 6 #t)    => (a b c d #f #f)
+          (take* '(a b c d) 6 #t 'z) => (a b c d z z)
+
+     Note: For generic subsequence extraction from any sequence, see
+     `subseq' in *note Slicing sequence::.
+
+ -- Function: drop* list k
+     Returns a list that the first K elements of LIST is dropped, like
+     SRFI-1's `drop', except this procedure is more tolerant.  If LIST
+     is shorter than K, an empty list is returned.
+
+          (drop* '(a b c d) 3)       => (d)
+          (drop* '(a b c d) 5)       => ()
+
+ -- Function: take-right* list k &optional fill? padding
+     Like `take*', but counts from right of LIST.  If needed, PADDING
+     is added on left of the result.
+
+ -- Function: drop-right* list k
+     Like `drop*', but counts from right of LIST.
+
+ -- Function: split-at* list k &optional fill? padding
+     More tolerant version of SRFI-1's `split-at'.  Returns the results
+     of `take*' and DROP*.
+
+          (split-at* '(a b c d) 6 #t 'z)
+            => (a b c d z z) and ()
+
+ -- Function: slices list k &optional fill? padding
+     Splits LIST into the sublists (slices) where the length of each
+     slice is K.  If the length of LIST is not a multiple of K, the
+     last slice is dealt in the same way as `take*'; that is, it is
+     shorter than K by default, or added PADDING if FILL? is true.
+
+          (slices '(a b c d e f g) 3)
+            => ((a b c) (d e f) (g))
+          (slices '(a b c d e f g) 3 #t 'z)
+            => ((a b c) (d e f) (g z z))
+
+ -- Function: intersperse item list
+     Inserts ITEM between elements in the LIST.  (The order of
+     arguments is taken from Haskell's intersperse).
+
+          (intersperse '+ '(1 2 3))  => (1 + 2 + 3)
+          (intersperse '+ '(1))      => (1)
+          (intersperse '+ '())       => ()
+
+ -- Macro: cond-list clause ...
+     Construct a list by conditionally adding entries.  Each CLAUSE has
+     a test and expressions.  When its test yields true, the result of
+     associated expression is used to construct the resulting list.
+     When the test yields false, nothing is inserted.
+
+     CLAUSE must be either one of the following form:
+    `(TEST EXPR ...)'
+          TEST is evaluated, and when it is true, EXPR ... are
+          evaluated, and the return value becomes a part of the result.
+          If no EXPR is given, the result of TEST is used if it is not
+          false.
+
+    `(TEST => PROC)'
+          TEST is evaluated, and when it is true, PROC is called with
+          the value, and the return value is used to construct the
+          result.
+
+    `(TEST @ EXPR ...)'
+          Like `(test expr ...)', except that the result of the last
+          EXPR must be a list, and it is spliced into the resulting
+          list, like unquote-splicing.
+
+    `(TEST => @ PROC)'
+          Like `(test => proc)', except that the result of PROC must be
+          a list, and and it is spliced into the resulting list, like
+          unquote-splicing.
+
+          (let ((alist '((x 3) (y -1) (z 6))))
+           (cond-list ((assoc 'x alist) 'have-x)
+                      ((assoc 'w alist) 'have-w)
+                      ((assoc 'z alist) => cadr)))
+            => (have-x 6)
+
+          (let ((x 2) (y #f) (z 5))
+            (cond-list (x @ `(:x ,x))
+                       (y @ `(:y ,y))
+                       (z @ `(:z ,z))))
+            => (:x 2 :z 5)
+
+ -- Function: alist->hash-table alist &optional cmp
+     Creates and returns a hash table that has entries of each element
+     in alist, using its car as the key and its cdr as the value.  CMP
+     is a symbol specifying the comparison function of the created hash
+     table; currently `eq?', `eqv?', `equal?' and `string=?' are
+     supported.
+
+ -- Function: hash-table->alist hash-table
+            (hash-table-map h cons)
+
+ -- Function: rassoc key alist &optional eq-fn
+ -- Function: rassq key alist
+ -- Function: rassv key alist
+     Reverse associations--given KEY is matched to the _cdr_ of each
+     element in ALIST, instead of the _car_.  Handy to realize
+     bidirectional associative list.  `Rassoc' takes an optional
+     comparison function, whose default is `equal?'.  `Rassq' and
+     `rassv' uses EQ? and EQV?.
+
+ -- Function: assoc-ref alist key &optional default eq-fn
+ -- Function: assq-ref alist key &optional default
+ -- Function: assv-ref alist key &optional default
+     These procedures provide the access to the assoc list symmetric
+     with other *-ref procedures.  This captures the common pattern of
+     alist access:
+          (assoc-ref alist key default eq-fn)
+           ==
+            (cond ((assoc key alist eq-fn) => cdr)
+                  (else default))))
+
+     If DEFAULT is omitted, `#f' is used.
+
+     `Assoc-ref' takes an optional comparison function EQ-FN, whose
+     default is `equal?'.  `Assq-ref' and `assv-ref' uses `eq?' and
+     `eqv?', respectively.
+
+ -- Function: rassoc-ref alist key &optional default eq-fn
+ -- Function: rassq-ref alist key &optional default
+ -- Function: rassv-ref alist key &optional default
+     Reverse association version of `assoc-ref'.
+          (rassoc-ref alist key default eq-fn)
+           ==
+            (cond ((rassoc key alist eq-fn) => car)
+                  (else default))))
+     The meanings of optional arguments are the same as `assoc-ref'.
+
+ -- Function: assoc-set! alist key val &optional eq-fn
+ -- Function: assq-set! alist key val
+ -- Function: assv-set! alist key val
+     Returns an alist who has `(key . val)' pair added to the `alist'.
+     If `alist' already has an element with KEY, the element's _cdr_ is
+     destructively modified for VAL.  If ALIST doesn't have an element
+     with KEY, a new pair is created and appended in front of ALIST; so
+     you should use the return value to guarantee KEY-VAL pair is added.
+
+     `Assoc-set!' takes optional comparison function EQ-FN, whose
+     default is `equal?'.  `Assq-set!' and `assv-set!' uses `eq?' and
+     `eqv?', respectively.
+
+
+File: gauche-refe.info,  Node: Pattern matching,  Next: Queue,  Prev: Additional list library,  Up: Library modules - Utilities
+
+11.47 `util.match' - Pattern matching
+=====================================
+
+ -- Module: util.match
+     This module is a port of Andrew Wright's pattern matching macro
+     library.  It is widely used in Scheme world, and ported to various
+     Scheme implementations, including Chez Scheme, PLT Scheme,
+     Scheme48, Chicken, and SLIB.  It is similar to, but more powerful
+     than Common Lisp's `destructuring-bind'.
+
+     This version retains compatibility of the original Wright's macro,
+     except (1) BOX is not supported since Gauche doesn't have one, and
+     (2) structure matching is integrated to Gauche's object system.
+
+   We show a list of APIs first, then the table of complete syntax of
+patterns, followed by examples.
+
+Pattern matching API
+--------------------
+
+ -- Macro: match expr clause ...
+     Each CLAUSE is either one of the followings:
+          (PAT BODY ...)
+          (PAT (=> IDENTIFIER) BODY ...)
+
+     First, the EXPR is matched against PAT of each clauses.  The
+     detailed syntax of the pattern is explained below.
+
+     If a matching PAT is found, the _pattern variables_ in PAT are
+     bound to the corresponding elements in EXPR, then BODY ... are
+     evaluated.  Then `match' returns the value(s) of the last
+     expression of BODY ....
+
+     If the clause is the second form, IDENTIFIER is also bound to the
+     failure continuation of the CLAUSE.  It is a procedure with no
+     arguments, and when called, it jumps back to the matcher as if the
+     matching of PAT is failed, and `match' continues to try the rest
+     of clauses.  So you can perform extra tests within BODY ... and if
+     you're not satisfied you can reject the match by calling
+     `(IDENTIFIER)'.  See the examples below for more details.
+
+     If no PAT matches, `match' reports an error.
+
+ -- Macro: match-lambda clause ...
+     Creates a function that takes one argument and performs `match' on
+     it, using CLAUSE ....  It's functionally equivalent to the
+     following expression:
+          (lambda (expr) (match expr CLAUSE ...))
+
+     Example:
+
+          (map (match-lambda
+                 ((item price-per-lb (quantity 'lbs))
+                  (cons item (* price-per-lb quantity)))
+                 ((item price-per-lb (quantity 'kg))
+                  (cons item (* price-per-lb quantity 2.204))))
+               '((apple      1.23 (1.1 lbs))
+                 (orange     0.68 (1.4 lbs))
+                 (cantaloupe 0.53 (2.1 kg))))
+           => ((apple . 1.353) (orange . 0.952)
+                      (cantaloupe . 2.4530520000000005))
+
+ -- Macro: match-lambda* clause ...
+     Like `match-lambda', but performs `match' on the list of whole
+     arguments.  It's functionally equivalent to the following
+     expression:
+          (lambda expr (match expr CLAUSE ...))
+
+ -- Macro: match-let ((pat expr) ...) body-expr ...
+ -- Macro: match-let name ((pat expr) ...) body-expr ...
+ -- Macro: match-let* ((pat expr) ...) body-expr ...
+ -- Macro: match-letrec ((pat expr) ...) body-expr ...
+     Generalize `let', `let*', and `letrec' to allow patterns in the
+     binding position rather than just variables.  Each EXPR is
+     evaluated, and then matched to PAT, and the bound pattern
+     variables are visible in BODY-EXPR ....
+
+          (match-let (
+                       (((ca . cd) ...)   '((a . 0) (b . 1) (c . 2)))
+                     )
+            (list ca cd))
+           => ((a b c) (0 1 2))
+
+     If you're sick of parenthesis, try `match-let1' below.
+
+ -- Macro: match-let1 pat expr body-expr ...
+     This is a Gauche extension and isn't found in the original
+     Wright's code.  This one is equivalent to the following code:
+          (match-let ((PAT EXPR)) BODY-EXPR ...)
+
+     Syntactically, `match-let1' is very close to the Common Lisp's
+     `destructuring-bind'.
+
+          (match-let1 ('let ((var val) ...) body ...)
+                      '(let ((a b) (c d)) foo bar baz)
+            (list var val body))
+           => ((a c) (b d) (foo bar baz))
+
+ -- Macro: match-define pat expr
+     Like toplevel `define', but allows a pattern instead of variables.
+
+          (match-define (x . xs) (list 1 2 3))
+
+          x  => 1
+          xs => (2 3)
+
+
+Pattern syntax
+--------------
+
+Here's a summary of pattern syntax. The asterisk `(*)' after
+explanation means Gauche's extension which does not present in the
+original Wright's code.
+
+     pat : patvar                       ;; anything, and binds pattern var
+         | _                            ;; anything
+         | ()                           ;; the empty list
+         | #t                           ;; #t
+         | #f                           ;; #f
+         | string                       ;; a string
+         | number                       ;; a number
+         | character                    ;; a character
+         | keyword                      ;; a keyword (*)
+         | 'sexp                        ;; an s-expression
+         | 'symbol                      ;; a symbol (special case of s-expr)
+         | (pat1 ... patN)              ;; list of n elements
+         | (pat1 ... patN . patN+1)     ;; list of n or more
+         | (pat1 ... patN patN+1 ooo)   ;; list of n or more, each element
+                                        ;;   of remainder must match patN+1
+         | #(pat1 ... patN)             ;; vector of n elements
+         | #(pat1 ... patN patN+1 ooo)  ;; vector of n or more, each element
+                                        ;;   of remainder must match patN+1
+         | ($ class pat1 ... patN)      ;; an object (patK matches in slot order)
+         | (struct class pat1 ... patN) ;; ditto (*)
+         | (@ class (slot1 pat1) ...)   ;; an object (using slot names) (*)
+         | (object class (slot1 pat1) ...) ;; ditto (*)
+         | (= proc pat)                 ;; apply proc, match the result to pat
+         | (and pat ...)                ;; if all of pats match
+         | (or pat ...)                 ;; if any of pats match
+         | (not pat ...)                ;; if all pats don't match at all
+         | (? predicate pat ...)        ;; if predicate true and all pats match
+         | (set! patvar)                ;; anything, and binds setter
+         | (get! patvar)                ;; anything, and binds getter
+         | `qp                          ;; a quasi-pattern
+
+     patvar : a symbol except _, quote, $, struct, @, object, =, and, or,
+              not, ?, set!, get!, quasiquote, ..., ___, ..k, __k.
+
+     ooo : ...                          ;; zero or more
+         | ___                          ;; zero or more
+         | ..k                          ;; k or more
+         | __k                          ;; k or more
+
+   * A bare symbol is a "pattern variable"; it matches anything, and
+     the matched part of the expression is bound to the symbol.  The
+     following symbols have special meanings and cannot be used as a
+     pattern variable: `_', `quote', `$', `struct', `@', `object', `=',
+     `and', `or', `not', `?', `set!', `get!', `quasiquote', `...',
+     `___', and `..k' and `__k' where _k_ is an integer.
+
+   * A symbol `_' matches anything, without binding a patter variable.
+     It can be used to show "don't care" placeholder.
+
+   * Literals such as emptylist, booleans, strings, numbers, characters
+     and keywords match the same object (in the sense of `equal?').
+
+   * Quoted expression matches the same experssion (in the sense of
+     `equal?').  You can use a quoted symbol to match the symbol itself.
+
+   * A list and a vector in general match a list or a vector whose
+     elements matches the elements in the pattern recursively, unless
+     the first element of the list is one of the special symbols listed
+     above, it has a special meaning.
+
+     As a special case, the last element of a vector or a list can be
+     followed by a symbol `...'.  In that case, the pattern just before
+     the symbol `...' can be applied repeatedly until it consumes all
+     the elements in the given expression.  A symbol `___' can be used
+     in place of `...'; it is useful when you want to produce a pattern
+     by syntax-rules macro.
+
+     For a list pattern, you can also use a symbol `..1', `..2', ...,
+     which specifies the minimum number of repetition.
+
+   * `($ class pat1 ...)' matches an instance of a class `class'.  Each
+     pattern `pat1' ... matches each value of slots, in order of
+     `(class-slots class)'.
+
+     `(struct class pat1 ...)' has the same meaning.  Although the
+     original Wright's code doesn't have `struct', PLT Scheme has it in
+     its extended match feature, and it is more descriptive.
+
+     This is an adaptation of the original feature that can match
+     structures.  It is useful to match a simple instance that you know
+     the order of slots; for example, a simple record created by srfi-9
+     (*Note Record types::) would be easy to match by positioned values.
+
+     If the instance's class uses inheritances, it is a bit difficult to
+     match by positions.  You can use `@' or `object' pattern below to
+     match using slot names.
+
+   * `(object class (slot1 pat1) ...)' matches an instance of a class
+     `class' whose value of SLOT1 ... matches PAT1 ....  This is
+     Gauche's extension.  `@' can be used in place of `object', but
+     `object' is recommended because of descriptiveness.
+
+   * `(= proc pat)' first applies PROC to the corresponding expression,
+     then match the result with PAT.
+
+   * `(and pat ...)', `(or pat ...)', and `(not pat ...)' are boolean
+     operations of patterns.
+
+   * `(? predicate pat ...)' first applies a predicate to the
+     corresponding expression, and if it returns true, applies each
+     `pat' ... to the expression.
+
+   * `(set! patvar)' matches anything, and binds an one-argument
+     procedure to a pattern variable PATVAR.  If the procedure is
+     called, it replaces the value of matched pattern for the given
+     argument.
+
+   * `(get! patvar)' matches anything, and binds a zero-argument
+     procedure to a pattern variable PATVAR.  If the procedure is
+     called, it returns the matched value.
+
+   * ``qp' is a quasipattern.  QP is quoted, in the sense that it
+     matches itself, _except_ the pattern that is unquoted.  (Don't
+     confuse quasipatern to quasiquote, though the functions are
+     similar.  Quasiquote turns off evaluation except unquoted subtree.
+     Quasiquote turns off the special pattern syntax except unquoted
+     subtree.  See the examples below).
+
+Pattern examples
+----------------
+
+A simple structure decomposition:
+     (match '(0 (1 2) (3 4 5))
+       ((a (b c) (d e f))
+        (list a b c d e f)))
+      => (0 1 2 3 4 5)
+
+   Using predicate patterns:
+     (match 123
+       ((? string? x) (list 'string x))
+       ((? number? x) (list 'number x)))
+      => (number 123)
+
+   Extracting variables and expressions from `let'.  Uses repetition
+and predicate patterns:
+     (define let-analyzer
+       (match-lambda
+         (('let (? symbol?)
+                ((var expr) ...)
+            body ...)
+          (format "named let, vars=~s exprs=~s" var expr))
+         (('let ((var expr) ...)
+            body ...)
+          (format "normal let, vars=~s exprs=~s" var expr))
+         (_
+          (format "malformed let"))))
+
+     (let-analyzer '(let ((a b) (c d)) e f g))
+      => "normal let, vars=(a c) exprs=(b d)"
+
+     (let-analyzer '(let foo ((x (f a b)) (y (f c d))) e f g))
+      => "named let, vars=(x y) exprs=((f a b) (f c d))"
+
+     (let-analyzer '(let (a) b c d))
+      => "malformed let"
+
+   Using `=' function application.  The pattern variable M is matched
+to the result of application of the regular expression.
+     (match "gauche-ref.texi"
+       ((? string? (= #/(.*)\.([^.]+)$/ m))
+        (format "base=~a suffix=~a" (m 1) (m 2))))
+      => "base=gauche-ref suffix=texi"
+
+   An example of quasipattern.   In the first expression, the pattern
+except `value' is quoted, so the symbols `the', `answer', and `is' are
+not pattern variables but literal symbols.   The second expression
+shows that; input symbol `was' does not match the literal symbol `is'
+in the pattern.  If we don't use quasiquote, all symbols in the pattern
+are pattern variables, so any four-element list matches as the third
+expression shows.
+     (match '(the answer is 42)
+       (`(the answer is ,value) value)
+       (else #f))
+      => 42
+
+     (match '(the answer was 42)
+       (`(the answer is ,value) value)
+       (else #f))
+      => #f
+
+     (match '(a b c d)
+       ((the answer is value) value)
+       (else #f))
+      => d
+
+
+File: gauche-refe.info,  Node: Queue,  Next: Red black tree,  Prev: Pattern matching,  Up: Library modules - Utilities
+
+11.48 `util.queue' - Queue
+==========================
+
+ -- Module: util.queue
+     Provides a queue (FIFO).   This implementation is tuned for speed
+     than safety; a queue is simply a pair that keeps head and tail of
+     the queue, and minimal check is done in most of the operations.
+
+     SLIB (*Note SLIB::) provides the queue library that is safer.
+     This API is upper compatible to the SLIB's.  The idea is that this
+     queue is used inside other procedure or structure that you know
+     you don't need the strict checks.  Use either one depending on
+     your requirement.
+
+ -- Function: make-queue
+     Creates and returns an empty queue.
+
+ -- Function: queue? obj
+     Returns `#t' if OBJ is a queue.  This operation checks OBJ is
+     really in a shape of the queue.
+
+ -- Function: queue-empty? queue
+     Returns `#t' if OBJ is an empty queue.
+
+ -- Function: queue-length queue
+     Returns the number of the items in the queue.
+
+ -- Function: copy-queue queue
+     Returns a copy of the queue.
+
+ -- Function: enqueue! queue obj &optional more-objs ...
+     Add OBJ to the end of QUEUE.  You may give more than one object,
+     and each of them are enqueued in order.  (Note: SLIB version
+     doesn't take the optional arguments).
+
+ -- Function: queue-push! queue obj &optional more-objs ...
+     Add OBJ in front of QUEUE.  You may give more than one object, and
+     each of them are pushed in order.  (Note: SLIB version doesn't
+     take the optional arguments).
+
+ -- Function: enqueue-unique! queue eq-proc obj &optional more-objs ...
+ -- Function: queue-push-unique! queue eq-proc obj &optional more-objs
+          ...
+     Like `enqueue!' and `queue-push!', respectively, except that these
+     don't modify QUEUE if it already contains OBJ (elements are
+     compared by two-argument procedure EQ-PROC).
+
+ -- Function: dequeue! queue
+ -- Function: queue-pop! queue
+     Take one object from the front of the queue QUEUE and returns it.
+     Both function works the same, but `queue-pop!' may be used to
+     emphasize it works with `queue-push!'.  An error is signalled if
+     QUEUE is empty.
+
+ -- Function: dequeue-all! queue
+     Returns the whole content of the queue by a list, with emptying
+     QUEUE.   If QUEUE is already empty, returns an empty list.  See
+     also `queue->list' below.
+
+ -- Function: queue-front queue
+ -- Function: queue-rear queue
+     Peek the head or the tail of the queue and returns the object,
+     respectively.  UTIL.QUEUE - QUEUE is not modified.  An error is
+     signalled if QUEUE is empty.
+
+ -- Function: list->queue list
+     Returns a new queue whose content is the elements in LIST, in the
+     given order.
+
+ -- Function: queue->list queue
+     Returns a list whose content is the items in the queue in order.
+     Unlike `dequeue-all!', the content of QUEUE remains intact.
+
+     In Gauche, `queue->list' copies the content of the queue to a
+     freshly allocated list, while `dequeue-all!' doesn't copy but
+     directly returns the queue's internal list.   There are some Scheme
+     systems that has `queue->list' but doesn't guarantee the content
+     is copied, so if you're planning to share the code among these
+     implementations, it's better not to rely on the fact that
+     `queue->list' copies the content.
+
+ -- Function: find-in-queue pred queue
+     Returns the first item in QUEUE that satisfies a predicate PRED.
+     The order of arguments follows `find' in SRFI-1 (*Note SRFI-1
+     Searching::).
+
+ -- Function: remove-from-queue! pred queue
+     Removes all items in the queue that satisfies PRED.  Returns `#t'
+     if any item is removed.  Otherwise returns `#f'.  The order of
+     arguments follows `remove' in SRFI-1 (*Note SRFI-1 Filtering &
+     Partitioning::).
+
+   Note on portability: Scheme48 has `delete-from-queue!', which takes
+object to remove rather than predicate, and also takes arguments in
+reversed order (i.e. queue comes first).   Avoid conflicting with that
+I intentionally left out `delete-from-queue!'; it's easy to write one
+in either Scheme48 compatible way or consistent to SRFI-1 argument
+order.
+
+
+File: gauche-refe.info,  Node: Red black tree,  Next: SLIB-compatible record type,  Prev: Queue,  Up: Library modules - Utilities
+
+11.49 `util.rbtree' - Red black tree
+====================================
+
+As of version 0.8.10, a balanced-tree object is built-in as `<tree-map>'
+(*Note Treemaps::), which uses red-black tree internally.  It is
+recommended for applications to use `<tree-map>' instead of `<rbtree>'.
+This module is only kept for backward compatibility.
+
+ -- Module: util.rbtree
+     This module provides procedures to handle red black trees.
+
+     Red black tree is a kind of balanced binary tree.  For a tree with
+     N nodes, the basic operations such as searching, inserting,
+     deleting, obtaining minimum and maximum element, and sequential
+     access, can be done in O(log N).  The keys used for red black trees
+     must have total order.
+
+     API of `util.rbtree' is similar to the hash table API (*Note
+     Hashtables::), so the user can use a red black tree as if it is a
+     hashtable, with its entries are ordered by the keys.
+
+ -- Class: <rbtree>
+     A class for red black trees.  Inherits `<sequence>', so that you
+     can apply sequence APIs on a red black tree.  When treated as a
+     sequence, each element is a pair of a key and a value.
+
+ -- Function: make-rbtree key=? key<?
+     Creates and returns an instance of `<rbtree>'.  The arguments
+     KEY=? and KEY<? are both procedures that take two arguments, which
+     are the keys.  The `key=?' procedure should return `#t' if two
+     arguments are equivalent, or `#f' otherwise.  The `key<?'
+     procedure should return `#t' if the first argument is strictly
+     less than the second argument, or `#f' otherwise.
+
+ -- Function: rbtree-copy rbtree
+     Copies and returns a red black tree RBTREE.  Modification on the
+     returned tree doesn't affect the original tree.
+
+ -- Function: rbtree-empty? rbtree
+     Returns `#t' if RBTREE doesn't have any elements, or `#f'
+     otherwise.
+
+ -- Function: rbtree-num-entries rbtree
+     Returns the number of elements in RBTREE.
+
+ -- Function: rbtree-exists? rbtree key
+     Returns `#t' if RBTREE has an entry with KEY, or `#f' otherwise.
+
+ -- Function: rbtree-get rbtree key &optional fallback
+     Looks for KEY in RBTREE.  If the entry is found, returns a value
+     corresponding to the key.  Otherwise, returns FALLBACK if it is
+     provided, or signals an error.
+
+ -- Function: rbtree-put! rbtree key value
+     Inserts an entry with a KEY and corresponding VALUE into RBTREE.
+     If there already exists an entry with a key which is equivalent
+     (under KEY=?), the entry is modified to have VALUE.
+
+ -- Function: rbtree-delete! rbtree key
+     Delets an entry with KEY from RBTREE if such an entry exists, and
+     returns `#t'.  If RBTREE doesn't have such an entry, `#f' is
+     returned.
+
+ -- Function: rbtree-update! rbtree key proc &optional fallback
+     A generalized version of `rbtree-push!' etc.  It works like the
+     following code, except that searching for the key is done only
+     once.
+          (let ((tmp (proc (rbtree-get RBTREE KEY FALLBACK))))
+            (rbtree-put! RBTREE KEY tmp)
+            tmp)
+
+ -- Function: rbtree-push! rbtree key value
+     Looks for an entry with KEY in RBTREE.  If it exists, the
+     procedure conses VALUE to the original value and makes it as a new
+     value.  Otherwise, the procedure creates a new entry for the KEY
+     and makes `(list VALUE)' its value.
+
+ -- Function: rbtree-pop! rbtree key &optional fallback
+     Looks for an entry with KEY in RBTREE.  If it exists and its value
+     is a pair, then the procedure updates its value with `cdr' of the
+     original value, and returns `car' of the original entry.   If such
+     an entry does not exist, or has a non-pair value, the procedure
+     doesn't modify RBTREE and returns FALLBACK if it is given,
+     otherwise reports an error.
+
+ -- Function: rbtree-min rbtree &optional fallback
+ -- Function: rbtree-max rbtree &optional fallback
+     Returns a pair of a key and its value with the minimum or maximum
+     key, respectively.   If RBTREE is empty, returns FALLBACK if it is
+     given, otherwise reports an error.
+
+ -- Function: rbtree-extract-min! rbtree &optional fallback
+ -- Function: rbtree-extract-max! rbtree &optional fallback
+     Looks for an entry with minimum or maximum key, respectively, then
+     deletes the entry from RBTREE and returns a pair of the key and
+     its value of the original entry.  If RBTREE is empty, returns
+     FALLBACK if it is given, otherwise reports an error.
+
+ -- Function: rbtree-fold rbtree proc seed
+ -- Function: rbtree-fold-right rbtree proc seed
+     Iterate over elements in RBTREE, applying PROC which has a type
+     `(key, value, seed) -> seed'.  The difference of `rbtree-fold' and
+     `rbtree-fold-right' is the same as `fold' and `fold-right'--that
+     is, the associative order of applying `proc'.
+          rbtree-fold:
+            (proc Kn Vn (proc Kn-1 Vn-1 ... (proc K0 V0 seed)))
+
+          rbtree-fold-right
+            (proc K0 V0 (proc K1 V1 ... (proc Kn Vn seed)))
+
+     Some examples:
+          (define tree (alist->rbtree '((3 . a) (7 . b) (5 . c)) = <))
+
+          (rbtree-fold tree list* '())
+             => (7 b 5 c 3 a)
+          (rbtree-fold-right tree list* '())
+             => (3 a 5 c 7 b)
+
+ -- Function: rbtree-keys rbtree
+ -- Function: rbtree-values rbtree
+     Returns a list of all keys and all values, respectively.  The keys
+     and values are in ascending order of the keys.
+
+ -- Function: rbtree->alist rbtree
+     Returns a list of pairs of keys and values for all entries.  The
+     pairs are in ascending order of the keys.
+
+ -- Function: alist->rbtree alist key=? key<?
+     Creates a new red black tree with KEY=? and KEY<?, then populates
+     it with ALIST, each pair in which are interpreted as a cons of a
+     key and its value.  Returns the created red black tree.
+
+
+File: gauche-refe.info,  Node: SLIB-compatible record type,  Next: Relation framework,  Prev: Red black tree,  Up: Library modules - Utilities
+
+11.50 `util.record' - SLIB-compatible record type
+=================================================
+
+ -- Module: util.record
+     This module provides a Guile and SLIB compatible record type API.
+     It is built on top of Gauche's object system.
+
+     See also *note Record types::, which provides a convenience macro
+     `define-record-type'.
+
+ -- Function: make-record-type type-name field-names
+     Returns a new class which represents a new record type.  (It is
+     what is called _record-type descriptor_ in SLIB).  In Gauche, the
+     new class is a subclass of `<record>' (see *note Record types::).
+
+     TYPE-NAME is a string that is used for debugging purposes.  It is
+     converted to a symbol and set as the name of the new class.
+     FIELD-NAMES is a list of symbols of the names of fields.  Each
+     field is implemented as a slot of the new class.
+
+   In the following procedures, RTD is the record class created by
+`make-record-type'.
+
+ -- Function: record-constructor rtd &optional field-names
+     Returns a procedure that constructs an instance of the record type
+     of given RTD.  The returned procedure takes exactly as many
+     arguments as FIELD-NAMES, which defaults to `'()'.  Each argument
+     sets the initial value of the corresponding field in FIELD-NAMES.
+
+ -- Function: record-predicate rtd
+     Returns a procedure that takes one argument, which returns `#t'
+     iff the given argument is of type of RTD.
+
+ -- Function: record-accessor rtd field-name
+     Returns an accessor procedure for the field named by FIELD-NAME of
+     type RTD.  The accessor procedure takes an instance of RTD, and
+     returns the value of the field.
+
+ -- Function: record-modifier rtd field-name
+     Returns a modifier procedure for the field named by FIELD-NAME of
+     type RTD.  The modifier procedure takes two arguments, an instance
+     of RTD and a value, and sets the value to the specified field.
+
+     (define rtd (make-record-type "my-record" '(a b c)))
+
+     rtd => #<class my-record>
+
+     (define make-my-record (record-constructor rtd '(a b c)))
+
+     (define obj (make-my-record 1 2 3))
+
+     obj => #<my-record 0x819d9b0>
+
+     ((record-predicate? rtd) obj)  => #t
+
+     ((record-accessor rtd 'a) obj) => 1
+     ((record-accessor rtd 'b) obj) => 2
+     ((record-accessor rtd 'c) obj) => 3
+
+     ((record-modifier rtd 'a) obj -1)
+
+     ((record-accessor rtd 'a) obj) => -1
+
+
+File: gauche-refe.info,  Node: Relation framework,  Next: Sparse data containers,  Prev: SLIB-compatible record type,  Up: Library modules - Utilities
+
+11.51 `util.relation' - Relation framework
+==========================================
+
+ -- Module: util.relation
+     Provides a set of common operations for relations.
+
+     Given set of values S1, S2, ..., Sn, a relation R is a set of
+     tuples such that the first element of a tuple is from S1, the
+     second from S2, ..., and the n-th from Sn.  In another word, R is
+     a subset of Cartesian product of S1, ..., Sn.  (The definition, as
+     well as the term _relation_, is taken from the Codd's 1970 paper,
+     "A Relational Model of Data for Large Shared Data Banks", in CACM
+     13(6) pp.377-387.)
+
+     This definition can be applied to various datasets: A set of Gauche
+     object system instances is a relation, if you view each instance as
+     a tuple and each slot value as the actual values.  A list of lists
+     can be a relation.  A stream that reads from CSV table produces a
+     relation.  Thus it would be useful to provide a module that
+     implements generic operations on relations, no matter how the
+     actual representation is.
+
+     From the operational point of view, we can treat any datastructure
+     that provides the following four methods; `relation-rows', which
+     retrieves a collection of tuples (rows); `relation-column-names',
+     `relation-accessor', and `relation-modifier', which provide the
+     means to access meta-information.  All the rest of relational
+     operations are built on top of those primitive methods.
+
+     A concrete implementation of relation can use duck typing, i.e. it
+     doesn't need to inherit a particular base class to use the
+     relation methods.  However, for the convenience, a base class
+     `<relation>' is provided in this module.  It works as a mixin
+     class--a concrete class typically wants to inherit `<relation>'
+     and `<collection>' or `<sequence>'.  Check out the sample
+     implementations in the `lib/util/relation.scm' in the source tree,
+     if you're curious.
+
+     This module is still under development.  The plan is to build
+     useful relational operations on top of the common methods.
+
+Basic class and methods
+-----------------------
+
+ -- Class: <relation>
+     An abstract base class of relations.
+
+ -- Method: relation-column-names (r <relation>)
+     A subclass must implement this method.  It should return a
+     sequence of names of the columns.  The type of column names is up
+     to the relation; we don't place any restriction on it, as far as
+     they are different each other in terms of `equal?'.
+
+ -- Method: relation-accessor (r <relation>)
+     A subclass must implement this method.  It should return a
+     procedure that takes two arguments, a row from the relation R and
+     a column name, and returns the value of the specified column.
+
+ -- Method: relation-modifier (r <relation>)
+     A subclass must implement this method. It should returns a
+     procedure that takes three arguments, a row from the relation R, a
+     column name, and a value to set.
+
+     If the relation is read-only, this method returns `#f'.
+
+ -- Method: relation-rows (r <relation>)
+     A subclass must implement this method.  It should return the
+     underlying instance of `<collection>' or its subclass (e.g.
+     `<sequence>')
+
+   The rest of method are built on top of the above four methods.  A
+subclass of `<relation>' may overload some of the methods below for
+better performance, though.
+
+ -- Method: relation-column-name? (r <relation>) column
+     Returns true iff COLUMN is a valid column name for the relation R.
+
+ -- Method: relation-column-getter (r <relation>) column
+ -- Method: relation-column-setter (r <relation>) column
+     Returns a procedure to access the specified column of a row from
+     the relation R.  `Relation-column-getter' should return a
+     procedure that takes one argument, a row.
+     `Relation-column-setter' should return a procedure that takes two
+     arguments, a row and a new value to set.
+
+     If the relation is read-only, `relation-column-setter' returns
+     `#f'.
+
+ -- Method: relation-ref (r <relation>) row column &optional default
+     ROW is a row from the relation R.  Returns value of the COLUMN in
+     ROW.  If COLUMN is not a valid column name, DEFAULT is returned if
+     it is given, otherwise an error is signalled.
+
+ -- Method: relation-set! (r <relation>) row column value
+     ROW is a row from the relation R.  Sets VALUE as the value of
+     COLUMN in ROW.  This may signal an error if the relation is
+     read-only.
+
+ -- Method: relation-column-getters (r <relation>)
+ -- Method: relation-column-setters (r <relation>)
+     Returns full list of getters and setters.  Usually the default
+     method is sufficient, but the implementation may want to cache the
+     list of getters, for example.
+
+ -- Method: relation-coercer (r <relation>)
+     Returns a procedure that coerces a row into a sequence.  If the
+     relation already uses a sequence to represent a row, it can return
+     row as is.
+
+ -- Method: relation-insertable? (r <relation>)
+     Returns true iff new rows can be inserted to the relation R.
+
+ -- Method: relation-insert! (r <relation>) row
+     Insert a row ROW to the relation R.
+
+ -- Method: relation-deletable? (r <relation>)
+     Returns true iff rows can be deleted from the relation R.
+
+ -- Method: relation-delete! (r <relation>) row
+     Deletes a row ROW from the relation R.
+
+ -- Method: relation-fold (r <relation>) proc seed column ...
+     Applies PROC to the values of COLUMN ... of each row, passing SEED
+     as the state value.  That is, for each row in R, PROC is called as
+     follows:
+
+          (PROC V_0 V_1 ... V_I SEED)
+
+           where V_K = (relation-ref R ROW COLUMN_K)
+
+     The result of the call becomes a new seed value, and the final
+     result is returned from RELATION-FOLD.
+
+     For example, if a relation has a column named `amount', and you
+     want to sum up all of them in a relation R, you can write like
+     this:
+          (relation-fold r + 0 'amount)
+
+Concrete classes
+----------------
+
+ -- Class: <simple-relation>
+
+ -- Class: <object-set-relation>
+
+
+File: gauche-refe.info,  Node: Sparse data containers,  Next: Stream library,  Prev: Relation framework,  Up: Library modules - Utilities
+
+11.52 `util.sparse' - Sparse data containers
+============================================
+
+ -- Module: util.sparse
+     This module provides a _sparse vector_, a space efficient data
+     containter indexed by nonnegative integer, and a _sparse table_, a
+     hash table using a sparse vector as a backing storage.
+
+   A sparse vector associates a nonnegative integer index to a value.
+It has _vector_ in its name since it is indexed by an integer, but it
+isn't like a flat array on contiguous memory; it's more like an
+associative array.  (Internally, the current implementation uses
+compact trie structure.)  It is guaranteed that you can store a value
+with index at least up to `2^32-1'; the actual maximum bits of indexes
+can be queried by `sparse-vector-max-index-bits'.
+
+   Unlike ordinary vectors, you don't need to specify the size of a
+sparse vector when you create one.  You can just set a value to any
+index in the supported range.
+
+     (define v (make-sparse-vector))
+
+     (sparse-vector-set! v 0 'a)
+     (sparse-vector-ref v 0) => a
+
+     (sparse-vector-set! v 100000000 'b)
+     (sparse-vector-ref v 100000000) => b
+
+   If you try to access an element that hasn't been set, an error is
+signalled by default.  You can give a fallback value to
+`sparse-vector-ref' to suppress the error.
+
+     (sparse-vector-ref v 1)        => error
+     (sparse-vector-ref v 1 'noval) => noval
+
+   A sparse table works just like a hash table, but it uses a sparse
+vector to store the values using hashed number of keys.
+
+   The main reason of these sparse data containers are for memory
+efficiency.   If you want to store values in a vector but knows you'll
+use only some entries sparsely, obviously it is waste to allocate a
+large vector and to leave many entries unused.  But it is worse than
+that; Gauche's GC doesn't like a large contiguous region of memory.
+Using lots of large vectors adds GC overhead quickly.  It becomes
+especially visible when you store large number of entries (like
+>100,000) into hash tables, since Gauche's builtin hash tables use a
+flat vector as a backing storage.   You'll see the heap size grows
+quickly and GC runs more frequently and longer.  On the other hand,
+sparse table works pretty stable with large number of entries.
+
+   Sparse data containers does have overhead on access speed.  They are
+a bit slower than the ordinary hash tables, and much slower than
+ordinary vectors.  We should note, however, as the number of entries
+grow, access speed on ordinary hash tables grows quicker than sparse
+tables and eventually two become comparable.
+
+   It depends on your application which you should use, and if you're
+not sure, you need to benchmark.  As a rule of thumb, if you use more
+than several hashtables each of which contains more than a few tens of
+thousands of entries, sparse tables may work better.  If you see GC
+Warnings telling "repeated allocation of large blocks", you should
+definitely consider sparse tables.
+
+* Menu:
+
+* Sparse vectors::
+* Sparse tables::
+
+
+File: gauche-refe.info,  Node: Sparse vectors,  Next: Sparse tables,  Prev: Sparse data containers,  Up: Sparse data containers
+
+11.52.1 Sparse vectors
+----------------------
+
+ -- Class: <sparse-vector-base>
+     An abstract base class of sparse vectors.  Inherits `<dictionary>'
+     and `<collection>'.  Note that sparse vectors are _not_
+     `<sequence>'; even they can be indexable by integers, they don't
+     have means of _ordered_ access.
+
+     Sparse vector may be a general vector that can contain any Scheme
+     objects (like `<vector>'), or a specialized vector that can
+     contain only certain types of numbers (like `<s8vector>' etc.).
+
+     All of these sparse vectors can be accessed by the same API.
+
+     Sparse vectors also implements the Collection API (*Note
+     Collection framework::) and the Dictionary API (*Note Dictionary
+     framework::).
+
+ -- Class: <sparse-vector>
+ -- Class: <sparse-TAGvector>
+     The actual sparse vector classes.  Inherits `<sparse-vector-base>'.
+     An instance of `<sparse-vector>' can contain any Scheme objects.
+
+     TAG either one of `s8', `u8', `s16', `u16', `s32', `u32', `s64',
+     `u64', `f16', `f32', or `f64'.  The range of values an instance of
+     those classes can hold is the same as the corresponding
+     `<TAGvector>' class in `gauche.uvector' (*Note Uniform vectors::).
+     That is, `<sparse-u8vector>' can have exact integer values between
+     0 and 255.
+
+ -- Function: make-sparse-vector &optional type
+     Creates an empty sparse vector.  The TYPE argument can be `#f'
+     (default), one of subclasses of `<sparse-vector-base>', or a
+     symbol of either one of `s8', `u8', `s16', `u16', `s32', `u32',
+     `s64', `u64', `f16', `f32', or `f64'.
+
+     If TYPE is omitted or `#f', a `<sparse-vector>' is created.  If it
+     is a class, an instance of the class is created (It is an error to
+     pass a class that is not a subclass of `<sparse-vector-base>'.)
+     If it is a symbol, an instance of corresponding
+     `<sparse-TAGvector>' is created.
+
+ -- Function: sparse-vector-max-index-bits
+     Returns maximum number of bits of allowed integer.  If this
+     returns 32, the index up to `(expt 2 32)' is supported.  It is
+     guaranteed that this is at least 32.
+
+   In the following entries, the argument SV denotes an instance of
+sparse vector; an error is signalled if other object is passed.
+
+ -- Function: sparse-vector-copy sv
+     Returns a copy of a sparse vector SV.
+
+ -- Function: sparse-vector-ref sv k &optional default
+     Returns K-th element of a sparse vector SV, where K must be a
+     nonnegative exact integer.  If K is equal to or greater than the
+     allowed index range, an error is signalled.
+
+     If K is within the allowed range but the sparse vector doesn't
+     have a value for K, DEFAULT is returned if it is provided,
+     otherwise an error is signalled.
+
+ -- Function: sparse-vector-set! sv k value
+     Sets VALUE for K-th element of a sparse vector SV.  K must be a
+     nonnegative exact integer, and below the maximum allowed index.
+
+     If SV is a numeric sparse vector, VALUE must also be within the
+     allowed range, or an error is signalled.
+
+ -- Function: sparse-vector-num-entries sv
+     Returns the number of entries in SV.
+
+ -- Function: sparse-vector-exists? sv k
+     Returns `#t' if SV has an entry for index K, `#f' otherwise.
+
+ -- Function: sparse-vector-delete! sv k
+     Delets the K-th entry of SV.  If SV had the entry , returns `#t'.
+     If SV didn't have the entry, returns `#f'.
+
+ -- Function: sparse-vector-clear! sv
+     Empties a sparse vector.
+
+ -- Function: sparse-vector-inc! sv k delta &optional (fallback 0)
+     This is a shortcut of the following.  It is especially efficient
+     for numeric sparse vectors.
+
+          (sparse-vector-set! sv k (+ (sparse-vector-ref sv k fallback) delta))
+
+     If the result of addition exceeds the allowed value range of SV,
+     an error is signalled.  In future we'll allow an option to clamp
+     the result value within the range.
+
+ -- Function: sparse-vector-update! sv k proc &optional fallback
+ -- Function: sparse-vector-push! sv k val
+ -- Function: sparse-vector-pop! sv k &optional fallback
+     Convenience routines to fetch-and-update an entry of a sparse
+     vector.  Works just like `hash-table-update!', `hash-table-push!'
+     and `hash-table-pop!'; (*Note Hashtables::).
+
+   The following procedures traverses a sparse vector.  Note that
+elements are not visited in the order of index; it's just like hash
+table traversers.
+
+   At this moment, if you want to walk a sparse vector with
+increasing/decreasing index order, you have to get a list of keys by
+`sparse-vector-keys', sort it, then use it to retrieve values.  We may
+add an option in future to `make-sparse-vector' so that those walk
+operation
+
+ -- Function: sparse-vector-fold sv proc seed
+     For each entry in SV, calls PROC as `(proc K_N V_N SEED_N)', where
+     K_N is an index and V_N is a value for it, and SEED_N is the
+     returned value of the previous call to `proc' if N `>=' 1, and
+     SEED if N = 0.  Returns the value of the last call of `proc'.
+
+ -- Function: sparse-vector-for-each sv proc
+ -- Function: sparse-vector-map sv proc
+     Calls `proc' with index and value, e.g. `(proc k value)', for each
+     element of SV.
+
+     The results of PROC are discarded by `sparse-vector-for-each', and
+     gathered to a list and returned by `sparse-vector-map'.
+
+ -- Function: sparse-vector-keys sv
+ -- Function: sparse-vector-values sv
+     Returns a list of all keys and all values in SV, respectively.
+
+
+File: gauche-refe.info,  Node: Sparse tables,  Prev: Sparse vectors,  Up: Sparse data containers
+
+11.52.2 Sparse tables
+---------------------
+
+ -- Class: <sparse-table>
+     A class for sparse table.  Inherits `<dictionary>' and
+     `<collection>'.
+
+     Operationally sparse tables are the same as hash tables, but the
+     former consumes less memory in trade of slight slower access.
+     (Roughly x1.5 to x2 access time when the table is small.  As the
+     table gets larger the difference becomes smaller.)
+
+ -- Function: make-sparse-table type
+     Creates and returns an empty sparse table.  The TYPE argument
+     specifies how to compare the elements; currently it can be one of
+     the symbols `eq?', `eqv?', `equal?' and `string=?', like hash
+     tables (*Note Hashtables::).
+
+ -- Function: sparse-table-copy st
+     Returns a copy of a sparse table ST.
+
+ -- Function: sparse-table-num-entries st
+     Returns the number of entries in a sparse table ST.
+
+ -- Function: sparse-table-ref st key &optional fallback
+     Retrieves a value associated to the KEY in ST.  If no entry with
+     KEY exists, FALLBACK is returned when it is provided, or an error
+     is signalled otherwise.
+
+ -- Function: sparse-table-set! st key value
+     Sets VALUE with KEY in ST.
+
+ -- Function: sparse-table-exists? st key
+     Returns `#t' if an entry with KEY exists in ST, `#f' otherwise.
+
+ -- Function: sparse-table-delete! st key
+     Deletes an entry with KEY in ST if it exists.  Returns `#t' if an
+     entry is actually deleted, or `#f' if there hasn't been an entry
+     with KEY.
+
+ -- Function: sparse-table-clear! st
+     Empties ST.
+
+ -- Function: sparse-table-update! st key proc &optional fallback
+ -- Function: sparse-table-push! st key val
+ -- Function: sparse-table-pop! st key &optional fallback
+
+ -- Function: sparse-table-fold st proc seed
+ -- Function: sparse-table-for-each st proc
+ -- Function: sparse-table-map st proc
+
+ -- Function: sparse-table-keys st
+ -- Function: sparse-table-values st
+
+
+File: gauche-refe.info,  Node: Stream library,  Next: Trie,  Prev: Sparse data containers,  Up: Library modules - Utilities
+
+11.53 `util.stream' - Stream library
+====================================
+
+ -- Module: util.stream
+     This module provides a library of lazy streams, including the
+     functions and syntaxes defined in srfi-40.
+
+ -- Function: stream? obj
+     [SRFI-40] Returns `#t' iff OBJ is a stream created by a procedure
+     of `util.stream'.
+
+ -- Variable: stream-null
+     [SRFI-40] The singleton instance of NULL stream.
+
+ -- Macro: stream-cons object stream
+     [SRFI-40] A fundamental constructor of a stream.  Adds OBJECT to
+     the head of a STREAM, and returns a new stream.
+
+ -- Function: stream-null? obj
+     [SRFI-40] Returns `#t' iff OBJ is the null stream.
+
+ -- Function: stream-pair? obj
+     [SRFI-40] Returns `#t' iff OBJ is a non-null stream.
+
+ -- Function: stream-car s
+     [SRFI-40] Returns the first element of the stream S.
+
+ -- Function: stream-cdr s
+     [SRFI-40] Returns the remaining elements of the stream S, as a
+     stream.
+
+ -- Macro: stream-delay expr
+     [SRFI-40] Returns a stream which is a delayed form of EXPR.
+
+     As a rule of thumb, any stream-producing functions should wrap the
+     resulting expression by `stream-delay'.
+
+ -- Function: stream obj ...
+     [SRFI-40] Returns a new stream whose elements are OBJ ....
+
+ -- Function: stream-unfoldn generator seed n
+     [SRFI-40] Creates N streams related each other, whose contents are
+     generated by GENERATOR and SEED.
+
+     The GENERATOR is called with the current seed value, and returns
+     `N+1' values:
+          (GENERATOR SEED)
+            => seed result_0 result_1 ... result_n-1
+
+     The first value is to be the next seed value.  RESULT_K must be
+     one of the following forms:
+    `(val)'
+          VAL will be the next car of K-th stream.
+
+    `#f'
+          No new information for K-th stream.
+
+    `()'
+          The end of K-th stream has been reached.
+
+     The following example creates two streams, the first one produces
+     an infinite series of odd numbers and the second produces evens.
+
+          gosh> (define-values (s0 s1)
+                  (stream-unfoldn (lambda (i)
+                                    (values (+ i 2)          ;; next seed
+                                            (list i)         ;; for the first stream
+                                            (list (+ i 1)))) ;; for the second stream
+                                  0 2))
+          #<undef>
+          gosh> (stream->list (stream-take s0 10))
+          (0 2 4 6 8 10 12 14 16 18)
+          gosh> (stream->list (stream-take s1 10))
+          (1 3 5 7 9 11 13 15 17 19)
+
+
+ -- Function: stream-map func . streams
+     [SRFI-40] Returns a new stream, whose elements are calculated by
+     applying FUNC to each element of STREAMS.
+
+ -- Function: stream-for-each func . streams
+     [SRFI-40] Applies FUNC for each element of STREAMS.  Terminates if
+     one of STREAMS reaches the end.
+
+ -- Function: stream-filter pred? stream
+     [SRFI-40] Returns a new stream including only elements passing
+     PRED?.
+
+   The following procedures are taken from the library written by
+Alejandro Forero Cuervo for Chicken Scheme.  They follow the naming
+conventions of srfi-1 (*note List library::).
+
+ -- Function: stream-xcons a b
+     `(stream-cons b a)'.  Just for convenience.
+
+ -- Function: stream-cons* elt ... stream
+     Creates a new stream which appends ELT ... before STREAM.
+
+ -- Function: make-stream n &optional init
+     Creates a new stream of N elements of INIT.  If INIT is omitted,
+     `#f' is used.  Specifying a negative number to N creates an
+     infinite stream.
+
+ -- Function: stream-tabulate n init-proc
+     Creates a new stream of N elements.  The K-th element is obtained
+     by applying INIT-PROC to K.  Specifying a negative number to N
+     creates an infinite stream.  Creates a new stream of integers,
+     starting from START and incrementing STEP.  The length of stream
+     is COUNT if it is positive, or infinite if COUNT is negative.  The
+     default values of START and STEP are 0 an 1, respectively.
+
+ -- Function: stream-format fmt arg ...
+     Returns a stream which is a result of applying `string->stream' to
+     `(format fmt arg ...)'.
+
+ -- Function: stream->list stream
+ -- Function: stream->string stream
+     Converts a stream to a list or a string.  All of STREAM's elements
+     are `force'd; if STREAM is infinite, these procedures won't
+     terminate.  For `stream->string', all STREAM must be characters,
+     or an error is signalled.
+
+ -- Function: list->stream list
+     Converts a list to a stream of its elements.
+
+ -- Function: string->stream string &optional stream
+     Convers a string to a stream of characters.  If an optional STREAM
+     is given, it becomes the tail of the resulting stream.
+
+     (stream->list (string->stream "abc" (list->stream '(1 2 3))))  =>
+     (#\a #\b #\c 1 2 3)
+
+ -- Function: port->stream &optional iport reader closer
+     Creates a stream, whose elements consist of the items read from
+     the input port IPORT.  The default IPORT is the current input port.
+     The default READER is `read-char'.
+
+     The result stream terminates at the point where READER returns EOF
+     (EOF itself is not included in the stream).  If CLOSER is given,
+     it is called with IPORT as an argument just after READER reads EOF.
+
+ -- Function: iterator->stream iter
+     A generic procedure to turn an internal iterator ITER into a
+     stream of iterated results.
+
+     The ITER argument is a procedure that takes two arguments, NEXT
+     and END, where NEXT is a procedure that takes one argument and END
+     is a thunk.  ITER is supposed to iterate over some set and call
+     NEXT for each argument, then call END to indicate the end of the
+     iteration.  Here's a contrived example:
+
+          (stream->list
+           (iterator->stream
+            (lambda (next end) (for-each next '(1 2 3 4 5)) (end))))
+           => (1 2 3 4 5)
+
+     Internally `iterator->stream' uses the "inversion of iterator"
+     technique, so that ITER only iterates to the element that are
+     needed by the stream.  Thus ITER can iterate over an infinite set.
+     In the following example, ITER is an infinite loop calling NEXT
+     with increasing integers, but only the first 10 elements are
+     calculated because of `stream-take':
+
+          (stream->list
+           (stream-take
+            (iterator->stream
+             (lambda (next end)
+               (let loop ((n 0)) (next n) (loop (+ n 1)))))
+            10))
+           => (0 1 2 3 4 5 6 7 8 9)
+
+ -- Function: stream-lines stream
+     Splits STREAM where its element equals to `#\n', and returns a
+     stream of splitted streams.
+
+          (stream->list
+           (stream-map stream->string
+                       (stream-lines (string->stream "abc\ndef\nghi"))))
+           => ("abc" "def" "ghi")
+
+ -- Function: stream= elt= stream ...
+     Returns true iff each corresponding element of STREAM ...  are the
+     same in terms of ELT=.  This procedure won't terminate if any of
+     STREAMs is infinite.
+
+ -- Function: stream-prefix= stream prefix &optional elt=
+     Compares initial elements of STREAM against a list PREFIX by ELT=.
+     Only as many elements of STREAM as PREFIX has are checked.
+
+ -- Function: stream-caar s
+ -- Function: stream-cadr s
+     ...
+
+ -- Function: stream-cdddar s
+ -- Function: stream-cddddr s
+     `(stream-caar s)' = `(stream-car (stream-car s))' etc.
+
+ -- Function: stream-ref stream pos
+     Returns the POS-th element in the stream.  POS must be a
+     nonnegative exact integer.
+
+ -- Function: stream-first s
+ -- Function: stream-second s
+ -- Function: stream-third s
+ -- Function: stream-fourth s
+ -- Function: stream-fifth s
+ -- Function: stream-sixth s
+ -- Function: stream-seventh s
+ -- Function: stream-eighth s
+ -- Function: stream-ninth s
+ -- Function: stream-tenth s
+     `(stream-first s)' = `(stream-ref s 0)' etc.
+
+ -- Function: stream-take stream count
+ -- Function: stream-take-safe stream count
+     Returns a new stream that consists of the first COUNT elements of
+     the given stream.   If the given stream has less than COUNT
+     elements, the stream returned by `stream-take' would raise an
+     error when the elements beyond the original stream is accessed.
+     On the other hand, the stream returned by `stream-take-safe' will
+     return a shortened stream when the given steram has less than
+     COUNT elements.
+
+          (stream->list (stream-take (stream-iota -1) 10))
+           => (0 1 2 3 4 5 6 7 8 9)
+
+          (stream-take (stream 1 2) 5)
+           => stream
+
+          (stream->list (stream-take (stream 1 2) 5))
+           => error
+
+          (stream->list (stream-take-safe (stream 1 2) 5))
+           => (1 2)
+
+
+ -- Function: stream-drop stream count
+ -- Function: stream-drop-safe stream count
+     Returns a new stream that consists of the elements in the given
+     stream except the first COUNT elements.  If the given stream has
+     less than COUNT elements, `stream-drop' returns a stream that
+     raises an error if its element is accessed, and `stream-drop-safe'
+     returns an empty stream.
+
+ -- Function: stream-intersperse stream element
+     Returns a new stream in which ELEMENT is inserted between elements
+     of STREAM.
+
+ -- Function: stream-split stream pred
+
+ -- Function: stream-last stream
+
+ -- Function: stream-last-n stream count
+
+ -- Function: stream-butlast stream
+
+ -- Function: stream-butlast-n stream count
+
+ -- Function: stream-length stream
+
+ -- Function: stream-length>= stream n
+
+ -- Function: stream-append stream ...
+
+ -- Function: steram-concatenate streams
+
+ -- Function: stream-reverse stream &optional tail-stream
+
+ -- Function: stream-count pred stream ...
+
+ -- Function: stream-remove pred stream
+
+ -- Function: stream-partition pred stream
+
+ -- Function: stream-find pred stream
+
+ -- Function: stream-find-tail pred stream
+
+ -- Function: stream-take-while pred stream
+
+ -- Function: stream-drop-while pred stream
+
+ -- Function: stream-span pred stream
+
+ -- Function: stream-break pred stream
+
+ -- Function: stream-any pred stream ...
+
+ -- Function: stream-every pred stream ...
+
+ -- Function: stream-index pred stream ...
+
+ -- Function: stream-member obj stream &optional elt=
+ -- Function: stream-memq obj stream
+ -- Function: stream-memv obj stream
+
+ -- Function: stream-delete obj stream &optional elt=
+
+ -- Function: stream-delete-duplicates stream &optional elt=
+
+ -- Function: stream-grep re stream
+
+ -- Function: write-stream stream &optional oport writer
+
+
+File: gauche-refe.info,  Node: Trie,  Next: Topological sort,  Prev: Stream library,  Up: Library modules - Utilities
+
+11.54 `util.trie' - Trie
+========================
+
+ -- Module: util.trie
+     This module provides _Trie_, a dictionary-like data structure that
+     maps keys to values, where a key is an arbitrary sequence.
+     Internally it stores the data as a tree where each node corresponds
+     to each element in the key sequence.  Key lookup is O(n) where n
+     is the length of the key, and not affected much by the number of
+     total entries.  Also it is easy to find a set of values whose keys
+     have a common prefix.
+
+     The following example may give you the idea.
+
+          (define t (make-trie))   ;; create a trie
+
+          (trie-put! t "pho" 3)    ;; populate the trie
+          (trie-put! t "phone" 5)
+          (trie-put! t "phrase" 6)
+
+          (trie-get t "phone")  => 5  ;; lookup
+
+          (trie-common-prefix t "pho")       ;; common prefix search
+            => (("phone" . 5) ("pho" . 3))
+          (trie-common-prefix-keys t "ph")
+            => ("phone" "pho" "phrase")
+
+     Tries are frequently used with string keys, but you are not
+     limited to do so; any sequence (*Note Sequence framework::) can be
+     a key.  If the types of keys differ, they are treated as different
+     keys:
+
+          (trie-put! t '(#\p #\h #\o) 8)  ;; different key from "pho"
+
+     Trie inheris `<collection>' and implements collection framework
+     including the builder. So you can apply generic collection
+     operations on a trie (*Note Collection framework::).  When
+     iterated, each element of a trie appears as a pair of a key and a
+     value.
+
+ -- Class: <trie>
+     A class for Trie.  No slots are intended for public.  Use the
+     following procedures to operate on tries.
+
+ -- Function: make-trie &optional tab-make tab-get tab-put! tab-fold
+     Creates and returns an empty trie.  The optional four arguments
+     are procedures to customize how the nodes of the internal tree are
+     managed.
+
+     Each node can have a table to store its child nodes, indexed by an
+     element of the key sequence (e.g. if the trie uses strings as
+     keys, a node's table is indexed by characters).
+
+    `tab-make'
+          A procedure with no arguments.  When called, creates and
+          returns an empty table for a node.
+
+    `tab-get TAB ELT'
+          Returns a child node indexed by ELT, or returns `#f' if the
+          table doesn't have a child for ELT.
+
+    `tab-put! TAB ELT CHILD-NODE'
+          If CHILD-NODE isn't `#f', stores a CHILD-NODE with index ELT.
+          If CHILD-NODE is `#f', removes the entry with index ELT.  In
+          both cases, this procedure should return the updated table.
+
+    `tab-fold TAB PROC SEED'
+          Calls PROC for every index and node in TAB, while passing a
+          seed value, whose initial value is SEED.  That is, PROC has a
+          type of `(index, node, seed) -> seed'.  Should return the
+          last result of PROC.
+
+     The default assumes `eqv?'-hashtables, i.e. the following
+     procedures are used.
+
+          tab-make: (lambda () (make-hash-table 'eqv?))
+
+          tab-get:  (lambda (tab k) (hash-table-get tab k #f))
+
+          tab-put!: (lambda (tab k v)
+                      (if v
+                        (hash-table-put! tab k v)
+                        (hash-table-delete! tab k))
+                      tab)
+
+          tab-fold: hash-table-fold
+
+     The following example creates a trie using assoc list to manage
+     children, while comparing string keys with case-insensitive way:
+
+          (make-trie list
+                     (cut assoc-ref <> <> #f char-ci=?)
+                     (lambda (t k v)
+                       (if v
+                         (assoc-set! t k v char-ci=?)
+                         (alist-delete! k t char-ci=?)))
+                     (lambda (t f s) (fold f s t)))
+
+     It is important that `tab-put!' must return an updated table--by
+     that, you can replace the table structure on the fly.  For
+     example, you may design a table which uses assoc list when the
+     number of children are small, and then switches to a vector
+     (indexed by character code) once the number of children grows over
+     a certain threshold.
+
+ -- Function: trie params kv ...
+     Construct a trie with the initial contents KV ..., where each KV
+     is a pair of a key and a value.  PARAMS are a list of arguments
+     which will be given to `make-trie' to create the trie.  The
+     following example creates a trie with two entries and the default
+     table procedures.
+
+          (trie '() '("foo" . a) '("bar" . b))
+
+ -- Function: trie-with-keys params key ...
+     A convenient version of `trie' when you only concern the keys.
+     Each value is the same as its key.  The following example creates
+     a trie with two entries and the default table procedures.
+
+          (trie-with-keys '() "foo" "bar")
+
+ -- Function: trie? obj
+     Returns `#t' if OBJ is a trie, or `#f' otherwise.
+
+ -- Function: trie-num-entries trie
+     Returns the number of entries in TRIE.
+
+ -- Function: trie-exists? trie key
+     Returns `#t' if TRIE contains an entry with KEY, or returns `#f'
+     otherwise.
+
+ -- Function: trie-get trie key &optional fallback
+     Returns the value associated with KEY in TRIE, if such an entry
+     exists.  When there's no entry for KEY, if FALLBACK is given, it
+     is returned; otherwise, an error is signalled.
+
+ -- Function: trie-put! trie key value
+     Puts VALUE associated to KEY into TRIE.
+
+ -- Function: trie-update! trie key proc &optional fallback
+     Works like the following code, except that the lookup of entry in
+     TRIE is done only once.
+
+          (let ((val (trie-get trie key fallback)))
+            (trie-put! trie key (proc val)))
+
+ -- Function: trie-delete! trie key
+     Removes an entry associated with KEY from TRIE.  If there's no
+     such entry, this procedure does nothing.
+
+ -- Function: trie->list trie
+     Makes each entry in TRIE to a pair `(KEY . VALUE)' and returns a
+     list of pairs of all entries.  The order of entries are undefined.
+
+ -- Function: trie-keys trie
+ -- Function: trie-values trie
+     Returns a list of all keys and values in TRIE, respectively.  The
+     order of keys/values are undefined.
+
+ -- Function: trie->hash-table trie ht-type
+     Creates a hash table with type HT-TYPE (see *note Hashtables::,
+     about hash table types), and populates it with every key and value
+     pair in TRIE.
+
+ -- Function: trie-common-prefix trie prefix
+ -- Function: trie-common-prefix-keys trie prefix
+ -- Function: trie-common-prefix-values trie prefix
+     Gathers all entries whose keys begin with PREFIX;
+     `trie-common-prefix' returns those entries in a list of pairs
+     `(key . value)'; `trie-common-prefix-keys' returns a list of keys;
+     and `trie-common-prefix-values' returns a list of values.   The
+     order of entries in a returned list is undefined.  If TRIE
+     contains no entry whose key has PREFIX, an empty list is returned.
+
+     Note that prefix matching doesn't consider the type of sequence;
+     if TRIE has entries for `"foo"' and `(#\f #\o #\o)',
+     `(trie-common-prefix trie "foo")' will return both entries.
+
+ -- Function: trie-common-prefix-fold trie prefix proc seed
+     For each entry whose key begins with PREFIX, calls PROC with three
+     argments, the entry's key, its value, and the current seed value.
+     SEED is used for the first seed value, and the value PROC returns
+     is used for the seed value of the next call of PROC.  The last
+     returned value from PROC is returned from
+     `trie-common-prefix-fold'.  The order of entries on which PROC is
+     called is undefined.  If TRIE contains no entry whose key has
+     PREFIX, PROC is never called and SEED is returned.
+
+ -- Function: trie-common-prefix-map trie prefix proc
+ -- Function: trie-common-prefix-for-each trie prefix proc
+     These are to TRIE-COMMON-PREFIX-FOLD as `map' and `for-each' are
+     to `fold'; `trie-common-prefix-map' calls PROC with key and value
+     for matching entries and gathers its result to a list;
+     `trie-common-prefix-for-each' also applies PROC, but discards its
+     results.
+
+ -- Function: trie-fold trie proc seed
+ -- Function: trie-map trie proc
+ -- Function: trie-for-each trie proc
+     These procedures are like their common-prefix versions, but
+     traverse entire TRIE instead.
+
+
+File: gauche-refe.info,  Node: Topological sort,  Next: CGI Utility,  Prev: Trie,  Up: Library modules - Utilities
+
+11.55 `util.toposort' - Topological sort
+========================================
+
+ -- Module: util.toposort
+     Implements topological sort algorithm.
+
+ -- Function: topological-sort graph &optional eqproc
+     GRAPH represents a directed acyclic graph (DAG) by a list of
+     connections, where each connection is the form
+          (<node> <downstream> <downstream2> ...)
+     that means a node `<node>' is connected to other nodes
+     `<downstream>' etc.   `<node>' can be arbitrary object, as far as
+     it can be compared by the procedure EQPROC, which is EQV? by
+     default (*Note Equivalence::).  Returns a list of `<node>'s sorted
+     topologically.
+
+     If the graph contains circular reference, an error is signalled.
+
+
+File: gauche-refe.info,  Node: CGI Utility,  Next: CGI testing,  Prev: Topological sort,  Up: Library modules - Utilities
+
+11.56 `www.cgi' - CGI utility
+=============================
+
+ -- Module: www.cgi
+     Provides a few basic functions useful to write a CGI script.
+
+     In order to write CGI script easily, you may want to use other
+     modules, such as `rfc.uri' (*Note URI parsing and construction::),
+     `text.html-lite' (*Note Simple HTML document construction::) and
+     `text.tree' (*Note Lazy text construction::).
+
+     Note: it seems that there is no active formal specification for
+     CGI.  See `http://w3c.org/CGI/' for more information.
+
+Metavariables
+-------------
+
+ -- Parameter: cgi-metavariables &optional metavariables
+     Normally, httpd passes a cgi program various information via
+     environment variables.  Most procedures in `www.cgi' refer to them
+     (meta-variables).  However, it is sometimes inconvenient to
+     require environment variable access while you're developing
+     cgi-related programs.  With this parameter, you can overrides the
+     information of meta-variables.
+
+     METAVARIABLES should be a list of two-element lists.  Car of each
+     inner list names the variable, and its cadr gives the value of the
+     variable by string.
+
+     For example, the following code overrides `REQUEST_METHOD' and
+     `QUERY_STRING' meta-variables during execution of
+     `my-cgi-procedure'.  (*Note Parameters::, for the details of
+     `parameterize').
+
+          (parameterize ((cgi-metavariables '(("REQUEST_METHOD" "GET")
+                                              ("QUERY_STRING" "x=foo"))))
+            (my-cgi-procedure))
+
+ -- Function: cgi-get-metavariable name
+     Returns a value of cgi metavariable NAME.  This function first
+     searches the parameter `cgi-metavariables', and if the named
+     variable is not found, calls `sys-getenv'.
+
+     CGI scripts may want to use `cgi-get-metavariable' instead of
+     directly calling `sys-getenv'; doing so makes reuse of the script
+     easier.
+
+Parameter extraction
+--------------------
+
+ -- Function: cgi-parse-parameters &keyword :query-string
+          :merge-cookies :part-handlers
+     Parses query string and returns associative list of parameters.
+     When a keyword argument QUERY-STRING is given, it is used as a
+     source query string.  Otherwise, the function checks the
+     metavariable `REQUEST_METHOD' and obtain the query string
+     depending on the value (either from stdin or from the metavariable
+     `QUERY_STRING').  If such a metavariable is not defined and the
+     current input port is a terminal, the function prompts the user to
+     type parameters; it is useful for interactive debugging.
+
+     If `REQUEST_METHOD' is `POST', this procedure can handle both
+     `application/x-www-from-urlencoded' and `multipart/form-data' as
+     the enctype.  The latter is usually used if the form has
+     file-uploading capability.
+
+     When the post data is sent by `multipart/form-data', each content
+     of the part is treated as a value of the parameter.  That is, the
+     content of uploaded file will be seen as one big chunk of a
+     string.  The other information, such as the original file name, is
+     discarded.   If it is not desirable to read entire file into a
+     string, you can customize the behavior by the PART-HANDLER
+     argument.  The details are explained in the "Handling file uploads"
+     section below.
+
+     When a true value is given to MERGE-COOKIES, the cookie values
+     obtained from the metavariable `HTTP_COOKIE' are appended to the
+     result.
+
+     Note that the query parameter may have multiple values, so `cdr'
+     of each element in the result is a list, not an atom.  If no value
+     is given to the parameter, `#t' is placed as its value.  See the
+     following example:
+          (cgi-parse-parameters
+            :query-string "foo=123&bar=%22%3f%3f%22&bar=zz&buzz")
+           => (("foo" "123") ("bar "\"??\"" "zz") ("buzz" #t))
+
+ -- Function: cgi-get-parameter name params &keyword :default :list
+          :convert
+     A convenient function to obtain a value of the parameter NAME from
+     parsed query string PARAMS, which is the value
+     `cgi-parse-parameters' returns.  NAME should be a string.
+
+     Unless true value is given to LIST, the returned value is a scalar
+     value.  If more than one value is associated to NAME, only the
+     first value is returned.  If LIST is true, the returned value is
+     always a list, even NAME has only one value.
+
+     After the value is retrieved, you can apply a procedure to convert
+     the string value to the appropriate type by giving a procedure to
+     the CONVERT argument.  The procedure must take one string
+     argument.  If LIST is true, the convert procedure is applied to
+     each values.
+
+     If the parameter NAME doesn't appear in the query, a value given
+     to the keyword argument DEFAULT is returned; the default value of
+     DEFAULT is `#f' if LIST is false, or `()' otherwise.
+
+Output generation
+-----------------
+
+ -- Function: cgi-header &keyword status content-type location cookies
+     Creates a text tree (*Note Lazy text construction::) for the HTTP
+     header of the reply message.  The most simple form is like this:
+          (tree->string (cgi-header))
+            => "Content-type: text/html\r\n\r\n"
+
+     You can specify alternative content-type by the keyword argument
+     CONTENT-TYPE.   If you want to set cookies to the client, specify
+     a list of cookie strings to the keyword argument COOKIES.  You can
+     use `construct-cookie-string' (*Note HTTP cookie handling::) to
+     build such a list of cookie strings.
+
+     The keyword argument LOCATION may be used to generate a
+     `Location:' header to redirect the client to the specified URI.
+     You can also specify the `Status:' header by the keyword argument
+     STATUS.   A typical way to redirect the client is as follows:
+
+          (cgi-header :status "302 Moved Temporarily"
+                      :location target-uri)
+
+
+ -- Parameter: cgi-output-character-encoding &optional encoding
+     The value of this parameter specifies the character encoding
+     scheme (CES) used for CGI output by `cgi-main' defined below.  The
+     default value is Gauche's native encoding.  If the parameter is
+     set other than the native encoding, `cgi-main' converts the output
+     encoding by `gauche.charconv' module (*Note Character code
+     conversion::).
+
+Convenience procedures
+----------------------
+
+ -- Function: cgi-main proc &keyword on-error merge-cookies output-proc
+          part-handlers
+     A convenient wrapper function for CGI script.  This function calls
+     `cgi-parse-parameters', then calls PROC with the result of
+     `cgi-parse-parameters'.  The keyword argument MERGE-COOKIES is
+     passed to `cgi-parse-parameters'.
+
+     PROC has to return a tree of strings (*Note Lazy text
+     construction::), including the HTTP header.  `cgi-main' outputs
+     the returned tree to the current output port by `write-tree', then
+     returns zero.
+
+     If an error is signalled in PROC, it is caught and an HTML page
+     reporting the error is generated.  You can customize the error
+     page by providing a procedure to the ON-ERROR keyword argument.
+     The procedure takes an `<condition>' object (*Note Conditions::),
+     and has to return a tree of string for the error reporting HTML
+     page, including an HTTP header.
+
+     When output the result, `cgi-main' refers to the value of the
+     parameter `cgi-output-character-encoding', and converts the
+     character encoding if necessary.
+
+     The output behavior of `cgi-main' can be customized by a keyword
+     argument OUTPUT-PROC; if it is given, the text tree (either the
+     normal return value of PROC, or an error page constructed by ther
+     error handler) is passed to the procedure given to OUTPUT-PROC.
+     The procedure is responsible to format and output a text to the
+     current output port, including character conversions, if necessary.
+
+     The keyword argument PART-HANDLERS are simply passed to
+     `cgi-parse-parameters', by which you can customize how the file
+     uploads should be handled.  See the "Handling file uploads"
+     section below for the details.
+
+     If you specify to use temporary file(s) by it, `cgi-main' makes
+     sure to clean up them whenever PROC exits, even by error.   See
+     `cgi-add-temporary-file' below to utilize this feature for other
+     purpose.
+
+     The following example shows the parameters given to the CGI
+     program.
+
+          #!/usr/local/bin/gosh
+
+          (use text.html-lite)
+          (use www.cgi)
+
+          (define (main args)
+            (cgi-main
+              (lambda (params)
+                `(,(cgi-header)
+                  ,(html-doctype)
+                  ,(html:html
+                    (html:head (html:title "Example"))
+                    (html:body
+                     (html:table
+                      :border 1
+                      (html:tr (html:th "Name") (html:th "Value"))
+                      (map (lambda (p)
+                             (html:tr
+                              (html:td (html-escape-string (car p)))
+                              (html:td (html-escape-string (x->string (cdr p))))))
+                           params))))
+                 ))))
+
+ -- Function: cgi-add-temporary-file filename
+     This is supposed to be called inside PROC of `cgi-main'.  It
+     registers FILENAME as a temporary file, which should be unlinked
+     when PROC exits.  It is a convenient way to ensure that your cgi
+     script won't leave garbages even if it throws an error.  It is OK
+     in PROC to unlink or rename FILENAME after calling this procedure.
+
+ -- Parameter: cgi-temporary-files
+     Keeps a list of filenames registered by `cgi-add-temporary-file'.
+
+Handling file uploads
+---------------------
+
+As explained in `cgi-parse-parameters' above, file uploads are handled
+transparently by default, taking the file content as the value of the
+parameter.   Sometimes you might want to change this behavior, for the
+file might be quite big and you don't want to keep around a huge chunk
+of a string in memory.  It is possible to customize handling of file
+uploads of `cgi-parse-parameters' and `cgi-main' by PART-HANDLERS
+argument.  (The argument is only effective for the form data submitted
+by `multipart/form-data' enctype)
+
+   The PART-HANDLERS argument is, if given, a list of lists; each inner
+list is a form of `(NAME-PATTERN ACTION KV-LIST ...)'.  Each uploaded
+file with a matching parameter name with NAME-PATTERN is handled
+according to ACTION.  (Here, a parameter name is the 'name' attribute
+given to the `input' element in the submitted form, not the name of the
+uploaded file).
+
+   NAME-PATTERN must be either a list of string (matches one of them),
+a regexp, or `#t' (matches anything).
+
+   ACTION must be either one of the followings:
+`#f'
+     Default action, i.e. the content of the uploaded file is turned
+     into a string and becomes the value of the parameter.
+
+`ignore'
+     The uploaded content is discarded.
+
+`file'
+     The uploaded content is saved in a temporary file.  The value of
+     the parameter is the pathname of the temporary file.
+
+     For this action, you can write an entry like `(NAME-PATTERN file
+     PREFIX)', to specify the prefix of the pathname of the temporary
+     file.  For example, if you specify `("image" file
+     "/var/mycgi/incoming/img")', the file uploaded as `"image"'
+     parameter will be stored as something like
+     `/var/mycgi/incoming/img49g2Ua'.
+
+     The application should move the temporary file to appropriate
+     location; if you're using `cgi-main', the temporary files created
+     by this action will be unlinked when `cgi-main' exits.
+
+`file+name'
+     Like `file', but the value of the parameter is a list of tempoary
+     filename and the filename passed by the client.  It is useful if
+     you want to use client's filename (but do not blindly assume the
+     client sends a valid pathname; for example, you shouldn't use it
+     to rename the uploaded file without validating it).
+
+`PROCEDURE'
+     In this case, PROCEDURE is called to handle the uploaded contents.
+     It is called with four arguments: `(procedure NAME FILENAME
+     PART-INFO IPORT)'.
+
+     NAME is the name of the parameter.  FILENAME is the name of the
+     original file (pathname in the client).  PART-INFO is a
+     `<mime-part>' object that keeps information about this mime part,
+     and IPORT is where the body can be read from.  For the details
+     about these arguments, see *note MIME message handling::; you
+     might be able to use procedures provided by `rfc.mime', such as
+     `mime-retrieve-body', to construct your own procedure.
+
+     If you create a temporary file in PROCEDURE, you can call
+     `cgi-add-temporary-file' to make sure it is removed even if an
+     error occurs during cgi processing.
+
+   If KV-LIST is given after ACTION, it must be a keyword-value list
+and further modifies action.  The following keywords are supported.
+
+`:prefix'
+     Valid only if ACTION is either `file' or `file+name'.  Specifies
+     the prefix of the temporary file.  If you give `:prefix
+     "/tmp/foo"', for example, the file is saved as something like
+     `/tmp/fooxAgjeQ'.
+
+`:mode'
+     Valid only if ACTION is either `file' or `file+name'.  Specifies
+     the mode of the temporary file in unix-style integer.  By default
+     it is `#o600'.
+
+   Note that the parameters that are not file uploads are not the
+subject of PART-HANDLERS; such parameter values are always turned into
+a string.
+
+   Here's a short example.  Suppose you have a form like this:
+
+     <form enctype="multipart/form-data" method="POST" action="mycgi.cgi">
+     <input type="file" name="imagefile" />
+     <input type="text" name="description" />
+     <input type="hidden" name="mode" value="normal" />
+     </form>
+
+   If you use `cgi-parse-parameters' in `mycgi.cgi' without
+PART-HANDLERS argument, you'll get something like the following as the
+result.  (The actual values depend on how the web client filled the
+form).
+
+     (("imagefile" #*".....(image file content as a string)....")
+      ("description" "my image")
+      ("mode" "normal"))
+
+   If you pass `'(("imagefile" file :prefix "/tmp/mycgi"))' to
+PART-HANDLERS instead, you might get something like the following, with
+the content of uploaded file saved in `/tmp/mycgi7gq0B'
+
+     (("imagefile" "/tmp/mycgi7gq0B")
+      ("description" "my image")
+      ("mode" "normal"))
+
+   If you use a symbol `file+name' instead of `file' above, you'll get
+something like `("/tmp/mycgi7gq0B" "logo.jpg")' as the value of
+`"imagefile"', where `"logo.jpg"' is the client-side filename.   (Note:
+the client can send any string as the name of the file, so _never_
+assume it is a valid pathname).
+
+
+File: gauche-refe.info,  Node: CGI testing,  Prev: CGI Utility,  Up: Library modules - Utilities
+
+11.57 `www.cgi.test' - CGI testing
+==================================
+
+ -- Module: www.cgi.test
+     This module defines a useful procedures to test CGI script.  The
+     test actually runs the named script, with specified enviornment
+     variable settings, and retrieve the output.  Your test procedure
+     then examine whether the output is as expected or not.
+
+ -- Function: cgi-test-enviornment-ref envvar-name
+ -- Function: (setter cgi-test-enviornment-ref) envvar-name value
+     The module keeps a table of default values of enviornment variables
+     with which the cgi script will be run.  These procedures allow the
+     programmer to get/set those default values.
+
+     Note that you can override these default values and/or pass
+     additional environment variables for each call of cgi script.  The
+     following environment variables are set by default.
+     Name                               Value
+     `SERVER_SOFTWARE'                  `cgitest/1.0'
+     `SERVER_NAME'                      `localhost'
+     `GATEWAY_INTERFACE'                `CGI/1.1'
+     `SERVER_PROTOCOL'                  `HTTP/1.1'
+     `SERVER_PORT'                      `80'
+     `REQUEST_METHOD'                   `GET'
+     `REMOTE_HOST'                      `remote'
+     `REMOTE_ADDR'                      `127.0.0.1'
+
+ -- Function: call-with-cgi-script script proc &keyword (environment
+          ()) (parameters #f)
+     Runs a script with given enviornment, and calls PROC with one
+     argument, an input port which is connected to the pipe of script's
+     standard output.  The argument SCRIPT should be a list of program
+     name and its arguments.  Each element are passed to `x->string'
+     first to stringify.  The script is run under the enviornment given
+     by ENVIORNMENT variable and the default test environment described
+     above.  The ENVIRONMENT argument must be an associative list, in
+     which each key (`car') is the name of the enviornment variable and
+     its `cdr' is the value.  Both are passed to `x->string' first.  If
+     the same environment variable appears in ENVIRONMENT and the
+     default test enviornment, the one in ENVIRONMENT is used.
+     Additionally, if an associative list is given to the PARAMETERS
+     argument, a query string is built from it and passed the script.
+     The actual method to pass the query string depends on the value of
+     `REQUEST_METHOD' environment variable in the setting.  If
+     `REQUEST_METHOD' is either `GET' or `HEAD', the query string is
+     put in an environment variable `QUERY_STRING'.  If it is `POST',
+     the query string is fed to the standard input of the script.  In
+     the latter case, `CONTENT_TYPE' is set to
+     `application/x-www-form-urlencoded' and `CONTENT_LENGTH' are set
+     to the length of `QUERY_STRING' automatically.  If
+     `REQUEST_METHOD' is other values, PARAMETERS is ignored.  You can
+     bypass this mechanism and set up enviornment variable
+     `QUERY_STRING' directly, if you wish.
+
+ -- Function: run-cgi-script->header&body script reader &keyword
+          environment parameters
+     A convenient wrapper of `call-with-cgi-script'.  The SCRIPT,
+     ENVIRONMENT and PARAMETERS are passed to `call-with-cgi-script' as
+     they are.  The output of the script is parsed by
+     `run-cgi-script->header&body'.  First, the RFC2822 header fields
+     are parsed by `rfc822-read-headers' (*Note RFC822 message
+     parsing::).  Then, the READER is called with an input port which
+     is piped to the script's output.  `Run-cgi-script->header&body'
+     returns two values, the list of headers (as parsed by
+     `rfc822-read-headers'), and the return value of READER.
+
+ -- Function: run-cgi-script->sxml script &keyword environment
+          parameters
+     This is a procedure that uses `ssax:xml->sxml' (*Note Functional
+     XML parser::) as the READER in `run-cgi-script->header&body'.
+     Useful when you're testing a cgi script that produces well-formed
+     HTML and/or XML document.
+
+ -- Function: run-cgi-script->string script &keyword environment
+          parameters
+ -- Function: run-cgi-script->string-list script &keyword environment
+          parameters
+     These procedures use `port->string' and `port->string-list' (*Note
+     Input utility functions::) as the READER in
+     `run-cgi-script->header&body', respectively.
+
+   An example:
+     (run-cgi-script->string-list "bbs.cgi"
+                                  :environment '((REMOTE_ADDR . "12.34.56.78"))
+                                  :parameters '((command . "view")
+                                                (page . 1234)))
+
+
+File: gauche-refe.info,  Node: References,  Next: C to Scheme mapping,  Prev: Library modules - Utilities,  Up: Top
+
+Appendix A References
+*********************
+
+[R5RS]
+     R. Kelsey, W. Clinger, J. Rees (eds.), Revised^5 Report on the
+     Algorithmic Language Scheme, Higher-Order and Symbolic
+     Computation, 11(1), September, 1998 and ACM SIGPLAN Notices,
+     33(9), October, 1998.
+     `http://www.schemers.org/Documents/Standards/R5RS/'.
+
+[1CC]
+     Carl Bruggeman, Oscar Waddell and R. Kent Dybvig, Representing
+     control in the presence of one-shot continuations, in Proceedings
+     of SIGPLAN '96, pp. 99-107, 1996.
+
+[Myers86]
+     Eugene Myers, An O(ND) Difference Algorithm and Its Variations,
+     Algorithmica Vol. 1 No. 2, pp. 251-266, 1986.
+
+[MOP]
+     Gregor Kiczales, Jim Des Rivieres, Daniel Bobrow, The Art of
+     Metaobject Protocol, The MIT Press.
+
+[Dylan]
+     Kim Barrett, Bob Cassels, Paul Haahr, David A. Moon, Keith
+     Playford, P. Tucker Withington, A Monotonic Superclass
+     Linearization for Dylan, in Proceedings of OOPSLA 96, October 1996.
+     `http://www.webcom.com/~haahr/dylan/linearization-oopsla96.html'.
+
+[FairThreads]
+     F. Boussinot, Java Fair Threads,
+     `http://www-sop.inria.fr/mimosa/rp/FairThreads/html/FairThreads.html'.
+
+[RFC1321]
+     R. Rivest, The MD5 Message-Digest Algorithm.
+     April 1992.
+     `ftp://ftp.isi.edu/in-notes/rfc1321.txt'.
+
+[RFC2045]
+     N. Freed, N. Borenstein: Multipurpose Internet Mail Extension
+     (MIME) Part One: Format of Internet Message Bodies, November 1996.
+     `ftp://ftp.isi.edu/in-notes/rfc2045.txt'.
+
+[RFC2396]
+     T. Berners-Lee, R. Fielding, L. Masinter, Uniform Resource
+     Identifiers (URI): Generic Syntax, August 1998.
+     `ftp://ftp.isi.edu/in-notes/rfc2396.txt'.
+
+[RFC2616]
+     R. Fielding et al, Hypertext Transfer Protocol - HTTP/1.1, June
+     1999.
+     `ftp://ftp.isi.edu/in-notes/rfc2616.txt'.
+
+[RFC2822]
+     P. Resnick (ed.), Internet Message Format, April 2001.
+     `ftp://ftp.isi.edu/in-notes/rfc2822.txt'.
+
+[RFC2965]
+     D. Kristol, L. Montulli, HTTP State Management Mechanism, October
+     2000.
+     `ftp://ftp.isi.edu/in-notes/rfc2965.txt'.
+
+[RFC3174]
+     D. Eastlake, 3rd and P. Jones, US Secure Hash Algorithm 1 (SHA1).
+     September 2001.
+     `ftp://ftp.isi.edu/in-notes/rfc3174.txt'.
+
+[RFC3548]
+     S. Josefsson, Ed.: The Base16, Base32, and Base64 Data Encodings
+     July 2003.
+     `ftp://ftp.isi.edu/in-notes/rfc3548.txt'.
+
+[SRFI-0]
+     Marc Feeley, Feature-based conditional expansion construct, May
+     1999.
+     `http://srfi.schemers.org/srfi-0/srfi-0.html'.
+
+[SRFI-1]
+     Olin Shivers, List Library, October 1999.
+     `http://srfi.schemers.org/srfi-1/srfi-1.html'.
+
+[SRFI-2]
+     Oleg Kiselyov, `AND-LET*': an `AND' with local bindings, a guarded
+     `LET*' special form, March 1998.
+     `http://srfi.schemers.org/srfi-2/srfi-2.html'.
+
+[SRFI-4]
+     Marc Feeley, Homogeneous numeric vector types, May 1999.
+     `http://srfi.schemers.org/srfi-4/srfi-4.html'.
+
+[SRFI-6]
+     William D Clinger, Basic String Ports, July 1999.
+     `http://srfi.schemers.org/srfi-6/srfi-6.html'.
+
+[SRFI-8]
+     John David Stone, receive: Binding to multiple values, August
+     1999.
+     `http://srfi.schemers.org/srfi-8/srfi-8.html'.
+
+[SRFI-9]
+     Richard Kelsey, Defining Record Types, September 1999.
+     `http://srfi.schemers.org/srfi-9/srfi-9.html'.
+
+[SRFI-10]
+     Oleg Kiselyov, `#,' external form, January 2000.
+     `http://srfi.schemers.org/srfi-10/srfi-10.html'.
+
+[SRFI-11]
+     Lars T Hansen, Syntax for receiving multiple values, March 2000.
+     `http://srfi.schemers.org/srfi-11/srfi-11.html'.
+
+[SRFI-13]
+     Olin Shivers, String Libraries, December 2000.
+     `http://srfi.schemers.org/srfi-13/srfi-13.html'.
+
+[SRFI-14]
+     Olin Shivers, Character-set Library, December 2000.
+     `http://srfi.schemers.org/srfi-14/srfi-14.html'.
+
+[SRFI-17]
+     Per Bothner, Generalized `set!', July 2000.
+     `http://srfi.schemers.org/srfi-17/srfi-17.html'.
+
+[SRFI-18]
+     Marc Feeley, Multithreading Support, April 2000.
+     `http://srfi.schemers.org/srfi-18/srfi-18.html'.
+
+[SRFI-19]
+     Will Fitzgerald, Time Data Types and Procedures, August 2000.
+     `http://srfi.schemers.org/srfi-19/srfi-19.html'.
+
+[SRFI-21]
+     Marc Feeley, Readl-time Multithreading Support, April 2000.
+     `http://srfi.schemers.org/srfi-21/srfi-21.html'.
+
+[SRFI-22]
+     Martin Gasbichler and Michael Sperber, Running Scheme Scripts on
+     Unix, January 2002.
+     `http://srfi.schemers.org/srfi-22/srfi-22.html'.
+
+[SRFI-23]
+     Stephan Housen, Error reporting mechanism, April 2001.
+     `http://srfi.schemers.org/srfi-23/srfi-23.html'.
+
+[SRFI-25]
+     Jussi Piitulainen, Multi-dimensional Array Primitives, June 2002.
+     `http://srfi.schemers.org/srfi-25/srfi-25.html'.
+
+[SRFI-26]
+     Sebastian Egner, Notation for Specializing Parameters without
+     Currying, June 2002.
+     `http://srfi.schemers.org/srfi-26/srfi-26.html'.
+
+[SRFI-27]
+     Sebastian Egner, Sources of Random Bits, June 2002.
+     `http://srfi.schemers.org/srfi-27/srfi-27.html'.
+
+[SRFI-28]
+     Scott G. Miller, Basic Format Strings, June 2002.
+     `http://srfi.schemers.org/srfi-28/srfi-28.html'.
+
+[SRFI-37]
+     Anthony Carrico, Args-fold: a program argument processor, Jan.
+     2003.
+     `http://srfi.schemers.org/srfi-37/srfi-37.html'.
+
+[SSAX]
+     Oleg Kiselyov, XML and Scheme,
+     `http://pobox.com/~oleg/ftp/Scheme/xml.html'.
+     The SSAX distribution is also available at sourceforge:
+     `http://ssax.sourceforge.net/'.
+
+[MT]
+     M. Matsumoto and T. Nishimura, "Mersenne Twister: A
+     623-dimensionally equidistributed uniform pseudorandom number
+     generator", ACM Trans. on Modeling and Computer Simulation Vol. 8,
+     No. 1, Januray pp.3-30 1998.
+     `http://www.math.keio.ac.jp/~matumoto/emt.html'
+
+[OLEG1]
+     Oleg Kiselyov, Making sense of an input stream,
+     `http://pobox.com/~oleg/ftp/Scheme/parsing.html'.
+
+[OLEG2]
+     Oleg Kiselyov, General ways to traverse collections,,
+     `http://pobox.com/~oleg/ftp/Scheme/enumerators-callcc.html'.  2000.
+
+
+File: gauche-refe.info,  Node: C to Scheme mapping,  Next: Function and Syntax Index,  Prev: References,  Up: Top
+
+Appendix B C to Scheme mapping
+******************************
+
+For the convenience of the programmers familiar to C, I composed a
+simple table of C operators and library functions with the
+corresponding Scheme functions.
+
+`+'
+     R5RS arithmetic procedure `+'.   *Note Arithmetics::.
+
+`+='
+     Gauche `inc!' macro.  *Note Assignments::.
+
+`-'
+     R5RS arithmetic procedure `-'.   *Note Arithmetics::.
+
+`-='
+     Gauche `dec!' macro.  *Note Assignments::.
+
+`->'
+     Gauche `slot-ref' is something close to this.  *Note Accessing
+     instance::.
+
+`* (binary)'
+     R5RS arithmetic procedure `*'.   *Note Arithmetics::.
+
+`* (unary)'
+     No equivalent procedure.  Scheme doesn't have explicit notation of
+     pointers.
+
+`*='
+     No equivalent procedure.
+
+`/'
+     R5RS arithmetic procedure `/'.   *Note Arithmetics::.
+
+`/='
+     No equivalent procedure.
+
+`& (binary)'
+     Gauche `logand'.  *Note Bitwise operations::.
+
+`& (unary)'
+     No equivalent procedure.  Scheme doesn't have explicit notation of
+     pointers.
+
+`&&'
+     R5RS syntax `and'.  *Note Conditionals::.
+
+`&='
+     No equivalent procedure.
+
+`|'
+     Gauche `logior'.  *Note Bitwise operations::.
+
+`||'
+     R5RS syntax `or'.  *Note Conditionals::.
+
+`|='
+     No equivalent procedure.
+
+`^'
+     Gauche `logxor'.  *Note Bitwise operations::.
+
+`='
+     R5RS syntax `set!'.  *Note Assignments::.
+
+`=='
+     R5RS equivalence procedure, `eq?', `eqv?' and `equal?'.  *Note
+     Equivalence::.
+
+`<'
+`<='
+     R5RS arithmetic procedure `<' and `<='.  *Note Numerical
+     comparison::.  Unlike C operator, Scheme version is transitive.
+
+`<<'
+     Gauche `ash'.  *Note Bitwise operations::.
+
+`<<='
+     No equivalent procedure.
+
+`>'
+`>='
+     R5RS arithmetic procedure `>' and `>='.  *Note Numerical
+     comparison::.  Unlike C operator, Scheme version is transitive.
+
+`>>'
+     Gauche `ash'.  *Note Bitwise operations::.
+
+`>>='
+     No equivalent procedure.
+
+`%'
+     R5RS operator `modulo' and `remainder'.  *Note Arithmetics::.
+
+`%='
+     No equivalent procedure.
+
+`[]'
+     R5RS `vector-ref' (*Note Vectors::) is something close.  Or you
+     can use Gauche's generic function `ref' (*Note Sequence
+     framework::) for arbitrary sequences.
+
+`.'
+     Gauche `slot-ref' is something close to this.  *Note Accessing
+     instance::.
+
+`~'
+     Gauche `lognot'.  *Note Bitwise operations::.
+
+`~='
+     No equivalent procedure.
+
+`!'
+     R5RS procedure `not'.  *Note Booleans::.
+
+`!='
+     No equivalent procedure.
+
+`abort'
+     Gauche `sys-abort'.   *Note Program termination::.
+
+`abs'
+     R5RS `abs'.  *Note Arithmetics::.
+
+`access'
+     Gauche `sys-access'.  *Note File stats::.
+
+`acos'
+     R5RS `acos'.  *Note Arithmetics::.
+
+`alarm'
+     Gauche `sys-alarm'.   *Note Miscellaneous system calls::.
+
+`asctime'
+     Gauche `sys-asctime'.  *Note Time::.
+
+`asin'
+     R5RS `asin'.  *Note Arithmetics::.
+
+`assert'
+     No equivalent function in Gauche.
+
+`atan'
+`atan2'
+     R5RS `atan'.  *Note Arithmetics::.
+
+`atexit'
+     No equivalent function in Gauche, but the "after" thunk of active
+     dynamic handlers are called when `exit' is called.  *Note Program
+     termination::, and *Note Continuation::.
+
+`atof'
+`atoi'
+`atol'
+     You can use `string->number'.  *Note Numerical conversions::.
+
+`bsearch'
+     You can use SRFI-43's `vector-binary-search'.  *Note Vector
+     library::.
+
+`calloc'
+     Allocation is handled automatically in Scheme.
+
+`ceil'
+     R5RS `ceiling'.  *Note Arithmetics::.
+
+`cfgetispeed'
+`cfgetospeed'
+`cfsetispeed'
+`cfsetospeed'
+     Gauche's `sys-cfgetispeed', `sys-cfgetospeed', `sys-cfsetispeed',
+     `sys-cfsetospeed'.  *Note Termios::.
+
+`chdir'
+     Gauche's `sys-chdir'.   *Note Other file operations::.
+
+`chmod'
+     Gauche's `sys-chmod'.   *Note File stats::.
+
+`chown'
+     Gauche's `sys-chown'.   *Note File stats::.
+
+`clearerr'
+     Not supported yet.
+
+`clock'
+     No equivalent function in Gauche.  You can use `sys-times' to get
+     information about CPU time.
+
+`close'
+     You can't directly close the file descriptor, but when you use
+     `close-input-port' or `close-output-port', underlying file is
+     closed.  Some port-related functions, such as
+     `call-with-output-file', automatically closes the file when
+     operation is finished.  The file is also closed when its governing
+     port is garbage collected.  *Note Common port operations::.
+
+`closedir'
+     No equivalent function in Gauche.  You can use `sys-readdir' to
+     read the directory entries at once.  *Note Directories::.
+
+`cos'
+`cosh'
+     `cos' and `cosh'.  *Note Arithmetics::.
+
+`creat'
+     A file is implictly created by default when you open it for
+     writing.  See *note File ports:: for more control over the
+     creation of files.
+
+`ctermid'
+     Gauche `sys-ctermid'.  *Note System inquiry::.
+
+`ctime'
+     Gauche `sys-ctime'.  *Note Time::.
+
+`cuserid'
+     No equivalent function.  This is removed from the newer POSIX.
+     You can use alternative functions, such as `sys-getlogin' or
+     `sys-getpwuid' with `sys-getuid'.
+
+`difftime'
+     Gauche `sys-difftime'.  *Note Time::.
+
+`div'
+     You can use R5RS `quotient' and `remainder'.  *Note Arithmetics::.
+
+`dup'
+`dup2'
+     Not directly supported, but you can use `port-fd-dup!'.
+
+`execl'
+`execle'
+`execlp'
+`execv'
+`execve'
+`execvp'
+     Gauche `sys-exec'.  *Note Unix process management::.  For higher
+     level interface, *note High Level Process Interface::.
+
+`exit'
+
+`_exit'
+     Use `exit' or `sys-exit', depends on what you need.  *Note Program
+     termination::.
+
+`exp'
+     R5RS `exp'.  *Note Arithmetics::.
+
+`fabs'
+     R5RS `abs'.  *Note Arithmetics::.
+
+`fclose'
+     You can't directly close the file stream, but when you use
+     `close-input-port' or `close-output-port', underlying file is
+     closed.  Some port-related functions, such as
+     `call-with-output-file', automatically closes the file when
+     operation is finished.  The file is also closed when its governing
+     port is garbage collected.
+
+`fcntl'
+     Implemented as `sys-fcntl' in `gauche.fcntl' module.  *Note
+     Low-level file operations::.
+
+`fdopen'
+     Gauche's `open-input-fd-port' or `open-output-fd-port'.  *Note
+     File ports::.
+
+`feof'
+     Not supported yet.
+
+`ferror'
+     Not supported yet.
+
+`fflush'
+     Gauche's `flush'.   *Note Output::.
+
+`fgetc'
+     Use `read-char' or `read-byte'.  *Note Input::.
+
+`fgetpos'
+     Use Gauche's `port-tell' (*Note Common port operations::)
+
+`fgets'
+     Use `read-line' or `read-block'.    *Note Input::.
+
+`fileno'
+     `port-file-numer'.   *Note Common port operations::.
+
+`floor'
+     R5RS `floor'.   *Note Arithmetics::.
+
+`fmod'
+     Gauche's `fmod'.
+
+`fopen'
+     R5RS `open-input-file' or `open-output-file' corresponds to this
+     operation.  *Note File ports::.
+
+`fork'
+     Gauche's `sys-fork'.   *Note Unix process management::.
+
+`forkpty'
+     Use `sys-forkpty'.  *Note Termios::.
+
+`fpathconf'
+     Not supported.
+
+`fprintf'
+     Not directly supported, but Gauche's `format' provides similar
+     functionality.  *Note Output::.  SLIB has `printf' implementation.
+
+`fputc'
+     Use `write-char' or `write-byte'.  *Note Output::.
+
+`fputs'
+     Use `display'.  *Note Output::.
+
+`fread'
+     Not directly supported.  To read binary numbers, see *note Binary
+     I/O::.  If you want to read a chunk of bytes, you may be able to
+     use `read-block!'.  *Note Uvector block I/O::.
+
+`free'
+     You don't need this in Scheme.
+
+`freopen'
+     Not supported.
+
+`frexp'
+     Gauche's `frexp'
+
+`fscanf'
+     Not supported.  For general case, you have to write a parser.  If
+     you can keep the data in S-exp, you can use `read'.  If the syntax
+     is very simple, you may be able to utilize `string-tokenize' in
+     `srfi-14' (*note String library::), and/or regular expression
+     stuff (*note Regular expression::).
+
+`fseek'
+     Use Gauche's `port-seek' (*Note Common port operations::)
+
+`fsetpos'
+     Use Gauche's `port-seek' (*Note Common port operations::)
+
+`fstat'
+     Gauche's `sys-stat'.  *Note File stats::.
+
+`ftell'
+     Use Gauche's `port-tell' (*Note Common port operations::)
+
+`fwrite'
+     Not directly supported.  To write binary numbers, see *note Binary
+     I/O::.  If you want to write a chunk of bytes, you can simply use
+     `display' or `write-block' (*Note Uvector block I/O::).
+
+`getc'
+`getchar'
+     Use `read-char' or `read-byte'.  *Note Input::.
+
+`getcwd'
+     Gauche's `sys-getcwd'.   *Note System inquiry::.
+
+`getdomainname'
+     Gauche's `sys-getdomainname'.  *Note System inquiry::.
+
+`getegid'
+     Gauche's `sys-getegid'.   *Note System inquiry::.
+
+`getenv'
+     Gauche's `sys-getenv'.   *Note Environment Inquiry::.
+
+`geteuid'
+     Gauche's `sys-geteuid'.   *Note System inquiry::.
+
+`gethostname'
+     Gauche's `sys-gethostname'.  *Note System inquiry::.
+
+`getgid'
+     Gauche's `sys-getgid'.   *Note System inquiry::.
+
+`getgrgid'
+`getgrnam'
+     Gauche's `sys-getgrgid' and `sys-getgrnam'.  *Note Unix groups and
+     users::.
+
+`getgroups'
+     Gauche's `sys-getgroups'.   *Note System inquiry::.
+
+`getlogin'
+     Gauche's `sys-getlogin'.  *Note System inquiry::.
+
+`getpgrp'
+     Gauche's `sys-getpgrp'.   *Note System inquiry::.
+
+`getpid'
+`getppid'
+     Gauche's `sys-getpid'.   *Note System inquiry::.
+
+`getpwnam'
+`getpwuid'
+     Gauche's `sys-getpwnam' and `sys-getpwuid'.  *Note Unix groups and
+     users::.
+
+`gets'
+     Use `read-line' or `read-block'.  *Note Input::.
+
+`gettimeofday'
+     Gauche's `sys-gettimeofday'.   *Note Time::.
+
+`getuid'
+     Gauche's `sys-getuid'.  *Note System inquiry::.
+
+`gmtime'
+     Gauche's `sys-gmtime'.   *Note Time::.
+
+`isalnum'
+     Not directly supported, but you can use R5RS `char-alphabetic?' and
+     `char-numeric?'.  *Note Characters::.   You can also use character
+     set.  *Note Character set::, also *note Character-set library::.
+
+`isalpha'
+     R5RS `char-alphabetic?'.  *Note Characters::.  See also *note
+     Character set:: and *note Character-set library::.
+
+`isatty'
+     Gauche's `sys-isatty'.   *Note Other file operations::.
+
+`iscntrl'
+     Not directly supported, but you can use `(char-set-contains?
+     char-set:iso-control c)' with `srfi-14'.  *Note Character-set
+     library::.
+
+`isdigit'
+     R5RS `char-numeric?'.  *Note Characters::.  You can also use
+     `(char-set-contains? char-set:digit c)' with `srfi-14'.   *Note
+     Character-set library::.
+
+`isgraph'
+     Not directly supported, but you can use `(char-set-contains?
+     char-set:graphic c)' with `srfi-14'.  *Note Character-set
+     library::.
+
+`islower'
+     R5RS `char-lower-case?'.  *Note Characters::.  You can also use
+     `(char-set-contains? char-set:lower-case c)' with `srfi-14'.
+     *Note Character-set library::.
+
+`isprint'
+     Not directly supported, but you can use `(char-set-contains?
+     char-set:printing c)' with `srfi-14'.  *Note Character-set
+     library::.
+
+`ispunct'
+     Not directly supported, but you can use `(char-set-contains?
+     char-set:punctuation c)' with `srfi-14'.  *Note Character-set
+     library::.
+
+`isspace'
+     R5RS `char-whitespace?'.  *Note Characters::.  You can also use
+     `(char-set-contains? char-set:whitespace c)' with `srfi-14'.
+     *Note Character-set library::.
+
+`isupper'
+     R5RS `char-upper-case?'.  *Note Characters::.  You can also use
+     `(char-set-contains? char-set:upper-case c)' with `srfi-14'.
+     *Note Character-set library::.
+
+`isxdigit'
+     Not directly supported, but you can use `(char-set-contains?
+     char-set:hex-digit c)' with `srfi-14'.  *Note Character-set
+     library::.
+
+`kill'
+     Gauche's `sys-kill'.  *Note Signal::.
+
+`labs'
+     R5RS `abs'.  *Note Arithmetics::.
+
+`ldexp'
+     Gauche's `ldexp'.
+
+`ldiv'
+     Use R5RS `quotient' and `remainder'.  *Note Arithmetics::.
+
+`link'
+     Gauche's `sys-link'.  *Note Directory manipulation::.
+
+`localeconv'
+     Gauche's `sys-localeconv'. *Note Locale::.
+
+`localtime'
+     Gauche's `sys-localtime'.  *Note Time::.
+
+`log'
+     R5RS `log'.  *Note Arithmetics::.
+
+`log10'
+     Not directly supported.  `log10(z)' == `(/ (log z) (log 10))'.
+
+`longjmp'
+     R5RS `call/cc' provides similar (superior) mechanism.  *Note
+     Continuation::.
+
+`lseek'
+     Use Gauche's `port-seek' (*Note Common port operations::)
+
+`malloc'
+     Not necessary in Scheme.
+
+`mblen'
+`mbstowcs'
+`mbtowc'
+     Gauche handles multibyte strings internally, so generally you don't
+     need to care about multibyte-ness of the string.   `string-length'
+     always returns a number of characters for a string in supported
+     encoding.   If you want to convert the character encoding, see
+     *note Character code conversion::.
+
+`memcmp'
+`memcpy'
+`memmove'
+`memset'
+     No equivalent functions.
+
+`mkdir'
+     Gauche's `sys-mkdir'.  *Note Directory manipulation::.
+
+`mkfifo'
+     Gauche's `sys-mkfifo'.
+
+`mkstemp'
+     Gauche's `sys-mkstemp'.   *Note Directory manipulation::.  Use
+     this instead of tmpnam.
+
+`mktime'
+     Gauche's `sys-mktime'.  *Note Time::.
+
+`modf'
+     Gauche's `modf'.
+
+`open'
+     Not directly supported.  R5RS `open-input-file' or
+     `open-output-file' corresponds to this operation.  *Note File
+     ports::.
+
+`opendir'
+     Not directly supported.  You can use `sys-readdir' to read the
+     directory entries at once.  *Note Directories::.
+
+`openpty'
+     Use `sys-openpty'.  *Note Termios::.
+
+`pathconf'
+     Not supported.
+
+`pause'
+     Gauche's `sys-pause'.  *Note Miscellaneous system calls::.
+
+`perror'
+     No equivalent function in Gauche.  System calls generally throws an
+     error (`<system-error>'), including the description of the reason
+     of failure.
+
+`pipe'
+     Gauche's `sys-pipe'.  *Note Other file operations::.
+
+`pow'
+     R5RS `expt'.  *Note Arithmetics::.
+
+`printf'
+     Not directly supported, but Gauche's `format' provides similar
+     functionality.  *Note Output::.  SLIB has `printf' implementation.
+
+`putc'
+`putchar'
+     Use `write-char' or `write-byte'.  *Note Output::.
+
+`puts'
+     Use `display'.   *Note Output::.
+
+`qsort'
+     Gauche's `sort' and `sort!' provides a convenient way to sort list
+     of items.  *Note Comparison and sorting::.
+
+`raise'
+     No equivalent function in Gauche.  Scheme function `raise'
+     (SRFI-18) is to raise an exception.   You can use `(sys-kill
+     (sys-getpid) SIG)' to send a signal `SIG' to the current process.
+
+`rand'
+     Not supported directly, but on most platforms a better RNG is
+     available as `sys-random'.  *Note Miscellaneous system calls::.
+
+`read'
+     Not supported directly, but you may be able to use `read-block'
+     (*Note Input::) or `read-block!' (*Note Uvector block I/O::).
+
+`readdir'
+     Not supported directly.   Gauche's `sys-readdir' reads the
+     directory at once.  *Note Directories::.
+
+`readlink'
+     Gauche's `sys-readlink'.  *Note Directory manipulation::.  This
+     function is available on systems that support symbolink links.
+
+`realloc'
+     Not necessary in Scheme.
+
+`realpath'
+     Gauche's `sys-normalize-pathname' or `sys-realpath'.  *Note
+     Pathnames::.
+
+`remove'
+     Gauche's `sys-remove'.  *Note Directory manipulation::.
+
+`rename'
+     Gauche's `sys-rename'.  *Note Directory manipulation::.
+
+`rewind'
+     Not directly supported, but you can use `port-seek' instead.
+     *Note Common port operations::.
+
+`rewinddir'
+     Not supported directly.  You can use `sys-readdir' to read the
+     directory entries at once.  *Note Directories::.
+
+`rmdir'
+     Gauche's `sys-rmdir'.  *Note Directory manipulation::.
+
+`scanf'
+     Not supported.  For general case, you have to write a parser.  If
+     you can keep the data in S-exp, you can use `read'.  If the syntax
+     is very simple, you may be able to utilize `string-tokenize' in
+     `srfi-14' (*note String library::), and/or regular expression
+     stuff (*note Regular expression::).
+
+`select'
+     Gauche's `sys-select'.  *Note I/O multiplexing::.
+
+`setbuf'
+     Not necessary.
+
+`setgid'
+     Gauche's `sys-setgid'.
+
+`setjmp'
+     R5RS `call/cc' provides similar (superior) mechanism.  *Note
+     Continuation::.
+
+`setlocale'
+     Gauche's `sys-setlocale'.  *Note Locale::.
+
+`setpgid'
+     Gauche's `sys-setpgid'.  *Note System inquiry::.
+
+`setsid'
+     Gauche's `sys-setsid'.  *Note System inquiry::.
+
+`setuid'
+     Gauche's `sys-setuid'.  *Note System inquiry::.
+
+`setvbuf'
+     Not necessary.
+
+`sigaction'
+     You can use `set-signal-handler!' to install signal handlers.
+     *Note Handling signals::.
+
+`sigaddset'
+`sigdelset'
+`sigemptyset'
+`sigfillset'
+     Gauche's `sys-sigset-add!' and `sys-sigset-delete!'.  *Note
+     Signals and signal sets::.
+
+`sigismember'
+     Not supported yet.
+
+`siglongjmp'
+     R5RS `call/cc' provides similar (superior) mechanism.  *Note
+     Continuation::.
+
+`signal'
+     You can use `with-signal-handlers' to install signal handlers.
+     *Note Handling signals::.
+
+`sigpending'
+     Not supported yet.
+
+`sigprocmask'
+     Signal mask is handled internally.  *Note Handling signals::.
+
+`sigsetjmp'
+     R5RS `call/cc' provides similar (superior) mechanism.  *Note
+     Continuation::.
+
+`sigsuspend'
+     Gauche's `sys-sigsuspend'.  *Note Masking and waiting signals::.
+
+`sigwait'
+     Gauche's `sys-sigwait'.  *Note Masking and waiting signals::.
+
+`sin'
+`sinh'
+     Use `sin' and `sinh'.   *Note Arithmetics::.
+
+`sleep'
+     Gauche's `sys-sleep'.  *Note Miscellaneous system calls::.
+
+`sprintf'
+     Not directly supported, but Gauche's `format' provides similar
+     functionality.  *Note Output::.  SLIB has `printf' implementation.
+
+`sqrt'
+     R5RS `sqrt'.  *Note Arithmetics::.
+
+`srand'
+     Not supported directly, but on most platforms a better RNG is
+     available as `sys-srandom' (*Note Miscellaneous system calls::).
+     The `math.mt-random' module provides much superior RNG (*Note
+     Mersenne-Twister random number generator::).
+
+`sscanf'
+     Not supported.  For general case, you have to write a parser.  If
+     you can keep the data in S-exp, you can use `read'.  If the syntax
+     is very simple, you may be able to utilize `string-tokenize' in
+     `srfi-14' (*note String library::), and/or regular expression
+     stuff (*note Regular expression::).
+
+`stat'
+     Gauche's `sys-stat'.  *Note File stats::.
+
+`strcasecmp'
+     R5RS `string-ci=?' and other comparison functions.  *Note String
+     Comparison::.
+
+`strcat'
+     R5RS `string-append'.  *Note String utilities::.
+
+`strchr'
+     SRFI-13 `string-index'.  *Note SRFI-13 String searching::.
+
+`strcmp'
+     R5RS `string=?' and other comparison functions.  *Note String
+     Comparison::.
+
+`strcoll'
+     Not supported yet.
+
+`strcpy'
+     R5RS `string-copy'.    *Note String utilities::.
+
+`strcspn'
+     Not directly supported, but you can use SRFI-13 `string-skip' with
+     a character set.  *Note SRFI-13 String searching::.
+
+`strerror'
+     Gauche's `sys-strerror'.  *Note System inquiry::.
+
+`strftime'
+     Gauche's `sys-strftime'.  *Note Time::.
+
+`strlen'
+     R5RS `string-length'.  *Note String Accessors & Modifiers::.
+
+`strncat'
+     Not directly supported, but you can use `string-append' and
+     `substring'.
+
+`strncasecmp'
+     SRFI-13 `string-compare-ci' provides the most flexible (but a bit
+     difficult to use) functionality.  *Note SRFI-13 String
+     Comparison::.  If what you want is just to check the fixed-length
+     prefixes of two string matches, you can use SRFI-13
+     `string-prefix-ci?'.
+
+`strncmp'
+     SRFI-13 `string-compare' provides the most flexible (but a bit
+     difficult to use) functionality.  *Note SRFI-13 String
+     Comparison::.  If what you want is just to check the fixed-length
+     prefixes of two string matches, you can use SRFI-13
+     `string-prefix?'.  *Note SRFI-13 String Prefixes & Suffixes::.
+
+`strncpy'
+     SRFI-13 `substring'.  *Note String utilities::.
+
+`strpbrk'
+     Not directly supported, but you can use SRFI-13 `string-skip' with
+     a character set.  *Note SRFI-13 String searching::.
+
+`strrchr'
+     SRFI-13 `string-index-right'.  *Note SRFI-13 String searching::.
+
+`strspn'
+     Not directly supported, but you can use SRFI-13 `string-index'
+     with a character set.  *Note SRFI-13 String searching::.
+
+`strstr'
+     SRFI-13 `string-contains'.  *Note SRFI-13 String searching::.
+
+`strtod'
+     You can use R5RS `string->number'.   *Note Numerical conversions::.
+
+`strtok'
+     SRFI-13 `string-tokenize'.  *Note SRFI-13 other string
+     operations::.
+
+`strtol'
+`strtoul'
+     You can use R5RS `string->number'.   *Note Numerical conversions::.
+
+`strxfrm'
+     Not supported yet.
+
+`symlink'
+     Gauche's `sys-symlink'.  *Note Directory manipulation::.  This
+     function is available on systems that support symbolink links.
+
+`sysconf'
+     Not supported yet.
+
+`system'
+     Gauche's `sys-system'.   *Note Unix process management::.  It is
+     generally recommended to use the process library (*note High Level
+     Process Interface::).
+
+`tan'
+`tanh'
+     R5RS `tan' and Gauche `tanh'.  *Note Arithmetics::.
+
+`tcdrain'
+
+`tcflow'
+
+`tcflush'
+
+`tcgetattr'
+
+`tcgetpgrp'
+
+`tcsendbreak'
+
+`tcsetattr'
+
+`tcsetpgrp'
+     Corresponding functions are: `sys-tcdrain', `sys-tcflow',
+     `sys-tcflush', `sys-tcgetattr', `sys-tcgetpgrp',
+     `sys-tcsendbreak', `sys-tcsetattr', `sys-tcsetpgrp'.  *Note
+     Termios::
+
+`time'
+     Gauche's `sys-time'.  *Note Time::.
+
+`times'
+     Gauche's `sys-times'.  *Note System inquiry::.
+
+`tmpfile'
+     Not exactly supported.
+
+`tmpnam'
+     Gauche's `sys-tmpnam'.  This function is provided since it is in
+     POSIX, but its use is discouraged for the potential security risk.
+     Use `sys-mkstemp' instead.   *Note Directory manipulation::.
+
+`tolower'
+`toupper'
+     R5RS `char-upcase' and `char-downcase'.   *Note Characters::.
+
+`ttyname'
+     Gauche's `sys-ttyname'.  *Note Other file operations::.
+
+`tzset'
+     Not supported yet.
+
+`umask'
+     Gauche's `sys-umask'.  *Note Directory manipulation::.
+
+`uname'
+     Gauche's `sys-uname'.  *Note System inquiry::.
+
+`ungetc'
+     Not directly supported.  You can use `peek-char' to look one
+     character ahead, instead of pushing back.
+
+`unlink'
+     Gauche's `sys-unlink'.  *Note Directory manipulation::.
+
+`utime'
+     Gauche's `sys-utime'. *Note File stats::.
+
+`va_arg'
+`va_end'
+`va_start'
+     Not necessary, for Scheme handles variable number of arguments
+     naturally.
+
+`vfprintf'
+`vprintf'
+`vsprintf'
+     Not directly supported, but Gauche's `format' provides similar
+     functionality.  *Note Output::.  SLIB has `printf' implementation.
+
+`wait'
+     Gauche's `sys-wait'.  *Note Unix process management::.
+
+`waitpid'
+     Gauche's `sys-waitpid'.  *Note Unix process management::.
+
+`wcstombs'
+`wctomb'
+     Gauche handles multibyte strings internally, so generally you don't
+     need to care about multibyte-ness of the string.   `string-length'
+     always returns a number of characters for a string in supported
+     encoding.   If you want to convert the character encoding, see
+     *note Character code conversion::.
+
+`write'
+     R5RS `display' (*Note Output::).  Or `write-block' (*Note Uvector
+     block I/O::).
+
