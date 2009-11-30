@@ -1,4 +1,4 @@
-This is cffi-manual.info, produced by makeinfo version 4.11 from
+This is cffi-manual.info, produced by makeinfo version 4.13 from
 /home/huang/cl/site/cffi/doc/cffi-manual.texinfo.
 
 Copyright (C) 2005 James Bielman <jamesjb at jamesjb.com>
@@ -1614,9 +1614,8 @@ strings. Note that, in the case of functions the converted C string
 will have dynamic extent (i.e. it will be automatically freed after the
 foreign function returns).
 
-   In addition to Lisp strings, this type will also convert Lisp arrays
-of element type `(unsigned-byte 8)' and will pass foreign pointers
-unmodified.
+   In addition to Lisp strings, this type will accept foreign pointers
+and pass them unmodified.
 
    A method for *note free-translated-object:: is specialized for this
 type. So, for example, foreign strings allocated by this type and
@@ -1628,11 +1627,6 @@ passed to a foreign function will be freed after the function returns.
   CFFI> (with-foreign-string (str "abcdef")
           (foreign-funcall "strlen" :string str :int))
   => 6
-
-  CFFI> (let ((str (make-array 4 :element-type '(unsigned-byte 8)
-                               :initial-element 65)))
-          (foreign-funcall "strlen" :string str :int))
-  => 4
 
  -- Foreign Type: :string+ptr
 
@@ -4706,13 +4700,13 @@ Examples
 
    Trying to modify a read-only foreign variable:
 
-  CFFI> (defcvar ("errno" +error-number+) :int :read-only t)
+  CFFI> (defcvar ("errno" +error-number+ :read-only t) :int)
   => +ERROR-NUMBER+
   CFFI> (setf +error-number+ 12)
   ;; error--> Trying to modify read-only foreign var: +ERROR-NUMBER+.
 
-   _Note that accessing `errno' this way won't work with every C
-standard library._
+   _Note that accessing `errno' this way won't work with every
+implementation of the C standard library._
 
 See Also
 --------
@@ -4789,8 +4783,7 @@ Syntax
  -- Macro: defcfun name-and-options return-type &body [docstring]
           arguments [&rest] => lisp-name
 
-   NAME-AND-OPTIONS ::= name | (name &key library calling-convention
-cconv)
+   NAME-AND-OPTIONS ::= name | (name &key library convention)
 NAME ::= LISP-NAME [FOREIGN-NAME] | FOREIGN-NAME [LISP-NAME]
 ARGUMENTS ::= { (arg-name arg-type) }*
 Arguments and Values
@@ -4809,8 +4802,7 @@ RETURN-TYPE
 ARG-TYPE
      A foreign type.
 
-CALLING-CONVENTION
-CCONV
+CONVENTION
      One of `:cdecl' (default) or `:stdcall'.
 
 LIBRARY
@@ -4896,7 +4888,7 @@ Syntax
           return-value
 
    arguments ::= { arg-type arg }* [return-type] name-and-options ::=
-name | ( name &key library calling-convention cconv)
+name | ( name &key library convention)
 
 Arguments and Values
 --------------------
@@ -4919,8 +4911,7 @@ RETURN-VALUE
 LIBRARY
      A lisp symbol; not evaluated.
 
-CALLING-CONVENTION
-CCONV
+CONVENTION
      One of `:cdecl' (default) or `:stdcall'.
 
 Description
@@ -4984,11 +4975,11 @@ foreign-funcall-pointer
 Syntax
 ------
 
- -- Macro: foreign-funcall pointer options &rest arguments =>
+ -- Macro: foreign-funcall-pointer pointer options &rest arguments =>
           return-value
 
    arguments ::= { arg-type arg }* [return-type] options ::= ( &key
-calling-convention cconv )
+convention )
 
 Arguments and Values
 --------------------
@@ -5008,8 +4999,7 @@ RETURN-TYPE
 RETURN-VALUE
      A lisp object.
 
-CALLING-CONVENTION
-CCONV
+CONVENTION
      One of `:cdecl' (default) or `:stdcall'.
 
 Description
@@ -5216,8 +5206,8 @@ Syntax
  -- Macro: define-foreign-library name-and-options { load-clause }* =>
           name
 
-   name-and-options ::= name | (name &key calling-convention cconv)
-load-clause ::= (feature library &key calling-convention cconv)
+   name-and-options ::= name | (name &key convention) load-clause ::=
+(feature library &key convention)
 
 Arguments and Values
 --------------------
@@ -5231,8 +5221,7 @@ FEATURE
 LIBRARY
      A library designator.
 
-CALLING-CONVENTION
-CCONV
+CONVENTION
      One of `:cdecl' (default) or `:stdcall'
 
 Description
@@ -5603,8 +5592,8 @@ Syntax
  -- Macro: defcallback name-and-options return-type arguments &body
           body => name
 
-   name-and-options ::= name | (name &key calling-convention cconv)
-arguments ::= ({ (arg-name arg-type) }*)
+   name-and-options ::= name | (name &key convention) arguments ::= ({
+(arg-name arg-type) }*)
 
 Arguments and Values
 --------------------
@@ -5621,8 +5610,7 @@ ARG-NAME
 ARG-TYPE
      A foreign type.
 
-CALLING-CONVENTION
-CCONV
+CONVENTION
      One of `:cdecl' (default) or `:stdcall'.
 
 Description
@@ -5784,20 +5772,24 @@ semicolon-comments and reader-macros will work as expected.
      Define a CFFI foreign type for the string in SIZE-DESIGNATOR, e.g.
      `(ctype :pid "pid_t")'.
 
- -- Grovel Form: constant (lisp-name &rest c-names) &key documentation
-          optional
+ -- Grovel Form: constant (lisp-name &rest c-names) &key type
+          documentation optional
      Search for the constant named by the first C-NAME string found to
-     be known to the C preprocessor and define it as LISP-NAME.  If
-     optional is true, no error will be raised if all the C-NAMES are
-     unknown. If LISP-NAME is a keyword, the actual constant will be a
-     symbol of the same name interned in the current package.
+     be known to the C preprocessor and define it as LISP-NAME.
+
+     The TYPE keyword argument specifies how to grovel the constant:
+     either `integer' (the default) or `double-float'. If OPTIONAL is
+     true, no error will be raised if all the C-NAMES are unknown. If
+     LISP-NAME is a keyword, the actual constant will be a symbol of
+     the same name interned in the current package.
 
  -- Grovel Form: define name &optional value
      Defines an additional C preprocessor symbol, which is useful for
      altering the behavior of included system headers.
 
- -- Grovel Form: flag flag-string
-     Adds FLAG-STRING to the flags used for the C compiler invocation.
+ -- Grovel Form: cc-flags &rest flags
+     Adds CC-FLAGS to the command line arguments used for the C compiler
+     invocation.
 
  -- Grovel Form: cstruct lisp-name c-name slots
      Define a CFFI foreign struct with the slot data specfied.  Slots
@@ -6018,7 +6010,7 @@ Index
  [index ]
 * Menu:
 
-* :boolean:                              Other Types.         (line  44)
+* :boolean:                              Other Types.         (line  38)
 * :char:                                 Built-In Types.      (line   7)
 * :double:                               Built-In Types.      (line  74)
 * :float:                                Built-In Types.      (line  72)
@@ -6034,7 +6026,7 @@ Index
 * :pointer:                              Built-In Types.      (line  88)
 * :short:                                Built-In Types.      (line  11)
 * :string:                               Other Types.         (line   9)
-* :string+ptr:                           Other Types.         (line  36)
+* :string+ptr:                           Other Types.         (line  30)
 * :uchar:                                Built-In Types.      (line  37)
 * :uint:                                 Built-In Types.      (line  41)
 * :uint16:                               Built-In Types.      (line  59)
@@ -6050,7 +6042,7 @@ Index
 * :unsigned-short:                       Built-In Types.      (line  13)
 * :ushort:                               Built-In Types.      (line  39)
 * :void:                                 Built-In Types.      (line  95)
-* :wrapper:                              Other Types.         (line  54)
+* :wrapper:                              Other Types.         (line  48)
 * abstraction breaking:                  Tutorial-Abstraction.
                                                               (line   6)
 * abstractions in C:                     Tutorial-Comparison. (line  44)
@@ -6063,23 +6055,24 @@ Index
 * callback definition:                   Tutorial-Callbacks.  (line  31)
 * calling foreign functions:             Tutorial-Initializing.
                                                               (line  32)
-* cenum:                                 Groveller Syntax.    (line  69)
+* cc-flags:                              Groveller Syntax.    (line  48)
+* cenum:                                 Groveller Syntax.    (line  73)
 * close-foreign-library:                 close-foreign-library.
                                                               (line  10)
 * compiler macros for type translation:  Optimizing Type Translators.
                                                               (line   6)
 * constant:                              Groveller Syntax.    (line  34)
-* constantenum:                          Groveller Syntax.    (line  76)
+* constantenum:                          Groveller Syntax.    (line  80)
 * convert-from-foreign:                  convert-from-foreign.
                                                               (line  10)
 * convert-to-foreign:                    convert-to-foreign.  (line  11)
-* cstruct:                               Groveller Syntax.    (line  48)
-* cstruct-and-class:                     Groveller Syntax.    (line  55)
+* cstruct:                               Groveller Syntax.    (line  52)
+* cstruct-and-class:                     Groveller Syntax.    (line  59)
 * ctype:                                 Groveller Syntax.    (line  29)
-* cunion:                                Groveller Syntax.    (line  52)
+* cunion:                                Groveller Syntax.    (line  56)
 * cURL:                                  Tutorial-Getting a URL.
                                                               (line   6)
-* cvar:                                  Groveller Syntax.    (line  61)
+* cvar:                                  Groveller Syntax.    (line  65)
 * data in Lisp and C:                    Tutorial-Types.      (line  12)
 * defbitfield:                           defbitfield.         (line  10)
 * defcallback:                           defcallback.         (line  11)
@@ -6089,7 +6082,7 @@ Index
 * defctype:                              defctype.            (line  10)
 * defcunion:                             defcunion.           (line  10)
 * defcvar:                               defcvar.             (line  11)
-* define:                                Groveller Syntax.    (line  41)
+* define:                                Groveller Syntax.    (line  44)
 * define-foreign-library:                define-foreign-library.
                                                               (line  11)
 * define-foreign-type:                   define-foreign-type. (line  11)
@@ -6102,7 +6095,6 @@ Index
                                                               (line  19)
 * FILE* and streams:                     Tutorial-Abstraction.
                                                               (line  43)
-* flag:                                  Groveller Syntax.    (line  45)
 * foreign arguments:                     Tutorial-easy_setopt.
                                                               (line  12)
 * foreign functions and data:            Tutorial.            (line  14)
@@ -6117,9 +6109,9 @@ Index
                                                               (line  10)
 * foreign-enum-value:                    foreign-enum-value.  (line  10)
 * foreign-free:                          foreign-free.        (line  10)
-* foreign-funcall <1>:                   foreign-funcall-pointer.
-                                                              (line  11)
 * foreign-funcall:                       foreign-funcall.     (line  11)
+* foreign-funcall-pointer:               foreign-funcall-pointer.
+                                                              (line  11)
 * foreign-pointer:                       Basic Pointer Operations.
                                                               (line  13)
 * foreign-slot-names:                    foreign-slot-names.  (line  10)
@@ -6240,95 +6232,95 @@ Node: Wrapper generators59822
 Node: Foreign Types62503
 Node: Built-In Types63546
 Node: Other Types65924
-Node: Defining Foreign Types68493
-Node: Foreign Type Translators70048
-Node: Optimizing Type Translators72881
-Node: Foreign Structure Types77703
-Node: Allocating Foreign Objects78750
-Node: convert-from-foreign78991
-Node: convert-to-foreign80275
-Node: defbitfield81763
-Node: defcstruct83954
-Node: defcunion87371
-Node: defctype88345
-Node: defcenum89258
-Node: define-foreign-type90762
-Node: define-parse-method92336
-Node: foreign-bitfield-symbols93493
-Node: foreign-bitfield-value94288
-Node: foreign-enum-keyword95045
-Node: foreign-enum-value95952
-Node: foreign-slot-names96843
-Node: foreign-slot-offset97617
-Node: foreign-slot-pointer98438
-Node: foreign-slot-value99639
-Node: foreign-type-alignment101273
-Node: foreign-type-size102008
-Node: free-converted-object102794
-Node: free-translated-object104127
-Node: translate-from-foreign105058
-Node: translate-to-foreign106468
-Node: with-foreign-slots108541
-Node: Pointers109881
-Ref: Pointers-Footnote-1111453
-Node: Basic Pointer Operations111516
-Node: Allocating Foreign Memory112215
-Node: Accessing Foreign Memory112918
-Node: foreign-free113942
-Node: foreign-alloc114579
-Node: foreign-symbol-pointer117736
-Node: inc-pointer119250
-Node: incf-pointer120016
-Node: make-pointer121022
-Node: mem-aref121865
-Node: mem-ref122954
-Node: null-pointer123857
-Node: null-pointer-p124356
-Node: pointerp125160
-Node: pointer-address125986
-Node: pointer-eq126672
-Node: with-foreign-object127866
-Node: with-foreign-pointer128898
-Node: Strings129945
-Node: *default-foreign-encoding*130756
-Node: foreign-string-alloc131646
-Node: foreign-string-free132954
-Node: foreign-string-to-lisp133487
-Node: lisp-string-to-foreign134873
-Node: with-foreign-string136124
-Node: with-foreign-pointer-as-string137479
-Node: Variables138422
-Node: defcvar138589
-Node: get-var-pointer140468
-Node: Functions141188
-Node: defcfun141388
-Node: foreign-funcall143816
-Node: foreign-funcall-pointer145712
-Node: Libraries147097
-Node: Defining a library147751
-Node: Library definition style148708
-Ref: Library definition style-Footnote-1150057
-Node: close-foreign-library150298
-Node: *darwin-framework-directories*151002
-Node: define-foreign-library152110
-Node: *foreign-library-directories*154266
-Ref: *foreign-library-directories*-Footnote-1156529
-Ref: *foreign-library-directories*-Footnote-2156651
-Node: load-foreign-library156837
-Node: load-foreign-library-error159254
-Node: use-foreign-library160131
-Ref: use-foreign-library-Footnote-1160949
-Node: Callbacks161032
-Node: callback161221
-Node: defcallback161886
-Node: get-callback163775
-Node: The Groveller164474
-Node: Groveller Syntax166087
-Node: Groveller ASDF Integration170244
-Node: Groveller Implementation Notes171917
-Node: Limitations173284
-Node: Platform-specific features173886
-Node: Glossary175001
-Node: Comprehensive Index176456
+Node: Defining Foreign Types68256
+Node: Foreign Type Translators69811
+Node: Optimizing Type Translators72644
+Node: Foreign Structure Types77466
+Node: Allocating Foreign Objects78513
+Node: convert-from-foreign78754
+Node: convert-to-foreign80038
+Node: defbitfield81526
+Node: defcstruct83717
+Node: defcunion87134
+Node: defctype88108
+Node: defcenum89021
+Node: define-foreign-type90525
+Node: define-parse-method92099
+Node: foreign-bitfield-symbols93256
+Node: foreign-bitfield-value94051
+Node: foreign-enum-keyword94808
+Node: foreign-enum-value95715
+Node: foreign-slot-names96606
+Node: foreign-slot-offset97380
+Node: foreign-slot-pointer98201
+Node: foreign-slot-value99402
+Node: foreign-type-alignment101036
+Node: foreign-type-size101771
+Node: free-converted-object102557
+Node: free-translated-object103890
+Node: translate-from-foreign104821
+Node: translate-to-foreign106231
+Node: with-foreign-slots108304
+Node: Pointers109644
+Ref: Pointers-Footnote-1111216
+Node: Basic Pointer Operations111279
+Node: Allocating Foreign Memory111978
+Node: Accessing Foreign Memory112681
+Node: foreign-free113705
+Node: foreign-alloc114342
+Node: foreign-symbol-pointer117499
+Node: inc-pointer119013
+Node: incf-pointer119779
+Node: make-pointer120785
+Node: mem-aref121628
+Node: mem-ref122717
+Node: null-pointer123620
+Node: null-pointer-p124119
+Node: pointerp124923
+Node: pointer-address125749
+Node: pointer-eq126435
+Node: with-foreign-object127629
+Node: with-foreign-pointer128661
+Node: Strings129708
+Node: *default-foreign-encoding*130519
+Node: foreign-string-alloc131409
+Node: foreign-string-free132717
+Node: foreign-string-to-lisp133250
+Node: lisp-string-to-foreign134636
+Node: with-foreign-string135887
+Node: with-foreign-pointer-as-string137242
+Node: Variables138185
+Node: defcvar138352
+Node: get-var-pointer140253
+Node: Functions140973
+Node: defcfun141173
+Node: foreign-funcall143573
+Node: foreign-funcall-pointer145441
+Node: Libraries146806
+Node: Defining a library147460
+Node: Library definition style148417
+Ref: Library definition style-Footnote-1149766
+Node: close-foreign-library150007
+Node: *darwin-framework-directories*150711
+Node: define-foreign-library151819
+Node: *foreign-library-directories*153933
+Ref: *foreign-library-directories*-Footnote-1156196
+Ref: *foreign-library-directories*-Footnote-2156318
+Node: load-foreign-library156504
+Node: load-foreign-library-error158921
+Node: use-foreign-library159798
+Ref: use-foreign-library-Footnote-1160616
+Node: Callbacks160699
+Node: callback160888
+Node: defcallback161553
+Node: get-callback163414
+Node: The Groveller164113
+Node: Groveller Syntax165726
+Node: Groveller ASDF Integration170035
+Node: Groveller Implementation Notes171708
+Node: Limitations173075
+Node: Platform-specific features173677
+Node: Glossary174792
+Node: Comprehensive Index176247
 
 End Tag Table
