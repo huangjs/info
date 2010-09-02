@@ -112,6 +112,7 @@ Lisp Programming
 * Iterate: (iterate).			A better Loop in Common Lisp
 * CFFI Manual: (cffi-manual).		Common Foreign Function Interface
 * CFFI Specification: (cffi-sys-spec).	Implementation dependent specification for CFFI
+* libffi: (libffi).                     Libffi
 
 Programming & development tools
 * GDBM: (gdbm). 			The GNU database manager.

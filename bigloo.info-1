@@ -1,6 +1,6 @@
 This is bigloo.info, produced by makeinfo version 4.13 from bigloo.texi.
 
-3.2a
+3.4b
 
   This file documents Bigloo, an implementation of an extended version
 of the Scheme programming language.
@@ -57,9 +57,10 @@ File: bigloo.info,  Node: Top,  Next: Acknowledgements,  Prev: (dir),  Up: (dir)
 * Cryptography::                   Cryptography
 * Errors Assertions and Traces::   Bigloo error handling and Bigloo assertions
 * Threads::                        Bigloo multi-threading
-* Database library::               Database access
-* Multimedia library::             Multimedia programming
-* Mail library::                   Mail related technologies
+* Database::                       Database access
+* Multimedia::                     Multimedia programming
+* Mail::                           Mail related technologies
+* Text::                           Text processing facilities
 * Eval::                           Use of the interpreter
 * Macro Expansion::                The two available macro schemes
 * Parameters::                     Controlling the global programs behaviors
@@ -70,6 +71,7 @@ File: bigloo.info,  Node: Top,  Next: Acknowledgements,  Prev: (dir),  Up: (dir)
 * Bigloo Libraries::               Creating and using your own libraries
 * Extending the Runtime System::   Adding new primitive data types
 * Compiler Description::           Interfacing with the compiler
+* Cross Compilation::              Compiling for different platforms
 * User Extensions::                User compiler extensions
 * Bee::                            The Bigloo development environment
 * Global Index::                   Global Bigloo document index
@@ -108,7 +110,7 @@ mine.
 please forgive me and send a mail message to the following address:
 <bigloo@sophia.inria.fr>.
 
-  This is Bigloo documentation version 3.2a, January 2009.
+  This is Bigloo documentation version 3.4b, August 2010.
 
 
 File: bigloo.info,  Node: Overview,  Next: Modules,  Prev: Acknowledgements,  Up: Top
@@ -144,7 +146,7 @@ and not fully described.
 1.1 SRFI
 ========
 
-The Bigloo version 3.2a supports the following SRFIs:
+The Bigloo version 3.4b supports the following SRFIs:
 
    * `srfi-0' (conditional execution).
 
@@ -468,10 +470,11 @@ The module declaration form is
           <eclause> ==> <ident>
                       | (inline <ident> <ident> ...)
                       | (generic <ident> <ident> <ident> ...)
-                      | (macro <ident> <ident> ...)
-                      | (syntax <ident> <ident> ...)
                       | (<ident> <ident> ...)
                       | <class>
+                      | (macro <ident> <ident> ...)
+                      | (expander <ident>)
+                      | (syntax <ident>)
 
      The first form of ECLAUSE allows the variable IDENT be exported,
      the second allows the function IDENT, always regarded as immutable
@@ -1149,7 +1152,7 @@ macro class.
 
           (let ((l 'a-symbol))
             (let l ((x l))
-               l))                               => a-symbol
+               x))                               => a-symbol
 
  -- library syntax: let* (binding ...) body
           (let ((x 2) (y 3))
@@ -1264,6 +1267,10 @@ Bigloo supports extensions for the DSSSL expression language [Dsssl96]:
 
    * Dsssl formal argument lists.
 
+  In addition, Bigloo extends DSSSL formal parameters. It supports
+`#!rest' argument following `!key' arguments. In that case, the `#!rest'
+formal parameter is bound to the list of non-keyword values.
+
 4.1 DSSSL formal argument lists
 ===============================
 
@@ -1272,7 +1279,7 @@ DSSSL formal argument lists are defined by the following grammar:
      <formal-argument-list> ==> <required-formal-argument>*
        [`(#!optional' <optional-formal-argument>*`)']
        [`(#!rest' <rest-formal-argument>`)']
-       [`(#!key' <key-formal-argument>*`)']
+       [`(#!key' <key-formal-argument>*`)' `(#!rest' <rest-formal-argument>?`)']
      <required-formal-argument> ==> <ieee-ident>
      <optional-formal-argument> ==> <ieee-ident>
           | `('<ieee-ident> <initializer>`)'
@@ -1320,6 +1327,10 @@ and actual arguments are processed from left to right as follows:
      environment in which all previous formal key arguments have been
      bound.
 
+   * If `#!rest' was specified in the _formal-argument-list_ _after_ a
+     `#!key' formal parameter, it is bound to the list of optional
+     _non-keyword_ arguments.
+
   It shall be an error for an <ieee-ident> to appear more than once in
 a _formal-argument-list_.
 
@@ -1331,6 +1342,9 @@ a _formal-argument-list_.
      ((lambda (x y #!optional z #!rest r #!key i (j 1))
          (list x y z i: i j: j))
       3 4 5 i: 6 i: 7)            => (3 4 5 i: 6 j: 1)
+     ((lambda (x y #!optional z #!key i (j 1) #!rest r)
+         (list x y z i: i j: j r))
+      3 4 5 i: 6 i: 7 8 9)        => (3 4 5 i: 6 j: 1 (8 9))
 
 4.2 Modules and DSSSL formal argument lists
 ===========================================
@@ -1375,6 +1389,7 @@ they are presented in a separate section (*note Input and Output::).
 * System Programming::
 * Date::
 * Digest::
+* CRC::
 * Internet::
 
 
@@ -1677,6 +1692,15 @@ The form `()' is _illegal_.
 
               In the circular-list case, this procedure "rotates" the list.
 
+ -- bigloo procedure: reduce f ridentity list
+     If LIST if null returns RIDENTITY, if LIST has one element,
+     returns that element. Otherwise, returns F applied to the first
+     element of the LIST and to `reduce' of the rest of the list.
+
+     Examples:
+
+              (reduce max 0 l) == (apply max l)
+
  -- bigloo procedure: make-list n [fill]
      Returns an N-element list, whose elements are all the value FILL.
      If the FILL argument is not given, the elements of the list may be
@@ -1786,6 +1810,11 @@ containing special characters.
      Returns a new fresh symbol. If OBJ is provided and is a string or
      a symbol, it is used as prefix for the new symbol.
 
+ -- bigloo procedure: genuuid
+     Returns a string containing a new fresh _Universal Unique
+     Identifier_ (see
+     `http://fr.wikipedia.org/wiki/Universal_Unique_Identifier').
+
  -- bigloo procedure: symbol-plist symbol-or-keyword
      Returns the property-list associated with SYMBOL-OR-KEYWORD.
 
@@ -1847,15 +1876,15 @@ Operations on complexes and rationals are not implemented but for
 compatibility purposes, the functions `complex?' and `rational?' exist.
 (In fact, `complex?' is the same as `number?' and `rational?'  is the
 same as `real?' in Bigloo.) The accepted prefixes are `#b', `#o', `#d',
-`#x', `#e', `#ex', `#l', `#lx', and `#z'.  For each generic arithmetic
-procedure, Bigloo provides two specialized procedures, one for fixnums
-and one for flonums. The names of these two specialized procedures is
-the name of the original one suffixed by `fx' (fixnum), `fl' (flonum),
-`elong' (exact C long), `llong' (exact C long long), and `bx' (big
-integer).  A fixnum has the size of a C `long' minus 2 bits. A flonum
-has the size of a C `double'. An elong has the size of a C long. An
-llong has the size of a C long long. A big integer has an unbounded
-size.
+`#x', `#e', `#ex', `#l', `#lx', `#z', and `#zx'. For each generic
+arithmetic procedure, Bigloo provides two specialized procedures, one
+for fixnums and one for flonums. The names of these two specialized
+procedures is the name of the original one suffixed by `fx' (fixnum),
+`fl' (flonum), `elong' (exact C long), `llong' (exact C long long), and
+`bx' (big integer).  A fixnum has the size of a C `long' minus 2 bits.
+A flonum has the size of a C `double'. An elong has the size of a C
+long. An llong has the size of a C long long. A big integer has an
+unbounded size.
 
  -- procedure: number? obj
  -- procedure: real? obj
@@ -2060,6 +2089,7 @@ size.
  -- bigloo procedure: integer->string/padding i padding [radix 10]
  -- bigloo procedure: elong->string i [radix 10]
  -- bigloo procedure: llong->string i [radix 10]
+ -- bigloo procedure: bignum->string i [radix 10]
  -- bigloo procedure: real->string z
  -- bigloo procedure: unsigned->string i [radix 16]
      The function `integer->string/padding' converts its arguments into
@@ -2074,6 +2104,12 @@ size.
           (unsigned->string 123 16)           => "7b"
           (unsigned->string -123 16)          => "ffffff85"
 
+
+ -- bigloo procedure: bignum->octet-string bignum
+     Returns a binary big-endian representation of the given bignum
+     BIGNUM.
+
+            (string-hex-extern (bignum->octet-string #zx1234567)) => "01234567"
 
  -- procedure: string->number string [radix 10]
  -- bigloo procedure: string->real string
@@ -2094,6 +2130,14 @@ size.
      STRING. That is:
 
           (string->number "#x1243")          => #f
+
+ -- bigloo procedure: octet-string->bignum string
+     Counterpart to `bignum->octet-string'. Takes the bignum
+     representation in big-endian format STRING and returns the
+     corresponding bignum.
+
+          (octet-string->bignum (bignum->octet-string #z1234)) => #z1234
+
 
  -- bigloo procedure: fixnum->flonum i
  -- bigloo procedure: flonum->fixnum r
@@ -2338,11 +2382,13 @@ the parameter `bigloo-strict-r5rs-strings' (see *note Parameters::).
           (string-natural-compare "1.02" "1.3")
              => -1
 
- -- library procedure: substring string start end
+ -- library procedure: substring string start [end]
      STRING must be a string, and START and END must be exact integers
      satisfying:
 
             0 <= START <= END <= (string-length STRING)
+
+     The optional argument END defaults to `(string-length STRING)'.
 
      `substring' returns a newly allocated string formed from the
      characters of STRING beginning with index START (inclusive) and
@@ -2427,6 +2473,14 @@ the parameter `bigloo-strict-r5rs-strings' (see *note Parameters::).
 
           (string-split "/usr/local/bin" "/") => ("usr" "local" "bin")
           (string-split "once   upon a time") => ("once" "upon" "a" "time")
+
+ -- bigloo procedure: string-cut string
+ -- bigloo procedure: string-cut string delimiters
+     The function `string-cut' behaves as `string-split' but it
+     introduces empty strings for consecutive occurrences of delimiters.
+
+          (string-cut "/usr//local/bin" "/") => ("usr" "" "local" "bin")
+          (string-cut "once   upon a time") => ("once" "" "" "" "upon" "a" "time")
 
  -- SRFI-13 procedure: string-prefix-length s1 s2 [start1 end1 start2
           end2]
@@ -3010,7 +3064,7 @@ The section *note Files:: describes functions for handling files.
 
 * Library functions::
 * Memory mapped area::
-* Gzip::
+* Zip::
 * Tar::
 
 
@@ -3020,7 +3074,9 @@ File: bigloo.info,  Node: Library functions,  Next: Memory mapped area,  Up: Inp
 -----------------------
 
  -- library procedure: call-with-input-file string proc
+ -- bigloo procedure: call-with-input-string string proc
  -- library procedure: call-with-output-file string proc
+ -- library procedure: call-with-output-string proc
      These two procedures call PROC with one argument, a port obtained
      by opening STRING.  See *note r5rs.info: (R5RS)Ports, for more
      details.
@@ -3186,25 +3242,24 @@ File: bigloo.info,  Node: Library functions,  Next: Memory mapped area,  Up: Inp
                   -| bar
                   -| Gee
 
-        * `http:server/path'
+        * `http://server/path'
 
           Opens an _http_ connection on `server' and open an input file
           on file `path'.
 
-        * `http:server:port-number/path'
+        * `http://server:port-number/path'
 
-          Opens an _http_ connection on `server', on port number `port'
-          and open an input file on file `path'.
-
-        * `http:user:password@server:port-number/path'
+        * `http://user:password@server:port-number/path'
 
           Opens an _http_ connection on `server', on port number `port'
           with an authentication and open an input file on file `path'.
 
-        * `ftp:server/path'
+        * `ftp://server/path'
 
-          Opens an _http_ connection on `server' and open an input file
-          on file `path'.
+        * `ftp://user:password@server/path'
+
+          Opens an _ftp_ connection on `server' and open an input file
+          on file `path'. Log in as anonymous.
 
         * `ressource:'
 
@@ -3243,13 +3298,42 @@ File: bigloo.info,  Node: Library functions,  Next: Memory mapped area,  Up: Inp
                 (close-input-port p2)
                 (close-input-port p1)))
 
+ -- bigloo procedure: open-input-zlib-file file-name [buffer #t]
+ -- bigloo procedure: open-input-zlib-port input-port [buffer #t]
+     Open respectively a zlib file for input and a port on a zlib
+     stream.  Note that closing a zlib port opened from a port PI does
+     not close the PI port.
+
  -- bigloo procedure: open-input-string string [start 0]
+ -- bigloo procedure: open-input-string! string
      Returns an `input-port' able to deliver characters from STRING.
+
+     The function `open-input-string!' acts as `open-input-string' but
+     it might modify the string it receives as parameter.
 
  -- bigloo procedure: open-input-c-string string
      Returns an `input-port' able to deliver characters from C STRING.
      The buffer used by the input port is the exact same string as the
      argument. That is, no buffer is allocated.
+
+ -- bigloo procedure: open-input-ftp-file file-name [buffer #t]
+     Returns an `input-port' able to deliver characters from a remote
+     file located on a FTP server.
+
+     Example:
+
+          (let ((p (open-input-ftp-file "ftp-sop.inria.fr/ls-lR.gz'')))
+            (unwind-protect
+               (read-string p)
+               (close-input-port p)))
+
+     The file name may contain user authentication such as:
+
+          (let ((p (open-input-ftp-file "anonymous:foo@ftp-sop.inria.fr/ls-lR.gz'')))
+            (unwind-protect
+               (read-string p)
+               (close-input-port p)))
+
 
  -- bigloo procedure: open-input-procedure procedure [buffer #t]
      Returns an `input-port' able to deliver characters from PROCEDURE.
@@ -3267,6 +3351,28 @@ File: bigloo.info,  Node: Library functions,  Next: Memory mapped area,  Up: Inp
                                                       "foobar")
           					 s))))))
              (read))
+
+ -- bigloo procedure: unread-char! char [input-port]
+ -- bigloo procedure: unread-string! string [input-port]
+ -- bigloo procedure: unread-substring! string start end [input-port]
+     Pushes the given CHAR, STRING or substring into the input-port.
+     The next read character(s) will be the pushed ones. The INPUT-PORT
+     must be buffered and not be closed.
+
+     Example:
+
+          (define p (open-input-string "a ymbol c"))
+          (read p)                       => a
+          (read-char p)                  => #\space
+          (unread-char! #\s p)
+          (read p)                       => symbol
+          (read-char p)                  => #\space
+          (read p)                       => c
+          (char-ready? p)                => #f
+          (unread-string! "sym1 sym2" p)
+          (char-ready? p)                => #t
+          (read p)                       => sym1
+          (read p)                       => sym2
 
  -- procedure: open-output-file file-name
      The same syntax as `open-input-file' for file names applies here.
@@ -3292,15 +3398,16 @@ File: bigloo.info,  Node: Library functions,  Next: Memory mapped area,  Up: Inp
      string consisting of the characters that have been output to the
      port so far.
 
- -- bigloo procedure: open-output-procedure proc [flush]
+ -- bigloo procedure: open-output-procedure proc [flush [close]]
      This function returns an _output procedure port_. This object has
      almost the same purpose as `output-port'. It can be used with all
      the printer functions which accept `output-port'. An output on a
      _output procedure port_ invokes the PROC procedure each time it is
      used for writing. That is, PROC is invoked with a string denoting
      the displayed characters. When the function `flush-output-port' is
-     called on such a port, the function optional FLUSH procedure is
-     invoked.
+     called on such a port, the optional FLUSH procedure is invoked.
+     When the function `close-output-port' is called on such a port,
+     the optional CLOSE procedure is invoked.
 
  -- procedure: close-input-port input-port
  -- procedure: close-output-port output-port
@@ -3410,9 +3517,21 @@ File: bigloo.info,  Node: Library functions,  Next: Memory mapped area,  Up: Inp
      including it this documentation.
 
  -- bigloo procedure: read-line [input-port]
+ -- bigloo procedure: read-line-newline [input-port]
      Reads characters from INPUT-PORT until a `#\Newline', a `#\Return'
      or an `end of file' condition is encountered.  `read-line' returns
      a newly allocated string composed of the characters read.
+
+     The strings returned by `read-line' do not contain the newline
+     delimiters.  The strings returned by `read-line-newline' do
+     contain them.
+
+ -- bigloo procedure: read-line-newline [input-port]
+     Reads characters from INPUT-PORT until a `#\Newline', a `#\Return'
+     or an `end of file' condition is encountered.  `read-line' returns
+     a newly allocated string composed of the characters read.
+
+     The returned string does not contain the newline delimiter.
 
  -- bigloo procedure: read-lines [input-port]
      Accumulates all the line of an INPUT-PORT into a list.
@@ -3549,6 +3668,11 @@ File: bigloo.info,  Node: Library functions,  Next: Memory mapped area,  Up: Inp
         * `~x', `~o', `~b'  The corresponding value must must be a
           number and is printed with radix 16, 8 or 2.
 
+        * `~l' If the corresponding value is a proper list, its items
+          are inserted into the string without the surrounding
+          parenthesis. If the corresponding value is not a list, it
+          behaves as `~s'.
+
      `~a' and `~s', when encountered, require a corresponding Scheme
      value to be present after the format string. The values provided
      as operands are used by the escape sequences in order. It is an
@@ -3561,6 +3685,8 @@ File: bigloo.info,  Node: Library functions,  Next: Memory mapped area,  Up: Inp
              -| Hello, World!
           (format "Error, list is too short: ~s~%" '(one "two" 3))
              -| Error, list is too short: (one "two" 3)
+          (format "a ~l: ~l" "list" '(1 2 3))
+             -| a list: 1 2 3
 
  -- bigloo procedure: printf format-string [objs]
  -- bigloo procedure: fprintf port format-string [objs]
@@ -3604,7 +3730,7 @@ File: bigloo.info,  Node: Library functions,  Next: Memory mapped area,  Up: Inp
      when the user hits the ,(code "Enter") key.
 
 
-File: bigloo.info,  Node: Memory mapped area,  Next: Gzip,  Prev: Library functions,  Up: Input and Output
+File: bigloo.info,  Node: Memory mapped area,  Next: Zip,  Prev: Library functions,  Up: Input and Output
 
 5.2.2 mmap
 ----------
@@ -3628,6 +3754,9 @@ performance in comparison with equivalent code using regular ports.
         * `write: #t' The memory can be written
 
         * `write: #f' The memory is read-only.
+
+ -- bigloo procedure: string->mmap string [mode]
+     Wrap a Bigloo string into a mmap object.
 
  -- bigloo procedure: close-mmap mm
      Closes the memory mapped. Returns `#t' on success, `#f' otherwise.
@@ -3674,33 +3803,34 @@ performance in comparison with equivalent code using regular ports.
      writen) outbound the length of the memory mapped.
 
 
-File: bigloo.info,  Node: Gzip,  Next: Tar,  Prev: Memory mapped area,  Up: Input and Output
+File: bigloo.info,  Node: Zip,  Next: Tar,  Prev: Memory mapped area,  Up: Input and Output
 
-5.2.3 Gzip
-----------
+5.2.3 Zip
+---------
 
  -- bigloo procedure: port->gzip-port input-port [buffer #t]
-     This function takes a regular port as input (INPUT-PORT). It
-     constructs a new ports that automatically _unzip_ the read
-     characters.
+ -- bigloo procedure: port->zlib-port input-port [buffer #t]
+ -- bigloo procedure: port->inflate-port input-port [buffer #t]
+     These functions take a regular port as input (INPUT-PORT). They
+     construct a new port that automatically _unzip_ the read
+     characters.  The `inflate' version does not parse a gunzip-header
+     before inflating the content.
 
- -- bigloo procedure: open-input-gzip-file path [buffer #t]
-     This function opens a gzipped file for input. The file is
+ -- bigloo procedure: open-input-inflate-file path [buffer #t]
+     These function open a gzipped file for input. The file is
      automatically unzipped when the characters are read. It is
      equivalent to:
 
           (let ((p (open-input-port path)))
             (port->gzip-port p))
 
-     Gzipped files can also be using the `gzip:' prefix. That is:
+     The function `open-input-inflate-file' is similar to
+     `open-input-gzip-file' but it does not parse a gunzip-header
+     before inflating the content.
 
-          (open-input-gzip-file "a-path.gz")
-
-     is equivalent to:
-
-          (open-input-file "gzip:a-path.gz")
 
  -- bigloo procedure: gunzip-sendchars input-port output-port
+ -- bigloo procedure: inflate-sendchars input-port output-port
      Transmit all the characters from the gzipped INPUT-PORT to the
      OUTPUT-PORT.
 
@@ -3712,7 +3842,7 @@ File: bigloo.info,  Node: Gzip,  Next: Tar,  Prev: Memory mapped area,  Up: Inpu
      port is not gzipped.
 
 
-File: bigloo.info,  Node: Tar,  Prev: Gzip,  Up: Input and Output
+File: bigloo.info,  Node: Tar,  Prev: Zip,  Up: Input and Output
 
 5.2.4 Tar
 ---------
@@ -3951,6 +4081,8 @@ These procedures allow the manipulation of fixnums as bit-fields.
  -- bigloo procedure: bit-ursh i1 i2
  -- bigloo procedure: bit-rshelong i1 i2
  -- bigloo procedure: bit-rshllong i1 i2
+ -- bigloo procedure: bit-urshelong i1 i2
+ -- bigloo procedure: bit-urshllong i1 i2
           (bit-or 5 3)                           => 7
           (bit-orelong #e5 #e3)                  => #e7
           (bit-xor 5 3)                          => 6
@@ -4067,16 +4199,23 @@ described functions which define and use them.
      Removes the object associated to KEY from TABLE, returning `#t' if
      such object was bound in table and `#f' otherwise.
 
- -- bigloo procedure: hashtable-update! table key update-fun init-value
+ -- bigloo procedure: hashtable-add! table key update-fun obj init-value
+     If key is already in table, the new value is calculated by
+     `(update-fun obj current-value)'. Otherwise the TABLE is extended
+     by an entry linking key and `(update-fun obj init-value)'.
+
+ -- deprecated bigloo procedure: hashtable-update! table key update-fun
+          init-value
      If key is already in table, the new value is calculated by
      `(update-fun current-value)'. Otherwise the TABLE is extended by
      an entry linking key and `init-value'.
 
  -- bigloo procedure: hashtable->vector table
  -- bigloo procedure: hashtable->list table
-     Returns the hash table TABLE's data as a vector or a list.  If the
-     hash table is weak, the result will consist only of the data which
-     haven't dissapeared yet and whose keys haven't dissapeared either.
+     Returns the hash table TABLE's data as a vector (respectively a
+     list).  If the hash table is weak, the result will consist only of
+     the data which haven't dissapeared yet and whose keys haven't
+     dissapeared either.
 
  -- bigloo procedure: hashtable-key-list table
      Returns the list of keys used in the TABLE.  If the hash table is
@@ -4160,6 +4299,19 @@ File: bigloo.info,  Node: Operating System Interface,  Next: Files,  Up: System 
 
 5.7.1 Operating System interface
 --------------------------------
+
+ -- bigloo procedure: bigloo-config
+ -- bigloo procedure: bigloo-config key
+     The function `bigloo-config' returns an alist representing the
+     configuration of the running Bigloo system. When used with one
+     parameter, the function `bigloo-config' returns the value
+     associated with the key.
+
+     Examples:
+
+          (bigloo-config) => ((release-number . 3.4b) ... (endianess . little-endian))
+          (bigloo-config 'endianess) => little-endian
+
 
  -- bigloo procedure: register-exit-function! proc
      Register PROC as an exit functions. PROC is a procedure accepting
@@ -4789,8 +4941,8 @@ extent copies of the STk [Gallesio95] socket support.
      The BACKLOG argument specifies the size of the wait-queue used for
      accepting connections.
 
- -- bigloo procedure: socket-accept socket #!key (errp #t) (inbuf #f)
-          (outbuf #f)
+ -- bigloo procedure: socket-accept socket #!key (errp #t) (inbuf #t)
+          (outbuf #t)
      `socket-accept' waits for a client connection on the given SOCKET.
      It returns a `client-socket'.  If no client is already waiting for
      a connection, this procedure blocks its caller; otherwise, the
@@ -4903,7 +5055,7 @@ client-server architecture and it uses unbufferized (see
      (module server)
 
      (let* ((s (make-server-socket 8080))
-            (s2 (socket-accept s #f)))
+            (s2 (socket-accept s :inbuf #f)))
         (let ((pin (socket-input s2)))
            (let loop ()
               (display (read-char pin))
@@ -4987,7 +5139,15 @@ consecutive connections:
 
         * `:TCP_CORK'
 
+        * `:TCP_QUICKACK'
+
         * `:TCP_NODELAY'
+
+     The `:SO_KEEPALIVE' option can be use to implement automatic
+     notification of client disconnection. It requires system tuning
+     for enabling TCP keeplive support. On Linux additional information
+     may be found on the "TCP Keepalive HOWTO" (see
+     `http://tldp.org/HOWTO/html_single/TCP-Keepalive-HOWTO/').
 
 
 
@@ -5362,7 +5522,7 @@ File: bigloo.info,  Node: Date,  Next: Digest,  Prev: System Programming,  Up: S
      the RFC2822 format.
 
 
-File: bigloo.info,  Node: Digest,  Next: Internet,  Prev: Date,  Up: Standard Library
+File: bigloo.info,  Node: Digest,  Next: CRC,  Prev: Date,  Up: Standard Library
 
 5.9 Digest
 ==========
@@ -5421,10 +5581,208 @@ File: bigloo.info,  Node: Digest,  Next: Internet,  Prev: Date,  Up: Standard Li
  -- bigloo procedure: hmac-sha1sum-string key string
      Computes the Hmac SHA1 authentication:
 
-
-File: bigloo.info,  Node: Internet,  Prev: Digest,  Up: Standard Library
+ -- bigloo procedure: sha256sum obj
+ -- bigloo procedure: sha256sum-string string
+ -- bigloo procedure: sha256sum-mmap mmap
+ -- bigloo procedure: sha256sum-file string
+ -- bigloo procedure: sha256sum-port input-port
+     Computes SHA256 message digest.
 
-5.10 Internet
+     The function `sha256sum' dispatches over its argument and invokes
+     the ad-hoc function. That is, it invokes `sha256sum-string' if its
+     argument is a string, `sha256sum-mmap' if it is a mmap,
+     `sha256sum-port' if its argument is an input port.
+
+ -- bigloo procedure: hmac-sha256sum-string key string
+     Computes the Hmac SHA256 authentication:
+
+
+File: bigloo.info,  Node: CRC,  Next: Internet,  Prev: Digest,  Up: Standard Library
+
+5.10 Cyclic Redundancy Check (CRC)
+==================================
+
+Bigloo provides several known cyclic redundancy checks as well as means
+to create custom checks.
+
+  Usually CRCs are executed starting with the leftmost bit inside a
+byte (big endian). However, especially for serial-port transmissions, a
+scheme where the least-significant bit is processed first is desirable.
+Bigloo's CRC procedures accept a key-parameter (`:big-endian') (by
+default `#t') which allows to change this behavior.
+
+  The following CRCs (given with the associated polynomial) are
+provided:
+   * `itu-4': 0x3
+
+   * `epc-5': 0x9
+
+   * `itu-5': 0x15
+
+   * `usb-5': 0x5
+
+   * `itu-6': 0x3
+
+   * `7': 0x9
+
+   * `atm-8': 0x7
+
+   * `ccitt-8': 0x8d
+
+   * `dallas/maxim-8': 0x31
+
+   * `8': 0xd5
+
+   * `sae-j1850-8': 0x1d
+
+   * `10': 0x233
+
+   * `11': 0x385
+
+   * `12': 0x80f
+
+   * `can-15': 0x4599
+
+   * `ccitt-16': 0x1021
+
+   * `dnp-16': 0x3d65
+
+   * `ibm-16': 0x8005
+
+   * `24': 0x5d6dcb
+
+   * `radix-64-24': 0x864cfb
+
+   * `30': 0x2030b9cf
+
+   * `ieee-32': 0x4c11db7
+
+   * `c-32': 0x1edc6f41
+
+   * `k-32': 0x741b8cd7
+
+   * `q-32': 0x814141ab
+
+   * `iso-64': 0x1b
+
+   * `ecma-182-64': 0x42f0e1eba9ea3693
+
+ -- bigloo procedure: crc-names
+     Returns a list of all provided CRCs (`itu-4', `epc-5', etc.).
+
+ -- bigloo procedure: crc-polynomial name
+ -- bigloo procedure: crc-polynomial-le name
+     Returns the polynomial for the given name. The `-le' variant
+     returns the little endian polynomial.
+
+          (crc-polynomial 'ieee-32)
+              -| #e79764439 ;; == #ex4c11bd7
+          (crc-polynomial 24)
+              -| 6122955    ;; == #x5d6dcb
+
+ -- bigloo procedure: crc-length name
+     Returns the length of the specified CRC.
+
+ -- bigloo procedure: crc name obj [:init 0] [:final-xor 0]
+          [:big-endian? #t]
+ -- bigloo procedure: crc-string name str::bstring [:init 0]
+          [:final-xor 0] [:big-endian? #t]
+ -- bigloo procedure: crc-port name p::input-port [:init 0] [:final-xor
+          0] [:big-endian? #t]
+ -- bigloo procedure: crc-mmap name m::mmap [init 0] [:final-xor 0]
+          [big-endian? #t]
+ -- bigloo procedure: crc-file name f::bstring [init 0] [:final-xor 0]
+          [big-endian? #t]
+     Computes the CRC of the given object. NAME must be one of the
+     provided CRC-algorithms. The optional parameter INIT can be used to
+     initialize the CRC. The result of the CRC will be XORed with
+     FINAL-XOR. The result will however be of the CRC's length. That
+     is, even if FINAL-XOR is bigger then the CRC's length only the
+     relevant bits will be used to perform the final XOR.
+
+     The result will be a number. Depending on the CRC this number can
+     be a fixnum, an elong, or an llong.
+
+     The following example mimicks the UNIX `cksum' command:
+          (module cksum (main main))
+          (define (main args)
+            (let loop ((sum (crc-file 'ieee-32 (cadr args)))
+                       (size (elong->fixnum (file-size (cadr args)))))
+              (if (=fx size 0)
+                  (printf "~a ~a ~a\n"
+                          (bit-andllong #lxFFFFFFFF (elong->llong (bit-notelong sum)))
+                          (file-size (cadr args))
+                          (cadr args))
+                  (loop (crc-string 'ieee-32
+                                    (string (integer->char-ur (bit-and size #xFF)))
+                                    :init sum)
+          	      (bit-rsh size 8)))))
+
+     In the following example we implement OpenPGP's CRC-24:
+          (define (openpgp-crc-24 str)
+            (crc-string 'radix-64-24 str :init #xB704CE))
+
+     Be aware that many common CRCs use -1 as init value and invert the
+     result. For compatibility with other implementations you might
+     want to try one of the following alternatives:
+          (define (alt1 name obj) (crc name obj :init -1))
+          (define (alt2 name obj) (crc name obj :final-xor -1))
+          (define (alt3 name obj) (crc name obj :init -1 :final-xor -1))
+
+
+  Bigloo provides means to create additional CRCs: one can either
+simply provide a new polynomial or use Bigloo's low level functions.
+
+ -- bigloo procedure: register-crc! name poly len
+     Adds the given CRC to Bigloo's list. Name can be of any type
+     (`crc' will use `assoc' to find it in its list). The polynomial
+     can be either a fixnum, an elong or an llong. LEN should give the
+     CRCs size. The type of the polynomial and the given LEN must be
+     consistent. On a 32 bit machine the following CRC registration
+     would be invalid and yield undefined results:
+
+          (register-crc! 'invalid 1337 55)
+
+     As 55 is bigger than the fixnum's bit-size calling `crc' with this
+     CRC will yield undefinde results.
+
+ -- bigloo procedure: crc-long::long c::char crc::long poly::long
+          len::long
+ -- bigloo procedure: crc-elong::elong c::char crc::elong poly::elong
+          len::long
+ -- bigloo procedure: crc-llong::llong c::char crc::llong poly::llong
+          len::long
+ -- bigloo procedure: crc-long-le::long c::char crc::long poly::long
+          len::long
+ -- bigloo procedure: crc-elong-le::elong c::char crc::elong
+          poly::elong len::long
+ -- bigloo procedure: crc-llong-le::llong c::char crc::llong
+          poly::llong len::long
+     These function perform a CRC operation on one byte. The previously
+     described functions are based on these low level functions. The
+     result of all the low level functions will return values that are
+     not cut to the correct length. Usually a crc is done in a loop,
+     and one needs to `bit-and' only when returning the result.
+     Polynomials can be given with or without the high-order bit.
+
+     For instance we could implement `openpgp-crc24' as follows:
+          (define *openpgp-init* #xB704CE)
+          (define *radix-64-24-poly* #x864CFB)
+          (define (openpgp-crc-24 str)
+            (let loop ((i 0)
+                       (crc *openpgp-init*))
+              (if (=fx i (string-length str))
+                  (bit-and crc #xFFFFFF) ;; cut to correct length (24 bits)
+                  (loop (+fx i 1)
+                        (crc-long (string-ref str i) crc *radix-64-24-poly* 24)))))
+
+ -- bigloo procedure: crc-polynomial-be->le len polynomial
+     Returns the little endian variant of a given polynomial.
+
+
+File: bigloo.info,  Node: Internet,  Prev: CRC,  Up: Standard Library
+
+5.11 Internet
 =============
 
 This section presents the Bigloo function aimed at helping internet
@@ -5438,7 +5796,7 @@ programming.
 
 File: bigloo.info,  Node: URLs,  Next: HTTP,  Up: Internet
 
-5.11 URLs
+5.12 URLs
 =========
 
  -- bigloo procedure: url-parse url
@@ -5457,11 +5815,11 @@ File: bigloo.info,  Node: URLs,  Next: HTTP,  Up: Internet
 
      Example
           (multiple-value-bind (protocol uinfo host port abspath)
-             (url-parse "http://www.inria.fr/sophia/teams/mimosa/index.html")
+             (url-parse "http://www.inria.fr/sophia/teams/indes/index.html")
              (list protocol uinfo host port abspath))
-                => ("http" #f "www.inria.fr" 80 "/sophia/teams/mimosa/index.html'')
+                => ("http" #f "www.inria.fr" 80 "/sophia/teams/indes/index.html'')
           (multiple-value-bind (protocol uinfo host port abspath)
-             (url-parse "https://foo:bar@www.inria.fr/sophia/teams/mimosa/index.html")
+             (url-parse "https://foo:bar@www.inria.fr/sophia/teams/indes/index.html")
              (list protocol uinfo))
                 => ("https" "foo@bar")
 
@@ -5501,7 +5859,7 @@ File: bigloo.info,  Node: URLs,  Next: HTTP,  Up: Internet
 
 File: bigloo.info,  Node: HTTP,  Prev: URLs,  Up: Internet
 
-5.12 HTTP
+5.13 HTTP
 =========
 
  -- bigloo procedure: http [:in #f] [:out #f] [:socket #f]
@@ -5511,13 +5869,19 @@ File: bigloo.info,  Node: HTTP,  Prev: URLs,  Up: Internet
                                    [:login #f] [:authorization #f]
                               [:username #f] [:password #f]
                        [:http-version "HTTP/1.1"]
-             [:content-type #f]                                [:header
+             [:content-type #f]
+     [:connection "close"]                                [:header
      '((user-agent: "Mozilla/5.0"))]
      [:args '()]                                [:body #f]
 
      Opens an HTTP connection. Returns a socket.
 
-          (define (wget urt)
+     It is an error to specify a header twice. In particular, it is
+     illegal to re-define keyword-ed arguments in the :HEADER list. For
+     instance, it is illegal to include in the `:header' actual list
+     value a value for the `Connection' HTTP connection.
+
+          (define (wget uri)
 
              (define (parser ip status-code header clen tenc)
                 (if (not (and (>=fx status-code 200) (<=fx status-code 299)))
@@ -5526,17 +5890,17 @@ File: bigloo.info,  Node: HTTP,  Prev: URLs,  Up: Internet
           	      (raise (instantiate::&io-port-error
           			(proc 'open-input-file)
           			(msg "Cannot open URL, authentication required")
-          			(obj (string-append "http://" string)))))
+          			(obj uri))))
           	     ((404)
           	      (raise (instantiate::&io-file-not-found-error
           			(proc 'open-input-file)
           			(msg "Cannot open URL")
-          			(obj (string-append "http://" string)))))
+          			(obj uri))))
           	     (else
           	      (raise (instantiate::&io-port-error
           			(proc 'open-input-file)
           			(msg (format "Cannot open URL (~a)" status-code))
-          			(obj (string-append "http://" string))))))
+          			(obj uri)))))
           	  (cond
           	     ((not (input-port? ip))
           	      (open-input-string ""))
@@ -5557,6 +5921,26 @@ File: bigloo.info,  Node: HTTP,  Prev: URLs,  Up: Internet
           		   (wget (&http-redirection-url e))
           		   (raise e)))
           	    (read-string (http-parse-response ip op parser))))))
+
+     The optional argument `args' is used for `post' method. The actual
+     value should be a list of lists. Each of these sublists must have
+     two values:
+
+        * the argument name
+
+        * the argument actual value
+
+     The argument name can be either a string which is the name of the
+     argument or a list of two elements. In that case, the first
+     element of these list is the argument name. The second element
+     should be a string that denotes additional parameter.
+
+     Example:
+
+          (http :host "localhost" :port 8080 :method 'post
+             :header '((enctype: "multipart/form-data"))
+             :args `(("x" "foo") (("foo.scm" "filename=\"foo.scm\"\nContent-type: application/octet-stream" ,(with-input-from-file "foo.scm" read-string))))
+             ...)
 
 
  -- bigloo procedure: http-read-line input-port
@@ -6044,12 +6428,13 @@ declaration is:
                | `(default' <bigloo-exp>`)'
                | `(info' <bigloo-exp>`)'
      
-     A class is a Bigloo type and the class identifier is extracted
-     from the <ident> of the class definition. If <ident> is also a
-     <typed-ident>, the type part of this identifier denote the
-     super-class of the class. If <ident> is a <IEEE-ident>, the
-     super-class of the class is the root of the inheritance tree, the
-     `object' class. This `object' class is the only pre-existing class.
+     A class is a Bigloo type (see Section*note Atomic types::) and the
+     class identifier is extracted from the <ident> of the class
+     definition. If <ident> is also a <typed-ident>, the type part of
+     this identifier denote the super-class of the class. If <ident> is
+     a <IEEE-ident>, the super-class of the class is the root of the
+     inheritance tree, the `object' class. This `object' class is the
+     only pre-existing class.
 
      _Final classes_ can only be sub-classed by _wide classes_.  _Wide
      classes_ (only for compiled modules) can only inherit from _final
@@ -7171,7 +7556,7 @@ These procedures are:
              (eq? l1 l2))
              => #f
 
- -- bigloo rgc procedure: the-substring start length
+ -- bigloo rgc procedure: the-substring start end
      Get a copy of a substring of the last matching string. If the
      LENGTH is negative, it is subtracted to the whole match length.
      Here is an example of a rule extracting a part of a match:
@@ -7381,316 +7766,4 @@ parsers for the class of Lalr(1) grammars in a more opaque way.
 * The Regular Grammar::
 * Debugging Lalr Grammars::
 * A Simple Example::
-
-
-File: bigloo.info,  Node: Grammar Definition,  Next: Precedence and Associativity,  Up: Lalr Parsing
-
-11.1 Grammar definition
-=======================
-
-An lalr(1) grammar is defined by the form:
-
- -- bigloo syntax: lalr-grammar term-def non-term-def...
-     TERM-DEF is a list of terminal elements of the grammar.  Terminals
-     can grouped together to form precedence groups by including the
-     related symbols in a sub-lists of the TERM-DEF list.  Each
-     precedence group must start with one of the keywords `left:',
-     `right:' or `none:'- this indicates the associativity of the
-     terminal symbol.  Here is a sample TERM-DEF which declares eight
-     terminals:
-          (terminal-1 terminal-2
-           (left: terminal-3 terminal-4)
-           terminal-5
-           (right: terminal-6)
-           (none: terminal-7)
-           terminal-8)
-
-     In this case, `terminal-3' and `terminal-4' both have the same
-     precedence, which is greater than the precedence assigned to
-     `terminal-6'. No precedence was assigned to symbols `terminal-1',
-     `terminal-2', `terminal-5' or `terminal-8'.
-
-     Each NON-TERM-DEF is a list whose first element is the
-     non-terminal being defined, i.e. a symbol. The remaining elements
-     are the production rules associated with this non-terminal. Each
-     rule is a list whose first element is the rule itself (a list of
-     symbols) and the other elements are the semantic actions
-     associated with that particular rule.
-
-     For example, consider the following grammar:
-          E ==> E1 + ID {E.val := E1.val + ID.val}
-                | ID {E.val := ID.val}
-
-     With Bigloo, it would be written:
-          (lalr-grammar
-            (plus id)
-            (e
-             ((e plus id)   (+ e id))
-             ((id)          id)))
-
-     The semantic value of a symbol in a rule can be accessed by simply
-     using the name of the symbol in the semantic action associated with
-     the rule. Because a rule can contain multiple occurrences of the
-     same symbol, Bigloo provides a way to access these occurrences
-     separately. To do so, the name of each occurrence must be suffixed
-     by `@'VAR where VAR is the name of a variable that will be bound
-     to the semantic value of the occurrence. For example, if the rule
-     is
-
-             ifstmt ==> if E then Stmt else Stmt
-
-     then, in Bigloo, it would look like
-          (if-stmt
-           ((if e then stmt@conseq else stmt@altern)
-            (if (eval e)
-                (eval conseq)
-                (eval altern))))
-
-
-File: bigloo.info,  Node: Precedence and Associativity,  Next: The Parsing Function,  Prev: Grammar Definition,  Up: Lalr Parsing
-
-11.2 Precedence and associativity
-=================================
-
-The bigloo lalr(1) parser generator supports operator precedence and
-associativity.  The method for specifying the precedence for terminal
-symbols is described in *note Grammar Definition::.  Precedence is
-assigned to each non-terminal production from the precedence of the
-last terminal symbol appearing in that production.
-
-  Typically, when the parser generator encounters a shift/reduce
-conflict, it produces a warning message, then chooses to reduce.  When
-a parser generator has precedence and associativity information, it can
-make a much more sophisticated decision.
-
-  Let's use this simple calculator grammar as an example:
-     (lalr-grammar
-      ((left: op-mult op-div)
-       (left: op-add op-sub)
-       op-lparen op-rparen
-       op-semicolon
-       number)
-
-      (file
-        (())
-        ((file stmt)))
-      (stmt
-        ((expr op-semicolon) (print expr)))
-      (expr
-        ((number) number)
-        ((expr@a op-add expr@b) (+ a b))
-        ((expr@a op-sub expr@b) (- a b))
-        ((expr@a op-mult expr@b) (* a b))
-        ((expr@a op-div expr@b) (/ a b))
-        ((op-lparen expr op-rparen) expr))))
-
-  Let's start with this input:
-     1 + 2 * 3;
-
-  At the point where the parser has read `1 + 2' and the lookahead
-symbol is `*', the parser encounters a shift/reduce conflict.  Should
-it first reduce by the `(expr op-add expr)' production or shift the `*'
-in the hopes of reducing the latter expression first?
-
-  The `(expr op-add expr)' production has gotten its precedence from the
-`op-add' terminal symbol.  This is the precedence of the reduce.  The
-precedence of the shift comes from the precedence assigned to the
-lookahead terminal symbol, which is `op-mult'.  Since `op-mult' has
-higher precedence, the parser generator in this state chooses to shift
-and does not produce a warning.
-
-  Here's an example which we can use to demonstrate associativity:
-     1 + 2 - 3;
-
-  The parser generator encounters a similar shift/reduce conflict this
-time, except that when it tries to determine whether to shift or
-reduce, it finds that both actions have the same precedence.  In this
-case, the parser generator looks at the associativity of the precedence
-group containing the `op-add' and `op-sub'.  Since these are declared
-to be left-associative, the parser generator chooses to reduce from
-this state, effectively calculating the `1 + 2'.  Had these symbols been
-right-associative, the parser would have chosen to shift, effectively
-calculating `2 - 3' first.  If these symbols had been declared
-non-associative with the `none:' keyword, the parser would generate an
-error if it ever encountered this state.
-
-
-File: bigloo.info,  Node: The Parsing Function,  Next: The Regular Grammar,  Prev: Precedence and Associativity,  Up: Lalr Parsing
-
-11.3 The parsing function
-=========================
-
-Once a grammar has been defined, it can be used to parse some input
-using the following function:
-
- -- bigloo procedure: read/lalrp lg rg port [emptyp]
-     This function takes three, possibly four, arguments. The first,
-     LG, is the Lalr(1) grammar. The second, RG, is the lexical
-     analyzer that feeds the grammar with tokens. The third argument,
-     PORT, is the port that contains the input to be parsed. The last
-     argument, EMPTYP, if provided, should be a function of one
-     argument. It is called with each new token read from the port and
-     should return `#t' if the token denotes the end of input. The
-     result of the call is the value computed by the semantic actions
-     of the production rules.
-
-
-File: bigloo.info,  Node: The Regular Grammar,  Next: Debugging Lalr Grammars,  Prev: The Parsing Function,  Up: Lalr Parsing
-
-11.4 The regular grammar
-========================
-
-In order to work properly, the regular grammar used with an Lalr(1)
-grammar should follow some conventions:
-
-   * If a semantic value is to be associated with the token just
-     parsed, the regular grammar should return a pair whose `car' is the
-     token name (a symbol) and the `cdr' is the semantic value.
-
-   * If there is no value associated with the token, the regular
-     grammar can return just the token name. When used in conjunction
-     with an Lalr grammar, regular grammar should never return `#f' as
-     a token value. This is specially true when the regular grammar
-     detects the end of parsing. In that case, the regular grammar
-     _must not_ return the `#f' value. A good way to handle end-of-file
-     is illustrated in the following example:
-
-          (let ((g (regular-grammar ()
-                       ...
-                       (else
-                        (let ((c (the-failure)))
-                           (if (eof-object? c)
-                               c
-                               (error 'rgc "Illegal character" c))))))
-                (l (lalr-grammar ...)))
-             (read/lalrp l g (current-input-port)))
-
-     This way, the Lalr grammar will automatically handles the
-     end-of-file.
-
-
-File: bigloo.info,  Node: Debugging Lalr Grammars,  Next: A Simple Example,  Prev: The Regular Grammar,  Up: Lalr Parsing
-
-11.5 Debugging Lalr Grammars
-============================
-
-Currently the debugging facility for debugging Lalr grammars is very
-limited.
-
- -- bigloo variable: *debug-parser*
-     When set to true, The variable *DEBUG-PARSER*, outputs all of the
-     state changes the parser is going through.
-
-
-File: bigloo.info,  Node: A Simple Example,  Prev: Debugging Lalr Grammars,  Up: Lalr Parsing
-
-11.6 A simple example
-=====================
-
-Here is the code for a simple calculator implemented by an Lalr(1)
-grammar:
-
-     (begin
-       (read/lalrp
-        (lalr-grammar
-         (nl plus mult minus div const lpar rpar)
-         (lines
-          (())
-          ((lines expression nl)    (display "--> ")
-                                    (display expression)
-                                    (newline))
-          ((lines nl)))
-         (expression
-          ((expression plus term)   (+ expression term))
-          ((expression minus term)  (- expression term))
-          ((term)                   term))
-         (term
-          ((term mult factor)       (* term factor))
-          ((term div factor)        (/ term factor))
-          ((factor)                 factor))
-         (factor
-          ((lpar expression rpar)   expression)
-          ((const)                  const)))
-
-        (regular-grammar ()
-         ((+ (or #\tab #\space)) (ignore))
-         (#\newline              'nl)
-         ((+ digit)              (cons 'const (string->number (the-string))))
-         (#\+                    'plus)
-         (#\-                    'minus)
-         (#\*                    'mult)
-         (#\/                    'div)
-         (#\(                    'lpar)
-         (#\)                    'rpar))
-
-        (current-input-port))
-       (reset-eof (current-input-port)))
-
-
-File: bigloo.info,  Node: Posix Regular Expressions,  Next: Command Line Parsing,  Prev: Lalr Parsing,  Up: Top
-
-12 Posix Regular Expressions
-****************************
-
-This whole section has been written by Dorai Sitaram.  It consists in
-the documentation of the `pregexp' package that may be found at
-`http://www.ccs.neu.edu/~dorai/pregexp/pregexp.html'.
-
-
-  The regexp notation supported is modeled on Perl's, and includes such
-powerful directives as numeric and nongreedy quantifiers, capturing and
-non-capturing clustering, POSIX character classes, selective case- and
-space-insensitivity, backreferences, alternation, backtrack pruning,
-positive and negative lookahead and lookbehind, in addition to the more
-basic directives familiar to all regexp users.  A _regexp_ is a string
-that describes a pattern.  A regexp matcher tries to _match_ this
-pattern against (a portion of) another string, which we will call the
-_text string_.  The text string is treated as raw text and not as a
-pattern.
-
-  Most of the characters in a regexp pattern are meant to match
-occurrences of themselves in the text string.  Thus, the pattern
-`"abc"' matches a string that contains the characters `a', `b', `c' in
-succession.
-
-  In the regexp pattern, some characters  act as _metacharacters_, and
-some character sequences act as _metasequences_.  That is, they specify
-something other than their literal selves.  For example, in the pattern
-`"a.c"', the characters `a' and `c' do stand for themselves but the
-_metacharacter_ `.' can match _any_ character (other than newline).
-Therefore, the pattern `"a.c"' matches an `a', followed by _any_
-character, followed by a `c'.
-
-  If we needed to match the character `.' itself, we _escape_ it, ie,
-precede it with a backslash (`\').  The character sequence `\.' is thus
-a _metasequence_, since it doesn't match itself but rather just `.'.
-So, to match `a' followed by a literal `.' followed by `c', we use the
-regexp pattern `"a\\.c"'.(1) (*note Posix Regular
-Expressions-Footnote-1::) Another example of a metasequence is `\t',
-which is a readable way to represent the tab character.
-
-  We will call the string representation of a regexp the _U-regexp_,
-where _U_ can be taken to mean _Unix-style_ or _universal_, because this
-notation for regexps is universally familiar.  Our implementation uses
-an intermediate tree-like representation called the _S-regexp_, where
-_S_ can stand for _Scheme_, _symbolic_, or _s-expression_.  S-regexps
-are more verbose and less readable than U-regexps, but they are much
-easier for Scheme's recursive procedures to navigate.
-
-* Menu:
-
-* Regular Expressions Procedures::
-* The Regular Expressions Pattern Language::
-* An Extended Example::
-
-
-File: bigloo.info,  Node: Posix Regular Expressions-Footnotes,  Up: Posix Regular Expressions
-
-  (1) The double backslash is an artifact of Scheme strings, not the
-regexp pattern itself.  When we want a literal backslash inside a
-Scheme string, we must escape it so that it shows up in the string at
-all. Scheme strings use backslash as the escape character, so we end up
-with two backslashes -- one Scheme-string backslash to escape the
-regexp backslash, which then escapes the dot.  Another character that
-would need escaping inside a Scheme string is `"'.
 

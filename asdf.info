@@ -1,4 +1,4 @@
-This is asdf.info, produced by makeinfo version 4.11 from asdf.texinfo.
+This is asdf.info, produced by makeinfo version 4.13 from asdf.texinfo.
 
 INFO-DIR-SECTION Software development
 START-INFO-DIR-ENTRY
@@ -304,7 +304,6 @@ File: asdf.info,  Node: The defsystem grammar,  Prev: A more involved example,  
 
 2.3 The defsystem grammar
 =========================
-
 
 system-definition := ( defsystem system-designator {option}* )
 
@@ -680,7 +679,6 @@ initargs for the component, you can say
 
    The syntax is approximately
 
-
 (this-op {(other-op required-components)}+)
 
 required-components := component-name
@@ -694,12 +692,10 @@ component-name := string
    This is on a par with what ACL defsystem does.  mk-defsystem is less
 general: it has an implied dependency
 
-
   for all x, (load x) depends on (compile x)
 
    and using a `:depends-on' argument to say that B depends on A
 _actually_ means that
-
 
   (compile b) depends on (load a)
 
@@ -1222,22 +1218,22 @@ Node: The defsystem form7046
 Ref: The defsystem form-Footnote-19422
 Node: A more involved example9505
 Node: The defsystem grammar10943
-Node: The object model of asdf13781
-Node: Operations14574
-Node: Predefined operations of asdf16255
-Node: Creating new operations19229
-Node: Components20316
-Node: Common attributes of components22448
-Node: Pre-defined subclasses of component28436
-Node: Creating new component types31045
-Node: Error handling32492
-Node: Compilation error and warning handling32952
-Node: Getting the latest version33435
-Node: TODO list34634
-Node: missing bits in implementation36131
-Node: Inspiration39039
-Node: Concept Index41341
-Node: Function and Class Index41930
-Node: Variable Index43653
+Node: The object model of asdf13780
+Node: Operations14573
+Node: Predefined operations of asdf16254
+Node: Creating new operations19228
+Node: Components20315
+Node: Common attributes of components22447
+Node: Pre-defined subclasses of component28432
+Node: Creating new component types31041
+Node: Error handling32488
+Node: Compilation error and warning handling32948
+Node: Getting the latest version33431
+Node: TODO list34630
+Node: missing bits in implementation36127
+Node: Inspiration39035
+Node: Concept Index41337
+Node: Function and Class Index41926
+Node: Variable Index43649
 
 End Tag Table
