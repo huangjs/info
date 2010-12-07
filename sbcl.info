@@ -17,7 +17,7 @@ END-INFO-DIR-ENTRY
 
 Indirect:
 sbcl.info-1: 646
-sbcl.info-2: 295895
+sbcl.info-2: 301531
 
 Tag Table:
 (Indirect)
@@ -25,436 +25,467 @@ Node: Top646
 Node: Getting Support and Reporting Bugs1574
 Node: Volunteer Support1828
 Node: Commercial Support2924
-Node: Reporting Bugs4203
-Node: Introduction6968
-Node: ANSI Conformance7520
-Node: Extensions7801
-Node: Idiosyncrasies11721
-Node: Declarations12126
-Node: FASL Format12477
-Node: Compiler-only Implementation13594
-Node: Defining Constants14222
-Node: Style Warnings15988
-Node: Development Tools17234
-Node: Editor Integration17479
-Ref: Editor Integration-Footnote-118195
-Node: Language Reference18341
-Node: Generating Executables18728
-Node: More SBCL Information19242
-Node: SBCL Homepage19542
-Node: Online Documentation19997
-Node: Additional Documentation Files20775
-Node: Internals Documentation21575
-Node: More Common Lisp Information22245
-Node: Internet Community22541
-Node: Third-party Libraries23069
-Node: Common Lisp Books23395
-Node: History and Implementation of SBCL25657
-Node: Starting and Stopping31182
-Node: Starting SBCL31458
-Node: Running from Shell31662
-Node: Running from Emacs32501
-Node: Shebang Scripts32952
-Node: Stopping SBCL33493
-Node: Quit33728
-Ref: Function sb-ext:quit34042
-Node: End of File34306
-Node: Saving a Core Image34617
-Ref: Function sb-ext:save-lisp-and-die34964
-Ref: Variable sb-ext:*save-hooks*39150
-Ref: Variable sb-ext:*core-pathname*39525
-Node: Exit on Errors39618
-Node: Command Line Options40032
-Node: Runtime Options41725
-Node: Toplevel Options43843
-Node: Initialization Files46103
-Node: Initialization and Exit Hooks47339
-Ref: Variable sb-ext:*init-hooks*47584
-Ref: Variable sb-ext:*exit-hooks*47850
-Node: Compiler48151
-Node: Diagnostic Messages48879
-Node: Controlling Verbosity49115
-Ref: Variable sb-ext:*compiler-print-variable-alist*50742
-Node: Diagnostic Severity51521
-Ref: Condition sb-ext:compiler-note52686
-Ref: Condition sb-ext:code-deletion-note53000
-Node: Understanding Compiler Diagnostics53259
-Node: The Parts of a Compiler Diagnostic54016
-Node: The Original and Actual Source59144
-Node: The Processing Path60870
-Node: Handling of Types62422
-Node: Declarations as Assertions63453
-Node: Precise Type Checking65542
-Node: Getting Existing Programs to Run66450
-Ref: Getting Existing Programs to Run-Footnote-171352
-Node: Implementation Limitations71492
-Node: Compiler Policy72985
-Ref: Compiler Policy-Footnote-174033
-Node: Compiler Errors74145
-Node: Type Errors at Compile Time74400
-Node: Errors During Macroexpansion76143
-Node: Read Errors77102
-Node: Open Coding and Inline Expansion77425
-Node: Interpreter79711
-Node: Debugger80379
-Node: Debugger Entry80881
-Node: Debugger Banner81061
-Node: Debugger Invocation82312
-Ref: Variable sb-ext:*invoke-debugger-hook*83417
-Node: Debugger Command Loop84045
-Ref: Variable sb-ext:*debug-print-variable-alist*85297
-Node: Stack Frames85928
-Node: Stack Motion86789
-Node: How Arguments are Printed87656
-Node: Function Names89921
-Node: Entry Point Details90369
-Node: Debug Tail Recursion91468
-Node: Unknown Locations and Interrupts92788
-Node: Variable Access94417
-Node: Variable Value Availability96905
-Ref: Variable Value Availability-Footnote-1100145
-Node: Note On Lexical Variable Access100364
-Ref: Note On Lexical Variable Access-Footnote-1101242
-Node: Source Location Printing101340
-Node: How the Source is Found103593
-Node: Source Location Availability105821
-Node: Debugger Policy Control107544
-Node: Exiting Commands111265
-Node: Information Commands112739
-Node: Function Tracing113689
-Ref: Macro common-lisp:trace114067
-Ref: Macro common-lisp:untrace118769
-Ref: Variable sb-debug:*trace-indentation-step*118913
-Ref: Variable sb-debug:*max-trace-indentation*119020
-Ref: Variable sb-debug:*trace-encapsulate-default*119158
-Ref: Variable sb-debug:*trace-values*119274
-Node: Single Stepping119420
-Ref: Macro common-lisp:step120694
-Node: Efficiency120984
-Node: Slot access121262
-Node: Dynamic-extent allocation123178
-Ref: Variable sb-ext:*stack-allocate-dynamic-extent*123819
-Node: Modular arithmetic127352
-Node: Global and Always-Bound variables128985
-Ref: Macro sb-ext:defglobal129207
-Node: Miscellaneous Efficiency Issues130509
-Node: Beyond the ANSI Standard134449
-Node: Garbage Collection135085
-Ref: Variable sb-ext:*after-gc-hooks*135319
-Ref: Function sb-ext:gc135539
-Ref: Function sb-ext:finalize135911
-Ref: Function sb-ext:cancel-finalization137802
-Ref: Function sb-ext:make-weak-pointer138176
-Ref: Function sb-ext:weak-pointer-value138289
-Ref: Variable sb-ext:*gc-run-time*138592
-Ref: Function sb-ext:bytes-consed-between-gcs138935
-Ref: Function sb-ext:generation-average-age139114
-Ref: Function sb-ext:generation-bytes-allocated139424
-Ref: Function sb-ext:generation-bytes-consed-between-gcs139634
-Ref: Function sb-ext:generation-minimum-age-before-gc140078
-Ref: Function sb-ext:generation-number-of-gcs-before-promotion140445
-Ref: Function sb-ext:generation-number-of-gcs140788
-Ref: Function sb-ext:get-bytes-consed141027
-Node: Metaobject Protocol141479
-Node: Support For Unix148330
-Node: Command-line arguments148618
-Node: Querying the process environment148867
-Ref: Function sb-ext:posix-getenv149172
-Node: Running external programs149341
-Ref: Function sb-ext:run-program149585
-Ref: Function sb-ext:process-p154448
-Ref: Function sb-ext:process-input154548
-Ref: Function sb-ext:process-output154728
-Ref: Function sb-ext:process-error154909
-Ref: Function sb-ext:process-alive-p155089
-Ref: Function sb-ext:process-status155197
-Ref: Function sb-ext:process-wait155368
-Ref: Function sb-ext:process-exit-code155598
-Ref: Function sb-ext:process-core-dumped155782
-Ref: Function sb-ext:process-close155968
-Ref: Function sb-ext:process-kill156101
-Ref: Running external programs-Footnote-1156492
-Node: Customization Hooks for Users157122
-Ref: Function common-lisp:require157592
-Ref: Variable sb-ext:*module-provider-functions*158129
-Ref: Function common-lisp:ed158374
-Ref: Variable sb-ext:*ed-functions*158733
-Ref: Variable sb-ext:*muffled-warnings*159085
-Node: Tools To Help Developers159319
-Node: Resolution of Name Conflicts159895
-Node: Hash Table Extensions160577
-Ref: Function common-lisp:make-hash-table160883
-Ref: Macro sb-ext:define-hash-table-test164107
-Ref: Macro sb-ext:with-locked-hash-table166515
-Ref: Function sb-ext:hash-table-synchronized-p166986
-Ref: Function sb-ext:hash-table-weakness167178
-Node: Miscellaneous Extensions167364
-Ref: Function sb-ext:array-storage-vector167561
-Node: Stale Extensions168225
-Node: Efficiency Hacks169301
-Ref: Function sb-ext:purify170135
-Ref: Special-Operator sb-ext:truly-the171183
-Node: Foreign Function Interface171714
-Node: Introduction to the Foreign Function Interface172887
-Node: Foreign Types175213
-Node: Defining Foreign Types175796
-Node: Foreign Types and Lisp Types176443
-Node: Foreign Type Specifiers177579
-Node: Operations On Foreign Values185972
-Node: Accessing Foreign Values186468
-Node: Coercing Foreign Values188769
-Node: Foreign Dynamic Allocation190138
-Node: Foreign Variables192310
-Node: Local Foreign Variables192666
-Node: External Foreign Variables194043
-Node: Foreign Data Structure Examples196713
-Node: Loading Shared Object Files198300
-Ref: Function sb-alien:load-shared-object198623
-Node: Foreign Function Calls200454
-Node: The alien-funcall Primitive201716
-Node: The define-alien-routine Macro203745
-Node: define-alien-routine Example206848
-Node: Calling Lisp From C207582
-Node: Step-By-Step Example of the Foreign Function Interface209057
-Node: Pathnames213387
-Node: Lisp Pathnames213560
-Node: Native Filenames214241
-Ref: Function sb-ext:parse-native-namestring215463
-Ref: Function sb-ext:native-pathname216092
-Ref: Function sb-ext:native-namestring216268
-Node: Streams218430
-Node: External Formats219672
-Node: Bivalent Streams223269
-Node: Gray Streams224022
-Node: Gray Streams classes224820
-Ref: Class sb-gray:fundamental-stream225026
-Ref: Class sb-gray:fundamental-input-stream225189
-Ref: Class sb-gray:fundamental-output-stream225490
-Ref: Class sb-gray:fundamental-binary-stream225796
-Ref: Class sb-gray:fundamental-character-stream226218
-Ref: Class sb-gray:fundamental-binary-input-stream226468
-Ref: Class sb-gray:fundamental-binary-output-stream226807
-Ref: Class sb-gray:fundamental-character-input-stream227150
-Ref: Class sb-gray:fundamental-character-output-stream227479
-Node: Methods common to all streams227812
-Ref: Generic-Function common-lisp:stream-element-type228116
-Ref: Generic-Function common-lisp:close228353
-Ref: Generic-Function sb-gray:stream-file-position228608
-Node: Input stream methods228793
-Ref: Generic-Function sb-gray:stream-clear-input229086
-Ref: Generic-Function sb-gray:stream-read-sequence229259
-Node: Character input stream methods229412
-Ref: Generic-Function sb-gray:stream-peek-char229723
-Ref: Generic-Function sb-gray:stream-read-char-no-hang229995
-Ref: Generic-Function sb-gray:stream-read-char230449
-Ref: Generic-Function sb-gray:stream-read-line230747
-Ref: Generic-Function sb-gray:stream-listen231059
-Ref: Generic-Function sb-gray:stream-unread-char231407
-Node: Output stream methods231669
-Ref: Generic-Function sb-gray:stream-clear-output231943
-Ref: Generic-Function sb-gray:stream-finish-output232133
-Ref: Generic-Function sb-gray:stream-force-output232380
-Ref: Generic-Function sb-gray:stream-write-sequence232558
-Node: Binary stream methods232713
-Ref: Generic-Function sb-gray:stream-read-byte233001
-Ref: Generic-Function sb-gray:stream-write-byte233170
-Node: Character output stream methods233341
-Ref: Generic-Function sb-gray:stream-advance-to-column233665
-Ref: Generic-Function sb-gray:stream-fresh-line234190
-Ref: Generic-Function sb-gray:stream-line-column234491
-Ref: Generic-Function sb-gray:stream-line-length234999
-Ref: Generic-Function sb-gray:stream-start-line-p235101
-Ref: Generic-Function sb-gray:stream-terpri236033
-Ref: Generic-Function sb-gray:stream-write-char236212
-Ref: Generic-Function sb-gray:stream-write-string236451
-Node: Gray Streams examples236862
-Node: Character counting input stream237556
-Node: Output prefixing character stream241506
-Node: Simple Streams244443
-Node: Package Locks245217
-Node: Package Lock Concepts245816
-Node: Package Lock Overview246138
-Node: Implementation Packages246940
-Node: Package Lock Violations247589
-Node: Package Locks in Compiled Code249305
-Node: Operations Violating Package Locks250480
-Node: Package Lock Dictionary253748
-Ref: Condition sb-ext:package-lock-violation254643
-Ref: Condition sb-ext:package-locked-error254914
-Ref: Condition sb-ext:symbol-package-locked-error255249
-Ref: Function sb-ext:package-locked-p255879
-Ref: Function sb-ext:lock-package256056
-Ref: Function sb-ext:unlock-package256258
-Ref: Function sb-ext:package-implemented-by-list256467
-Ref: Function sb-ext:package-implements-list256673
-Ref: Function sb-ext:add-implementation-package256876
-Ref: Function sb-ext:remove-implementation-package257145
-Ref: Macro sb-ext:without-package-locks257435
-Ref: Macro sb-ext:with-unlocked-packages257605
-Node: Threading258722
-Node: Threading basics259665
-Ref: Structure sb-thread:thread259901
-Ref: Variable sb-thread:*current-thread*260090
-Ref: Function sb-thread:list-all-threads260180
-Ref: Function sb-thread:thread-alive-p260419
-Ref: Function sb-thread:thread-name260638
-Ref: Function sb-thread:make-thread260910
-Ref: Function sb-thread:thread-yield261164
-Ref: Function sb-thread:join-thread261245
-Ref: Function sb-thread:interrupt-thread261580
-Ref: Function sb-thread:terminate-thread262330
-Ref: Function sb-thread:symbol-value-in-thread262580
-Ref: Condition sb-thread:thread-error263337
-Ref: Function sb-thread:thread-error-thread263688
-Ref: Condition sb-thread:interrupt-thread-error263813
-Ref: Condition sb-thread:join-thread-error264138
-Node: Special Variables264458
-Node: Mutex Support265117
-Ref: Structure sb-thread:mutex266140
-Ref: Function sb-thread:make-mutex266247
-Ref: Function sb-thread:mutex-name266327
-Ref: Function sb-thread:mutex-value266507
-Ref: Function sb-thread:get-mutex266669
-Ref: Function sb-thread:release-mutex267605
-Ref: Macro sb-thread:with-mutex268119
-Ref: Macro sb-thread:with-recursive-lock268393
-Node: Semaphores268731
-Ref: Structure sb-thread:semaphore268968
-Ref: Function sb-thread:make-semaphore269226
-Ref: Function sb-thread:semaphore-count269344
-Ref: Function sb-thread:semaphore-name269454
-Ref: Function sb-thread:signal-semaphore269638
-Ref: Function sb-thread:wait-on-semaphore269833
-Node: Waitqueue/condition variables270019
-Ref: Structure sb-thread:waitqueue272302
-Ref: Function sb-thread:make-waitqueue272421
-Ref: Function sb-thread:waitqueue-name272496
-Ref: Function sb-thread:condition-wait272680
-Ref: Function sb-thread:condition-notify272942
-Ref: Function sb-thread:condition-broadcast273168
-Node: Sessions/Debugging273263
-Node: Foreign threads274714
-Node: Implementation (Linux x86/x86-64)275825
-Node: Timers278191
-Ref: Structure sb-ext:timer279409
-Ref: Function sb-ext:make-timer279591
-Ref: Function sb-ext:timer-name280192
-Ref: Function sb-ext:timer-scheduled-p280264
-Ref: Function sb-ext:schedule-timer280466
-Ref: Function sb-ext:unschedule-timer280867
-Ref: Function sb-ext:list-all-timers281067
-Node: Networking281153
-Node: Sockets Overview281765
-Node: General Sockets282828
-Ref: Class sb-bsd-sockets:socket282979
-Ref: Generic-Function sb-bsd-sockets:socket-bind283644
-Ref: Generic-Function sb-bsd-sockets:socket-accept283953
-Ref: Generic-Function sb-bsd-sockets:socket-connect284133
-Ref: Generic-Function sb-bsd-sockets:socket-peername284312
-Ref: Generic-Function sb-bsd-sockets:socket-name284475
-Ref: Generic-Function sb-bsd-sockets:socket-receive284642
-Ref: Generic-Function sb-bsd-sockets:socket-send285334
-Ref: Generic-Function sb-bsd-sockets:socket-listen286018
-Ref: Generic-Function sb-bsd-sockets:socket-open-p286314
-Ref: Generic-Function sb-bsd-sockets:socket-close286436
-Ref: Generic-Function sb-bsd-sockets:socket-make-stream286666
-Ref: Method sb-bsd-sockets:socket-make-stream ((socket socket) &key input output (element-type 'character) (buffering full) (external-format default) timeout)287179
-Ref: Function sb-bsd-sockets:socket-error287893
-Ref: Generic-Function sb-bsd-sockets:non-blocking-mode287942
-Node: Socket Options288044
-Ref: Function sb-bsd-sockets:sockopt-reuse-address288526
-Ref: Function sb-bsd-sockets:sockopt-keep-alive288700
-Ref: Function sb-bsd-sockets:sockopt-oob-inline288871
-Ref: Function sb-bsd-sockets:sockopt-bsd-compatible289042
-Ref: Function sb-bsd-sockets:sockopt-pass-credentials289242
-Ref: Function sb-bsd-sockets:sockopt-debug289443
-Ref: Function sb-bsd-sockets:sockopt-dont-route289605
-Ref: Function sb-bsd-sockets:sockopt-broadcast289776
-Ref: Function sb-bsd-sockets:sockopt-tcp-nodelay289946
-Node: INET Domain Sockets290117
-Ref: Class sb-bsd-sockets:inet-socket290739
-Ref: Function sb-bsd-sockets:make-inet-address291056
-Ref: Function sb-bsd-sockets:get-protocol-by-name291255
-Node: Local (Unix) Domain Sockets291470
-Ref: Class sb-bsd-sockets:local-socket291991
-Node: Name Service292200
-Ref: Class sb-bsd-sockets:host-ent292683
-Ref: Function sb-bsd-sockets:get-host-by-name293121
-Ref: Function sb-bsd-sockets:get-host-by-address293430
-Ref: Generic-Function sb-bsd-sockets:host-ent-address293682
-Node: Profiling293794
-Node: Deterministic Profiler294189
-Ref: Macro sb-profile:profile294544
-Ref: Macro sb-profile:unprofile295167
-Ref: Function sb-profile:report295532
-Ref: Function sb-profile:reset295811
-Node: Statistical Profiler295895
-Ref: Macro sb-sprof:with-profiling300981
-Ref: Macro sb-sprof:with-sampling303343
-Ref: Function sb-sprof:report303502
-Ref: Function sb-sprof:reset305208
-Ref: Function sb-sprof:start-profiling305263
-Ref: Function sb-sprof:stop-profiling307151
-Ref: Function sb-sprof:profile-call-counts307224
-Ref: Function sb-sprof:unprofile-call-counts307634
-Ref: Variable sb-sprof:*max-samples*307836
-Ref: Variable sb-sprof:*sample-interval*308066
-Node: Contributed Modules308287
-Node: sb-aclrepl308806
-Node: sb-grovel310401
-Node: sb-posix319420
-Ref: sb-posix-Footnote-1320504
-Node: Lisp names for C names320655
-Node: Types321808
-Node: File-descriptors322480
-Ref: Type sb-posix:file-descriptor322607
-Ref: Type sb-posix:file-descriptor-designator322983
-Ref: Function sb-posix:file-descriptor323180
-Node: Filenames323305
-Ref: Type sb-posix:filename323418
-Ref: Type sb-posix:filename-designator324636
-Ref: Function sb-posix:filename324833
-Node: Function Parameters324930
-Node: Function Return Values326151
-Node: Lisp objects and C structures326948
-Ref: Class sb-posix:flock328303
-Ref: Class sb-posix:passwd329381
-Ref: Class sb-posix:stat330856
-Ref: Class sb-posix:termios332434
-Ref: Class sb-posix:timeval333373
-Node: Functions with idiosyncratic bindings333895
-Ref: Function sb-posix:getcwd334196
-Ref: Function sb-posix:readlink334318
-Ref: Function sb-posix:syslog334448
-Node: sb-md5334747
-Ref: Function sb-md5:md5sum-file334953
-Ref: Function sb-md5:md5sum-sequence335075
-Ref: Function sb-md5:md5sum-stream335298
-Ref: Function sb-md5:md5sum-string335460
-Node: sb-queue336366
-Ref: Structure sb-queue:queue336604
-Ref: Function sb-queue:dequeue336850
-Ref: Function sb-queue:enqueue337080
-Ref: Function sb-queue:list-queue-contents337182
-Ref: Function sb-queue:make-queue337382
-Ref: Function sb-queue:queue-count337546
-Ref: Function sb-queue:queue-empty-p337771
-Ref: Function sb-queue:queue-name337870
-Ref: Function sb-queue:queuep338049
-Node: sb-rotate-byte338148
-Ref: Function sb-rotate-byte:rotate-byte338736
-Node: sb-cover339051
-Ref: Function sb-cover:report340222
-Ref: Function sb-cover:reset-coverage340974
-Ref: Function sb-cover:clear-coverage341076
-Ref: Function sb-cover:save-coverage341356
-Ref: Function sb-cover:save-coverage-in-file341733
-Ref: Function sb-cover:restore-coverage341899
-Ref: Function sb-cover:restore-coverage-from-file342050
-Node: Concept Index342220
-Node: Function Index352134
-Node: Variable Index384342
-Node: Type Index387289
-Node: Colophon394215
+Node: Reporting Bugs4276
+Node: Introduction7045
+Node: ANSI Conformance7597
+Node: Extensions7878
+Node: Idiosyncrasies11798
+Node: Declarations12203
+Node: FASL Format12554
+Node: Compiler-only Implementation13671
+Node: Defining Constants14299
+Node: Style Warnings16065
+Node: Development Tools17311
+Node: Editor Integration17556
+Ref: Editor Integration-Footnote-118272
+Node: Language Reference18418
+Node: Generating Executables18805
+Node: More SBCL Information19319
+Node: SBCL Homepage19619
+Node: Online Documentation20074
+Node: Additional Documentation Files20852
+Node: Internals Documentation21652
+Node: More Common Lisp Information22322
+Node: Internet Community22618
+Node: Third-party Libraries23146
+Node: Common Lisp Books23472
+Node: History and Implementation of SBCL25734
+Node: Starting and Stopping31259
+Node: Starting SBCL31535
+Node: Running from Shell31739
+Node: Running from Emacs32578
+Node: Shebang Scripts33029
+Node: Stopping SBCL33570
+Node: Quit33805
+Ref: Function sb-ext:quit34119
+Node: End of File34376
+Node: Saving a Core Image34687
+Ref: Function sb-ext:save-lisp-and-die35034
+Ref: Variable sb-ext:*save-hooks*39203
+Ref: Variable sb-ext:*core-pathname*39571
+Node: Exit on Errors39657
+Node: Command Line Options40071
+Node: Runtime Options41764
+Node: Toplevel Options43882
+Node: Initialization Files46142
+Node: Initialization and Exit Hooks47378
+Ref: Variable sb-ext:*init-hooks*47623
+Ref: Variable sb-ext:*exit-hooks*47882
+Node: Compiler48176
+Node: Diagnostic Messages48904
+Node: Controlling Verbosity49140
+Ref: Variable sb-ext:*compiler-print-variable-alist*50754
+Node: Diagnostic Severity51526
+Ref: Condition sb-ext:compiler-note52691
+Ref: Condition sb-ext:code-deletion-note52998
+Node: Understanding Compiler Diagnostics53250
+Node: The Parts of a Compiler Diagnostic54007
+Node: The Original and Actual Source59135
+Node: The Processing Path60861
+Node: Handling of Types62413
+Node: Declarations as Assertions63444
+Node: Precise Type Checking65533
+Node: Getting Existing Programs to Run66441
+Ref: Getting Existing Programs to Run-Footnote-171343
+Node: Implementation Limitations71483
+Node: Compiler Policy72976
+Ref: Function sb-ext:describe-compiler-policy73988
+Ref: Function sb-ext:restrict-compiler-policy74109
+Ref: Macro common-lisp:with-compilation-unit75095
+Ref: Compiler Policy-Footnote-178291
+Node: Compiler Errors78403
+Node: Type Errors at Compile Time78658
+Node: Errors During Macroexpansion80401
+Node: Read Errors81360
+Node: Open Coding and Inline Expansion81683
+Node: Interpreter83969
+Ref: Variable sb-ext:*evaluator-mode*84435
+Node: Debugger84675
+Node: Debugger Entry85217
+Node: Debugger Banner85397
+Node: Debugger Invocation86648
+Ref: Variable sb-ext:*invoke-debugger-hook*87753
+Node: Debugger Command Loop88374
+Ref: Variable sb-ext:*debug-print-variable-alist*89626
+Node: Stack Frames90250
+Node: Stack Motion91111
+Node: How Arguments are Printed91978
+Node: Function Names94243
+Node: Entry Point Details94691
+Node: Debug Tail Recursion95790
+Node: Unknown Locations and Interrupts97110
+Node: Variable Access98739
+Node: Variable Value Availability101218
+Ref: Variable Value Availability-Footnote-1104458
+Node: Note On Lexical Variable Access104677
+Ref: Note On Lexical Variable Access-Footnote-1105555
+Node: Source Location Printing105653
+Node: How the Source is Found107906
+Node: Source Location Availability110134
+Node: Debugger Policy Control111857
+Node: Exiting Commands115578
+Node: Information Commands117052
+Node: Function Tracing118002
+Ref: Macro common-lisp:trace118380
+Ref: Macro common-lisp:untrace123079
+Ref: Variable sb-debug:*trace-indentation-step*123220
+Ref: Variable sb-debug:*max-trace-indentation*123318
+Ref: Variable sb-debug:*trace-encapsulate-default*123447
+Ref: Variable sb-debug:*trace-values*123554
+Node: Single Stepping123691
+Ref: Macro common-lisp:step125009
+Node: Enabling and Disabling the Debugger125296
+Ref: Function sb-ext:disable-debugger125660
+Ref: Function sb-ext:enable-debugger125834
+Node: Efficiency125945
+Node: Slot access126223
+Node: Dynamic-extent allocation128139
+Ref: Variable sb-ext:*stack-allocate-dynamic-extent*128780
+Node: Modular arithmetic132306
+Node: Global and Always-Bound variables133939
+Ref: Macro sb-ext:defglobal134161
+Node: Miscellaneous Efficiency Issues135442
+Node: Beyond the ANSI Standard139382
+Node: Garbage Collection140018
+Ref: Variable sb-ext:*after-gc-hooks*140252
+Ref: Function sb-ext:gc140465
+Ref: Function sb-ext:finalize140830
+Ref: Function sb-ext:cancel-finalization142714
+Ref: Function sb-ext:make-weak-pointer143081
+Ref: Function sb-ext:weak-pointer-value143187
+Ref: Variable sb-ext:*gc-run-time*143483
+Ref: Function sb-ext:bytes-consed-between-gcs143819
+Ref: Function sb-ext:generation-average-age143991
+Ref: Function sb-ext:generation-bytes-allocated144294
+Ref: Function sb-ext:generation-bytes-consed-between-gcs144497
+Ref: Function sb-ext:generation-minimum-age-before-gc144934
+Ref: Function sb-ext:generation-number-of-gcs-before-promotion145294
+Ref: Function sb-ext:generation-number-of-gcs145620
+Ref: Function sb-ext:get-bytes-consed145852
+Node: Metaobject Protocol146297
+Node: Support For Unix153148
+Node: Command-line arguments153436
+Node: Querying the process environment153685
+Ref: Function sb-ext:posix-getenv153990
+Node: Running external programs154152
+Ref: Function sb-ext:run-program154396
+Ref: Function sb-ext:process-p159389
+Ref: Function sb-ext:process-input159475
+Ref: Function sb-ext:process-output159560
+Ref: Function sb-ext:process-error159647
+Ref: Function sb-ext:process-alive-p159732
+Ref: Function sb-ext:process-status159833
+Ref: Function sb-ext:process-wait159997
+Ref: Function sb-ext:process-exit-code160220
+Ref: Function sb-ext:process-core-dumped160317
+Ref: Function sb-ext:process-close160413
+Ref: Function sb-ext:process-kill160539
+Ref: Running external programs-Footnote-1160923
+Node: Customization Hooks for Users161553
+Ref: Function common-lisp:require162023
+Ref: Variable sb-ext:*module-provider-functions*162557
+Ref: Function common-lisp:ed162795
+Ref: Variable sb-ext:*ed-functions*163151
+Ref: Variable sb-ext:*muffled-warnings*163496
+Node: Tools To Help Developers163723
+Node: Resolution of Name Conflicts164299
+Node: Hash Table Extensions164981
+Ref: Function common-lisp:make-hash-table165287
+Ref: Macro sb-ext:define-hash-table-test168540
+Ref: Macro sb-ext:with-locked-hash-table170941
+Ref: Function sb-ext:hash-table-synchronized-p171405
+Ref: Function sb-ext:hash-table-weakness171514
+Node: Miscellaneous Extensions171617
+Ref: Function sb-ext:array-storage-vector171814
+Ref: Function sb-ext:delete-directory172471
+Ref: Function sb-ext:get-time-of-day173347
+Ref: Function sb-ext:seed-random-state173494
+Node: Stale Extensions174903
+Node: Efficiency Hacks175979
+Ref: Function sb-ext:purify176813
+Ref: Special-Operator sb-ext:truly-the177856
+Node: Foreign Function Interface178380
+Node: Introduction to the Foreign Function Interface179553
+Node: Foreign Types181879
+Node: Defining Foreign Types182462
+Node: Foreign Types and Lisp Types183109
+Node: Foreign Type Specifiers184245
+Node: Operations On Foreign Values192638
+Node: Accessing Foreign Values193134
+Node: Coercing Foreign Values195396
+Node: Foreign Dynamic Allocation196717
+Node: Foreign Variables198868
+Node: Local Foreign Variables199224
+Node: External Foreign Variables200592
+Node: Foreign Data Structure Examples203235
+Node: Loading Shared Object Files204822
+Ref: Function sb-alien:load-shared-object205145
+Ref: Function sb-alien:unload-shared-object206967
+Node: Foreign Function Calls207188
+Node: The alien-funcall Primitive208450
+Node: The define-alien-routine Macro210470
+Node: define-alien-routine Example213554
+Node: Calling Lisp From C214288
+Node: Step-By-Step Example of the Foreign Function Interface215763
+Node: Pathnames220093
+Node: Lisp Pathnames220266
+Node: Native Filenames221636
+Ref: Function sb-ext:parse-native-namestring222858
+Ref: Function sb-ext:native-pathname223480
+Ref: Function sb-ext:native-namestring223649
+Node: Streams225804
+Node: External Formats227046
+Node: Bivalent Streams230643
+Node: Gray Streams231396
+Node: Gray Streams classes232194
+Ref: Class sb-gray:fundamental-stream232400
+Ref: Class sb-gray:fundamental-input-stream232555
+Ref: Class sb-gray:fundamental-output-stream232848
+Ref: Class sb-gray:fundamental-binary-stream233146
+Ref: Class sb-gray:fundamental-character-stream233560
+Ref: Class sb-gray:fundamental-binary-input-stream233802
+Ref: Class sb-gray:fundamental-binary-output-stream234133
+Ref: Class sb-gray:fundamental-character-input-stream234468
+Ref: Class sb-gray:fundamental-character-output-stream234789
+Node: Methods common to all streams235114
+Ref: Generic-Function common-lisp:stream-element-type235418
+Ref: Generic-Function common-lisp:close235652
+Ref: Generic-Function sb-gray:stream-file-position235904
+Node: Input stream methods236081
+Ref: Generic-Function sb-gray:stream-clear-input236374
+Ref: Generic-Function sb-gray:stream-read-sequence236539
+Node: Character input stream methods236684
+Ref: Generic-Function sb-gray:stream-peek-char236995
+Ref: Generic-Function sb-gray:stream-read-char-no-hang237259
+Ref: Generic-Function sb-gray:stream-read-char237705
+Ref: Generic-Function sb-gray:stream-read-line237995
+Ref: Generic-Function sb-gray:stream-listen238299
+Ref: Generic-Function sb-gray:stream-unread-char238639
+Node: Output stream methods238893
+Ref: Generic-Function sb-gray:stream-clear-output239167
+Ref: Generic-Function sb-gray:stream-finish-output239349
+Ref: Generic-Function sb-gray:stream-force-output239588
+Ref: Generic-Function sb-gray:stream-write-sequence239758
+Node: Binary stream methods239905
+Ref: Generic-Function sb-gray:stream-read-byte240193
+Ref: Generic-Function sb-gray:stream-write-byte240354
+Node: Character output stream methods240517
+Ref: Generic-Function sb-gray:stream-advance-to-column240841
+Ref: Generic-Function sb-gray:stream-fresh-line241358
+Ref: Generic-Function sb-gray:stream-line-column241651
+Ref: Generic-Function sb-gray:stream-line-length242151
+Ref: Generic-Function sb-gray:stream-start-line-p242245
+Ref: Generic-Function sb-gray:stream-terpri243169
+Ref: Generic-Function sb-gray:stream-write-char243342
+Ref: Generic-Function sb-gray:stream-write-string243573
+Node: Gray Streams examples243976
+Node: Character counting input stream244670
+Node: Output prefixing character stream248620
+Node: Simple Streams251557
+Node: Package Locks252331
+Node: Package Lock Concepts252930
+Node: Package Lock Overview253252
+Node: Implementation Packages254054
+Node: Package Lock Violations254703
+Node: Package Locks in Compiled Code256419
+Node: Operations Violating Package Locks257594
+Node: Package Lock Dictionary260862
+Ref: Condition sb-ext:package-lock-violation261743
+Ref: Condition sb-ext:package-locked-error262007
+Ref: Condition sb-ext:symbol-package-locked-error262335
+Ref: Function sb-ext:package-locked-p262941
+Ref: Function sb-ext:lock-package263111
+Ref: Function sb-ext:unlock-package263306
+Ref: Function sb-ext:package-implemented-by-list263508
+Ref: Function sb-ext:package-implements-list263707
+Ref: Function sb-ext:add-implementation-package263903
+Ref: Function sb-ext:remove-implementation-package264165
+Ref: Macro sb-ext:without-package-locks264448
+Ref: Macro sb-ext:with-unlocked-packages264611
+Node: Threading265721
+Node: Threading basics266710
+Ref: Structure sb-thread:thread266946
+Ref: Variable sb-thread:*current-thread*267125
+Ref: Function sb-thread:list-all-threads267205
+Ref: Function sb-thread:thread-alive-p267434
+Ref: Function sb-thread:thread-name267643
+Ref: Function sb-thread:make-thread267829
+Ref: Function sb-thread:thread-yield268073
+Ref: Function sb-thread:join-thread268144
+Ref: Function sb-thread:interrupt-thread268469
+Ref: Function sb-thread:terminate-thread269211
+Ref: Function sb-thread:symbol-value-in-thread269451
+Ref: Condition sb-thread:thread-error270188
+Ref: Function sb-thread:thread-error-thread270529
+Ref: Condition sb-thread:interrupt-thread-error270644
+Ref: Condition sb-thread:join-thread-error270959
+Node: Special Variables271269
+Node: Atomic Operations271932
+Ref: Macro sb-ext:atomic-decf272202
+Ref: Macro sb-ext:atomic-incf273036
+Ref: Macro sb-ext:compare-and-swap273870
+Node: Mutex Support274596
+Ref: Structure sb-thread:mutex275619
+Ref: Function sb-thread:make-mutex275716
+Ref: Function sb-thread:mutex-name275786
+Ref: Function sb-thread:mutex-value275880
+Ref: Function sb-thread:get-mutex276032
+Ref: Function sb-thread:release-mutex276139
+Ref: Macro sb-thread:with-mutex276643
+Ref: Macro sb-thread:with-recursive-lock276907
+Node: Semaphores277235
+Ref: Structure sb-thread:semaphore277472
+Ref: Function sb-thread:make-semaphore277720
+Ref: Function sb-thread:semaphore-count277828
+Ref: Function sb-thread:semaphore-name277928
+Ref: Function sb-thread:signal-semaphore278026
+Ref: Function sb-thread:try-semaphore278211
+Ref: Function sb-thread:wait-on-semaphore278411
+Node: Waitqueue/condition variables278587
+Ref: Structure sb-thread:waitqueue280860
+Ref: Function sb-thread:make-waitqueue280969
+Ref: Function sb-thread:waitqueue-name281034
+Ref: Function sb-thread:condition-wait281132
+Ref: Function sb-thread:condition-notify282272
+Ref: Function sb-thread:condition-broadcast282488
+Node: Barriers282573
+Ref: Macro sb-thread:barrier283492
+Node: Sessions/Debugging284656
+Node: Foreign threads286086
+Node: Implementation (Linux x86/x86-64)287197
+Node: Timers289565
+Ref: Structure sb-ext:timer290783
+Ref: Function sb-ext:make-timer290958
+Ref: Function sb-ext:timer-name291552
+Ref: Function sb-ext:timer-scheduled-p291617
+Ref: Function sb-ext:schedule-timer291812
+Ref: Function sb-ext:unschedule-timer292196
+Ref: Function sb-ext:list-all-timers292389
+Node: Networking292468
+Node: Sockets Overview293080
+Node: General Sockets294143
+Ref: Class sb-bsd-sockets:socket294294
+Ref: Generic-Function sb-bsd-sockets:socket-bind294944
+Ref: Generic-Function sb-bsd-sockets:socket-accept295238
+Ref: Generic-Function sb-bsd-sockets:socket-connect295403
+Ref: Generic-Function sb-bsd-sockets:socket-peername295567
+Ref: Generic-Function sb-bsd-sockets:socket-name295715
+Ref: Generic-Function sb-bsd-sockets:socket-receive295867
+Ref: Generic-Function sb-bsd-sockets:socket-send296534
+Ref: Generic-Function sb-bsd-sockets:socket-listen297203
+Ref: Generic-Function sb-bsd-sockets:socket-open-p297484
+Ref: Generic-Function sb-bsd-sockets:socket-close297591
+Ref: Generic-Function sb-bsd-sockets:socket-make-stream297858
+Ref: Method sb-bsd-sockets:socket-make-stream ((socket socket) &key input output (element-type 'character) (buffering full) (external-format default) timeout auto-close (serve-events t))298380
+Ref: Function sb-bsd-sockets:socket-error299472
+Ref: Generic-Function sb-bsd-sockets:non-blocking-mode299506
+Node: Socket Options299593
+Ref: Function sb-bsd-sockets:sockopt-reuse-address300075
+Ref: Function sb-bsd-sockets:sockopt-keep-alive300234
+Ref: Function sb-bsd-sockets:sockopt-oob-inline300390
+Ref: Function sb-bsd-sockets:sockopt-bsd-compatible300546
+Ref: Function sb-bsd-sockets:sockopt-pass-credentials300731
+Ref: Function sb-bsd-sockets:sockopt-debug300917
+Ref: Function sb-bsd-sockets:sockopt-dont-route301064
+Ref: Function sb-bsd-sockets:sockopt-broadcast301220
+Ref: Function sb-bsd-sockets:sockopt-tcp-nodelay301375
+Node: INET Domain Sockets301531
+Ref: Class sb-bsd-sockets:inet-socket302153
+Ref: Function sb-bsd-sockets:make-inet-address302455
+Ref: Function sb-bsd-sockets:get-protocol-by-name302639
+Node: Local (Unix) Domain Sockets302791
+Ref: Class sb-bsd-sockets:local-socket303312
+Node: Name Service303506
+Ref: Class sb-bsd-sockets:host-ent303989
+Ref: Function sb-bsd-sockets:get-host-by-name304412
+Ref: Function sb-bsd-sockets:get-host-by-address304706
+Ref: Generic-Function sb-bsd-sockets:host-ent-address304943
+Node: Profiling305040
+Node: Deterministic Profiler305435
+Ref: Macro sb-profile:profile305790
+Ref: Macro sb-profile:unprofile306402
+Ref: Function sb-profile:report306756
+Ref: Function sb-profile:reset307024
+Node: Statistical Profiler307097
+Ref: Macro sb-sprof:with-profiling312183
+Ref: Macro sb-sprof:with-sampling314536
+Ref: Function sb-sprof:report314686
+Ref: Function sb-sprof:reset316446
+Ref: Function sb-sprof:start-profiling316492
+Ref: Function sb-sprof:stop-profiling318371
+Ref: Function sb-sprof:profile-call-counts318435
+Ref: Function sb-sprof:unprofile-call-counts318838
+Ref: Variable sb-sprof:*max-samples*319031
+Ref: Variable sb-sprof:*sample-interval*319252
+Node: Contributed Modules319464
+Node: sb-aclrepl320002
+Node: sb-concurrency321602
+Ref: Section sb-concurrency:queue321892
+Ref: Structure sb-concurrency:queue322440
+Ref: Function sb-concurrency:dequeue322554
+Ref: Function sb-concurrency:enqueue322775
+Ref: Function sb-concurrency:list-queue-contents322868
+Ref: Function sb-concurrency:make-queue323059
+Ref: Function sb-concurrency:queue-count323214
+Ref: Function sb-concurrency:queue-empty-p323430
+Ref: Function sb-concurrency:queue-name323520
+Ref: Function sb-concurrency:queuep323690
+Ref: Structure sb-concurrency:mailbox324473
+Ref: Function sb-concurrency:list-mailbox-messages324589
+Ref: Function sb-concurrency:mailbox-count324752
+Ref: Function sb-concurrency:mailbox-empty-p324851
+Ref: Function sb-concurrency:mailbox-name324958
+Ref: Function sb-concurrency:mailboxp325031
+Ref: Function sb-concurrency:make-mailbox325125
+Ref: Function sb-concurrency:receive-message325260
+Ref: Function sb-concurrency:receive-message-no-hang325446
+Ref: Function sb-concurrency:receive-pending-messages325670
+Ref: Function sb-concurrency:send-message326114
+Node: sb-cover326221
+Ref: Function sb-cover:report327410
+Ref: Function sb-cover:reset-coverage328153
+Ref: Function sb-cover:clear-coverage328246
+Ref: Function sb-cover:save-coverage328517
+Ref: Function sb-cover:save-coverage-in-file328885
+Ref: Function sb-cover:restore-coverage329042
+Ref: Function sb-cover:restore-coverage-from-file329184
+Node: sb-grovel329345
+Node: sb-md5338360
+Ref: Function sb-md5:md5sum-file338567
+Ref: Function sb-md5:md5sum-sequence338682
+Ref: Function sb-md5:md5sum-stream338898
+Ref: Function sb-md5:md5sum-string339055
+Node: sb-posix339954
+Ref: sb-posix-Footnote-1341037
+Node: Lisp names for C names341188
+Node: Types342341
+Node: File-descriptors343013
+Ref: Type sb-posix:file-descriptor343140
+Ref: Type sb-posix:file-descriptor-designator343507
+Ref: Function sb-posix:file-descriptor343695
+Node: Filenames343811
+Ref: Type sb-posix:filename343924
+Ref: Type sb-posix:filename-designator345133
+Ref: Function sb-posix:filename345321
+Node: Function Parameters345409
+Node: Function Return Values346630
+Node: Lisp objects and C structures347427
+Ref: Class sb-posix:flock348782
+Ref: Class sb-posix:passwd349851
+Ref: Class sb-posix:stat351317
+Ref: Class sb-posix:termios352886
+Ref: Class sb-posix:timeval353816
+Node: Functions with idiosyncratic bindings354329
+Ref: Function sb-posix:getcwd354630
+Ref: Function sb-posix:readlink354743
+Ref: Function sb-posix:syslog354864
+Node: sb-queue355154
+Node: sb-rotate-byte355402
+Ref: Function sb-rotate-byte:rotate-byte355973
+Node: Concept Index356273
+Node: Function Index368383
+Node: Variable Index400742
+Node: Type Index403476
+Node: Colophon409029
 
 End Tag Table
