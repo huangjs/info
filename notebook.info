@@ -1,5 +1,4 @@
-This is notebook.info, produced by makeinfo version 4.2 from
-notebook.texi.
+This is notebook.info, produced by makeinfo version 4.11 from notebook.texi.
 
 START-INFO-DIR-ENTRY
 * Notebook Mode: (notebook).      Use emacs as front end for other programs
@@ -16,7 +15,7 @@ File: notebook.info,  Node: Top,  Next: Overview,  Prev: (dir),  Up: (dir)
 Notebook Mode
 *************
 
-   This is edition 2.0 of the Notebook Mode Manual.
+This is edition 2.0 of the Notebook Mode Manual.
 
    Notebook mode sets up a sub process that has well defined input and
 output responses.  Each notebook has a collection of cells, consisting
@@ -52,10 +51,10 @@ Indices
 
 File: notebook.info,  Node: Overview,  Next: New,  Prev: Top,  Up: Top
 
-Overview of Notebook Mode
-*************************
+1 Overview of Notebook Mode
+***************************
 
-   Notebook mode sets up a sub process that has well defined input and
+Notebook mode sets up a sub process that has well defined input and
 output responses.  Each notebook has a collection of cells, consisting
 of a prompt, an input region and an output region.  You tell Emacs to
 send a cell to the process (using C-Enter or M-Enter) and when the
@@ -112,14 +111,15 @@ following to my auto-mode-alist:
      if the text file is plain text, HTML, or LaTeX.  It then generates
      a file of the appropriate type.
 
+
 
 File: notebook.info,  Node: New,  Next: Matlab Mode,  Prev: Overview,  Up: Top
 
-What's New
-**********
+2 What's New
+************
 
-   This version of notebook mode has a several internal changes.  The
-most visible is that coloring is now done by font-lock mode.
+This version of notebook mode has a several internal changes.  The most
+visible is that coloring is now done by font-lock mode.
 
    Another change is that the notebook modes now inherit from one of the
 text modes: html-mode, text-mode, or latex-mode.  Notebook mode tries
@@ -131,13 +131,13 @@ pick a base mode.
 
 File: notebook.info,  Node: Matlab Mode,  Next: Octave Mode,  Prev: New,  Up: Top
 
-Running Matlab in a Notebook
-****************************
+3 Running Matlab in a Notebook
+******************************
 
-   This runs `matlab' as the process instead of the `bash'.  In
-addition to the commands available to a generic notebook, the following
-commands might also be useful.  These are really only useful if you
-want to embed output from matlab into a latex document.
+This runs `matlab' as the process instead of the `bash'.  In addition
+to the commands available to a generic notebook, the following commands
+might also be useful.  These are really only useful if you want to
+embed output from matlab into a latex document.
 
 `C-c C-f'
      Generate a LaTeX file with the same name as this buffer, except the
@@ -152,31 +152,32 @@ want to embed output from matlab into a latex document.
      cell at point.  This is used when converting to a tex file to
      decide if the cell should be on a line by itself.
 
+
 
 File: notebook.info,  Node: Octave Mode,  Next: MuPad Mode,  Prev: Matlab Mode,  Up: Top
 
-Running Octave in a Notebook
-****************************
+4 Running Octave in a Notebook
+******************************
 
-   Note: this may be obsolete.  I haven't tested it recently.  It uses
-the same interface as matlab-mode.
+Note: this may be obsolete.  I haven't tested it recently.  It uses the
+same interface as matlab-mode.
 
 
 File: notebook.info,  Node: MuPad Mode,  Next: Create Your Own,  Prev: Octave Mode,  Up: Top
 
-Running MuPad in a Notebook
-***************************
+5 Running MuPad in a Notebook
+*****************************
 
-   Note: this may be obsolete.  I haven't tested it recently.  It uses
-the same interface as matlab-mode.
+Note: this may be obsolete.  I haven't tested it recently.  It uses the
+same interface as matlab-mode.
 
 
 File: notebook.info,  Node: Create Your Own,  Next: Concept Index,  Prev: MuPad Mode,  Up: Top
 
-Hack the code - make your own mode.
-***********************************
+6 Hack the code - make your own mode.
+*************************************
 
-   In order to create your own subprocess, there are several variables
+In order to create your own subprocess, there are several variables
 that need to be set.  See the code for matlab-notebook-mode for an
 example.
 
@@ -231,57 +232,59 @@ information to emacs.
 
 File: notebook.info,  Node: Concept Index,  Next: Keystroke Index,  Prev: Create Your Own,  Up: Top
 
-Concept Index
-*************
+7 Concept Index
+***************
 
+ [index ]
 * Menu:
 
-* create new mode:                       Create Your Own.
-* hack:                                  Create Your Own.
-* matlab:                                Matlab Mode.
-* matlab-mode:                           Matlab Mode.
-* mupad:                                 MuPad Mode.
-* mupad-mode:                            MuPad Mode.
-* new in version 2.0:                    New.
-* notebook-default-text-mode:            New.
-* notebook-mode, overview of:            Overview.
-* octave:                                Octave Mode.
-* octave-mode:                           Octave Mode.
-* other programs:                        Create Your Own.
-* overview of notebook-mode:             Overview.
-* text mode, default:                    New.
+* create new mode:                       Create Your Own.      (line  6)
+* hack:                                  Create Your Own.      (line  6)
+* matlab:                                Matlab Mode.          (line  6)
+* matlab-mode:                           Matlab Mode.          (line  6)
+* mupad:                                 MuPad Mode.           (line  6)
+* mupad-mode:                            MuPad Mode.           (line  6)
+* new in version 2.0:                    New.                  (line  6)
+* notebook-default-text-mode:            New.                  (line 13)
+* notebook-mode, overview of:            Overview.             (line  6)
+* octave:                                Octave Mode.          (line  6)
+* octave-mode:                           Octave Mode.          (line  6)
+* other programs:                        Create Your Own.      (line  6)
+* overview of notebook-mode:             Overview.             (line  6)
+* text mode, default:                    New.                  (line 13)
 
 
 File: notebook.info,  Node: Keystroke Index,  Prev: Concept Index,  Up: Top
 
-Keystroke Index
-***************
+8 Keystroke Index
+*****************
 
+ [index ]
 * Menu:
 
-* C-<RET> nb-send-input:                 Overview.
-* C-c >:                                 Matlab Mode.
-* C-c C-b nb-send-input-buffer:          Overview.
-* C-c C-c nb-kill-process:               Overview.
-* C-c C-f:                               Matlab Mode.
-* C-c C-f notebook-to-????:              Overview.
-* C-c C-n nb-create-cell:                Overview.
-* C-c C-r nb-send-input-region:          Overview.
-* C-c C-s nb-start-process:              Overview.
-* M-<RET> nb-send-input-forward:         Overview.
-* M-<TAB> nb-next-cell:                  Overview.
+* C-<RET> nb-send-input:                 Overview.             (line 29)
+* C-c >:                                 Matlab Mode.          (line 20)
+* C-c C-b nb-send-input-buffer:          Overview.             (line 49)
+* C-c C-c nb-kill-process:               Overview.             (line 53)
+* C-c C-f:                               Matlab Mode.          (line 12)
+* C-c C-f notebook-to-????:              Overview.             (line 59)
+* C-c C-n nb-create-cell:                Overview.             (line 41)
+* C-c C-r nb-send-input-region:          Overview.             (line 45)
+* C-c C-s nb-start-process:              Overview.             (line 56)
+* M-<RET> nb-send-input-forward:         Overview.             (line 37)
+* M-<TAB> nb-next-cell:                  Overview.             (line 33)
 
 
 
 Tag Table:
-Node: Top334
-Node: Overview1840
+Node: Top335
+Node: Overview1838
 Node: New4009
-Node: Matlab Mode4534
-Node: Octave Mode5554
-Node: MuPad Mode5812
-Node: Create Your Own6072
-Node: Concept Index8883
-Node: Keystroke Index9761
+Node: Matlab Mode4535
+Node: Octave Mode5557
+Node: MuPad Mode5816
+Node: Create Your Own6077
+Node: Concept Index8889
+Node: Keystroke Index10069
 
 End Tag Table

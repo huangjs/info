@@ -1,7 +1,7 @@
-This is emacs-w3m.info, produced by makeinfo version 4.12 from
+This is emacs-w3m.info, produced by makeinfo version 4.8 from
 emacs-w3m.texi.
 
-Copyright (C) 2000, 2001, 2002, 2003, 2004, 2005, 2006, 2007
+   Copyright (C) 2000, 2001, 2002, 2003, 2004, 2005, 2006, 2007
 TSUCHIYA Masatoshi
 
      Permission is granted to copy, distribute and/or modify this
@@ -224,7 +224,7 @@ You can run emacs-w3m in various versions of Emacsen listed below:
 
    If you use the development version of GNU Emacs, perhaps you should
 run the CVS version of emacs-w3m on it.  In that case, it is strongly
-recommended that you join the *note Mailing List::.
+recommended that you join the *Note Mailing List::.
 
 
 File: emacs-w3m.info,  Node: You Need w3m,  Next: Other Requirements,  Prev: Required Emacs Version,  Up: Getting Started
@@ -475,7 +475,7 @@ File: emacs-w3m.info,  Node: Minimal Settings,  Prev: Non-UNIX-like systems,  Up
 
 This section mentions some fundamental settings for emacs-w3m.  If you
 want to fine-tune your installation, you'll find many customizable
-variables in *note Customizable Variables::.
+variables in *Note Customizable Variables::.
 
 `Autoloads'
      You don't need this if you've installed emacs-w3m as an XEmacs
@@ -607,8 +607,8 @@ probably notice, the major mode for an emacs-w3m buffer is `w3m-mode',
 there are also minor modes (*note Managing Bookmarks::).
 
    This section explains the most fundamental usage of these commands,
-see *note Emacs-w3m Functions:: for more information on them.  See also
-*note Customizable Variables:: for variables you can use to customize
+see *Note Emacs-w3m Functions:: for more information on them.  See also
+*Note Customizable Variables:: for variables you can use to customize
 emacs-w3m's behavior.
 
 `w3m'
@@ -654,7 +654,7 @@ be displayed (*note Customizable Variables::).
 
      The exact behavior of this command depends on the properties of
      the link under point, and on whether you give it a prefix argument
-     or not.  See *note Emacs-w3m Functions:: for details.
+     or not.  See *Note Emacs-w3m Functions:: for details.
 
    As mentioned above, you can be prompted for a URL when you use the
 command `M-x w3m', by setting the `w3m-quick-start' variable to `nil'.
@@ -667,7 +667,7 @@ pages by entering their URLs, see below.
      hitting `<RET>' after moving the point to the URL displayed in the
      `header-line'.  This feature will feel familiar to you if you are
      used to GUI-based web browsers like Mozilla.  Detailed explanations
-     about this can be found in *note Emacs-w3m Functions::
+     about this can be found in *Note Emacs-w3m Functions::
      (`w3m-view-this-url').
 
 `g'
@@ -682,7 +682,7 @@ pages by entering their URLs, see below.
      except that it opens a new session.  Unless you are using
      emacs-w3m on the character terminal, opening a new session means
      displaying the page in a new tab.  For more information about
-     tabs, please refer to *note Using Tabs::
+     tabs, please refer to *Note Using Tabs::
      (`w3m-goto-url-new-session').
 
 `c' (Lynx-like keymap)
@@ -814,12 +814,12 @@ File: emacs-w3m.info,  Node: Moving over pages,  Next: Browsing with Mouse Opera
 
 This section explains how to move from page to page, but not by
 following links or inputing URLs (these ways of moving are explained in
-*note Launching and Jumping::).
+*Note Launching and Jumping::).
 
    This includes commands to move backwards and forwards in history (the
 familiar "Back" and "Forward" from other browsers), and the obligatory
 "Go to the home page" feature.  You will probably understand this
-better after reading the *note Tracing History:: section.
+better after reading the *Note Tracing History:: section.
 
 `B' (Lynx-like keymap)
 `<left>' (Lynx-like keymap)
@@ -1013,7 +1013,7 @@ its value from `nil' to `t'.  *Note Customizable Variables::.
 
    Emacs-w3m also comes with nifty features that let you zoom an image
 in or out, save it to a file, or view it in a external viewer.  See also
-*note Moving in a page:: for instructions on how to move from image to
+*Note Moving in a page:: for instructions on how to move from image to
 image in an emacs-w3m buffer.
 
 `T' (Lynx-like keymap)
@@ -1132,7 +1132,7 @@ if you were visiting a regular page, by following the link.
      prefix argument, show the list of arrived URLs instead
      (`w3m-history').
 
-   Also see the *note Moving over pages:: section, it explains how to
+   Also see the *Note Moving over pages:: section, it explains how to
 move in the history with simple keybindings, i.e. the "Back" and "Next"
 features.
 
@@ -1626,11 +1626,11 @@ are accessible through three interfaces:
    * The regular search interface, invoked by the `S' key (the `s' key
      for the `Info-like' keymap) in any emacs-w3m buffer.  It is a
      simple interactive way to choose which search engine to use and
-     input a search term; see *note The Search Interface::.
+     input a search term; see *Note The Search Interface::.
 
    * The Quicksearch interface: it is a faster (yet more complicated)
      way to use search engines, by going to specially crafted URLs.
-     For more information about this feature, see *note Quick
+     For more information about this feature, see *Note Quick
      Searching::.
 
    * The "I'm feeling lucky" feature: if it's enabled
@@ -1662,7 +1662,7 @@ if you had used the normal web based entry point to the engine.
    You probably noticed that you have not been given a chance to choose
 which engine you want to search with.  By default, emacs-w3m will use
 the Google search engine, you can change this behavior by customizing
-the `w3m-search-default-engine' variable (see *note Customizable
+the `w3m-search-default-engine' variable (see *Note Customizable
 Variables::), or you can specify the search engine each time you use the
 command.
 
@@ -1771,7 +1771,7 @@ engines, and it's quite easy:
   3. You can now use this engine to search, using the normal `S' key
      (the `s' key for the `Info-like' keymap) in emacs-w3m.  If you use
      this engine often, you can also add it to the Quicksearch (see
-     *note Quick Searching::) engines and give it a small prefix, by
+     *Note Quick Searching::) engines and give it a small prefix, by
      adding this to your `~/.emacs-w3m' file instead:
 
           (eval-after-load "w3m-search"
@@ -1808,7 +1808,7 @@ example, suppose you want to visit the GNU Project's homepage,
 
    Since this syntax can be quite hard to use on a daily basis, this
 feature will be most useful when used with very short URLs (Quicksearch
-URLs for example, see *note Quick Searching::); or in non-interactive
+URLs for example, see *Note Quick Searching::); or in non-interactive
 contexts.
 
 
@@ -3240,7 +3240,7 @@ use the latest version of Gnus.  It is available at:
             '(define-key gnus-summary-mode-map
                "\C-i" 'gnus-summary-w3m-safe-toggle-inline-images))
 
-See also *note Nnshimbun::.
+See also *Note Nnshimbun::.
 
 
 File: emacs-w3m.info,  Node: Mew,  Next: SEMI MUAs,  Prev: Gnus,  Up: Hooking into MUAs
@@ -3297,7 +3297,7 @@ There are some customizable variables related to Mew:
      A hook run just after retrieving a `cid:' URL.  The default value
      is `nil'.
 
-See also *note Mew Shimbun::.
+See also *Note Mew Shimbun::.
 
 
 File: emacs-w3m.info,  Node: SEMI MUAs,  Next: VM,  Prev: Mew,  Up: Hooking into MUAs
@@ -3340,7 +3340,7 @@ module:
 `mime-w3m-safe-url-regexp'
      Regexp matching URLs which are considered to be safe.  The default
      value is `"\\`cid:"' which means we consider that images included
-     in a mail with the `cid:' URLs are safe.  See also *note Gnus::
+     in a mail with the `cid:' URLs are safe.  See also *Note Gnus::
      about rogue attacks.
 
 `mime-w3m-setup-hook'
@@ -3403,7 +3403,7 @@ File: emacs-w3m.info,  Node: General FAQ,  Next: Trouble FAQ,  Up: Frequently As
    * Q. What's emacs-w3m?
 
      It is an interface program on Emacs which controls w3m.  For more
-     information, see *note Introduction::.
+     information, see *Note Introduction::.
 
    * Q. Which emacs versions are supported?
 
@@ -3420,7 +3420,7 @@ File: emacs-w3m.info,  Node: General FAQ,  Next: Trouble FAQ,  Up: Frequently As
         * Meadow
 
      Note that you're required to use APEL if you'd like to run
-     emacs-w3m under XEmacs.  For more information, see *note Other
+     emacs-w3m under XEmacs.  For more information, see *Note Other
      Requirements::.
 
    * Q. Which w3m versions are supported?
@@ -3445,7 +3445,7 @@ File: emacs-w3m.info,  Node: General FAQ,  Next: Trouble FAQ,  Up: Frequently As
      you can use `apel-1.23-pkg.tar.gz' or later for both XEmacs with
      Mule and non-Mule XEmacs if you don't use FLIM for the `shimbun'
      features, we recommend you replace it or newly install the
-     original APEL package.  See *note Other Requirements:: where to
+     original APEL package.  See *Note Other Requirements:: where to
      get it from.
 
    * Q. I've gotten the developing version of emacs-w3m with CVS,
@@ -3746,7 +3746,7 @@ them using `report-emacs-w3m-bug' (*note Mailing List::).
    `Shimbun' library currently supports Asahi Shimbun, Yomiuri On-line,
 many mailing list archives such as Emacs Devel, XEmacs Beta, Gnus, Mew,
 and Wanderlust, Slashdot Japan, and a lot of others.  For more detail,
-see *note Shimbun Sites::.
+see *Note Shimbun Sites::.
 
    By the way, you have to pay attention to copyright when using
 `Shimbun' library.  Copyrights of articles generated with `Shimbun'
@@ -3793,7 +3793,7 @@ subscribed to the list.  You can also read submissions in bulletin
 boards, etc...  Note that if you want to followup, you still need to use
 emacs-w3m as Gnus can't post via the web with `nnshimbun'.
 
-   See also *note Gnus:: for rendering HTML messages with emacs-w3m if
+   See also *Note Gnus:: for rendering HTML messages with emacs-w3m if
 you use Gnus.
 
    The easiest way to get started with `nnshimbun' is to use something
@@ -4037,7 +4037,7 @@ the `nnshimbun' groups.  One is to add a group name regular expression
 for each group into the `nnmail-expiry-wait-function' variable.
 Another is to set the `auto-expire' group parameter to `t' and to set
 the expiry period with the `expiry-wait' group parameter in every
-`nnshimbun' group which you want to expire automatically.  See *note
+`nnshimbun' group which you want to expire automatically.  See *Note
 (gnus)Expiring Mail:: for more information.  In the group to which the
 `expiry-wait' group parameter is not specified, a default expiry period
 will be applied.
@@ -4064,7 +4064,7 @@ and Mew (version 2.1 and later).  The `mew-shimbun' module will be
 installed together with emacs-w3m if Mew, APEL, and FLIM are also
 installed.
 
-   We recommend you also see *note Mew::.
+   We recommend you also see *Note Mew::.
 
   1. Setting things up
 
@@ -5526,7 +5526,7 @@ file as follows:
 For more details see `shimbun-make-contents' in the `sb-ibm-dev.el'
 file.
 
-   I said in the subsection of *note Getting web page and header
+   I said in the subsection of *Note Getting web page and header
 information:: that if each article doesn't have a each unique URLs you
 have to ask Emacs to remember body of an article when gathering headers
 information,  In such case you don't have to get a web page from URL of
@@ -5761,7 +5761,7 @@ Here are some handy tips to use emacs-w3m with other Emacs facilities.
    * Gnus
 
      You've mistaken the entrance if you are a Gnus user and this
-     section is the first page you read in this Info.  See *note
+     section is the first page you read in this Info.  See *Note
      Hooking into MUAs:: first.
 
      By default, Gnus will not apply the treatment variables, for
@@ -6039,15 +6039,15 @@ Key Index
 * , (Lynx-like keymap):                  Moving in a page.    (line  50)
 * . (Lynx-like keymap):                  Moving in a page.    (line  44)
 * <:                                     Moving in a page.    (line  38)
-* <backspace> <1>:                       Moving in a page.    (line  28)
-* <backspace>:                           Moving over pages.   (line 110)
+* <backspace> <1>:                       Moving over pages.   (line 110)
+* <backspace>:                           Moving in a page.    (line  28)
 * <backtab>:                             Moving in a page.    (line  81)
 * <DEL> <1>:                             Moving over pages.   (line 110)
 * <DEL>:                                 Moving in a page.    (line  28)
 * <down> (Lynx-like keymap):             Moving in a page.    (line  73)
 * <left> (Lynx-like keymap):             Moving over pages.   (line  19)
 * <RET>:                                 Launching and Jumping.
-                                                              (line  68)
+                                                              (line  55)
 * <right> (Lynx-like keymap):            Launching and Jumping.
                                                               (line  55)
 * <SPC> <1>:                             Moving over pages.   (line  61)
@@ -6099,17 +6099,17 @@ Key Index
                                                               (line  41)
 * e (Info-like keymap):                  HTML File Information.
                                                               (line  36)
-* E (Lynx-like keymap):                  HTML File Information.
-                                                              (line  36)
 * e (Lynx-like keymap):                  HTML File Information.
                                                               (line  41)
-* g:                                     Launching and Jumping.
-                                                              (line  77)
+* E (Lynx-like keymap):                  HTML File Information.
+                                                              (line  36)
 * G:                                     Launching and Jumping.
                                                               (line  83)
+* g:                                     Launching and Jumping.
+                                                              (line  77)
 * H:                                     Moving over pages.   (line  32)
-* I (Info-like keymap):                  Inline Images.       (line  30)
 * i (Info-like keymap):                  Inline Images.       (line  35)
+* I (Info-like keymap):                  Inline Images.       (line  30)
 * I (Lynx-like keymap):                  Inline Images.       (line  35)
 * l (Info-like keymap):                  Moving over pages.   (line  19)
 * M:                                     HTML File Information.
@@ -6126,25 +6126,25 @@ Key Index
                                                               (line  17)
 * n (Info-like keymap):                  Moving over pages.   (line  25)
 * N (Lynx-like keymap):                  Moving over pages.   (line  25)
-* o (Info-like keymap):                  Tracing History.     (line  90)
+* o (Info-like keymap):                  Tracing History.     (line  46)
 * p (Info-like keymap):                  Moving over pages.   (line  19)
-* q:                                     Going Back to Daily Hacking and/or Daily Writing.
-                                                              (line  19)
 * Q:                                     Going Back to Daily Hacking and/or Daily Writing.
                                                               (line  23)
+* q:                                     Going Back to Daily Hacking and/or Daily Writing.
+                                                              (line  19)
 * R:                                     Launching and Jumping.
                                                               (line 108)
 * s (Info-like keymap):                  The Search Interface.
                                                               (line  30)
-* s (Lynx-like keymap):                  Tracing History.     (line  90)
 * S (Lynx-like keymap):                  The Search Interface.
                                                               (line  30)
+* s (Lynx-like keymap):                  Tracing History.     (line  46)
 * S-<left> (Info-like keymap):           Moving in a page.    (line  44)
 * S-<mouse-2>:                           Browsing with Mouse Operations.
                                                               (line  21)
 * S-<right> (Info-like keymap):          Moving in a page.    (line  50)
-* S-<SPC> <1>:                           Moving in a page.    (line  28)
-* S-<SPC>:                               Moving over pages.   (line 110)
+* S-<SPC> <1>:                           Moving over pages.   (line 110)
+* S-<SPC>:                               Moving in a page.    (line  28)
 * S-<TAB>:                               Moving in a page.    (line  81)
 * T (Info-like keymap):                  Showing Directory Tree.
                                                               (line  50)
@@ -6154,10 +6154,10 @@ Key Index
                                                               (line  98)
 * v:                                     Consulting Bookmarks.
                                                               (line   6)
-* y (Info-like keymap):                  Launching and Jumping.
-                                                              (line  93)
 * Y (Info-like keymap):                  Launching and Jumping.
                                                               (line  98)
+* y (Info-like keymap):                  Launching and Jumping.
+                                                              (line  93)
 * {:                                     Moving in a page.    (line  98)
 * }:                                     Moving in a page.    (line  94)
 
@@ -6270,15 +6270,15 @@ Variable Index
 * w3m-history-reuse-history-elements:    Other Variables.     (line  26)
 * w3m-home-page:                         Launching and Jumping.
                                                               (line  18)
-* w3m-horizontal-scroll-columns:         Moving in a page.    (line  38)
+* w3m-horizontal-scroll-columns:         Moving in a page.    (line  33)
 * w3m-horizontal-scroll-division:        General Variables.   (line 205)
 * w3m-horizontal-shift-columns:          Moving in a page.    (line  44)
 * w3m-icon-directory:                    Image Variables.     (line  32)
 * w3m-imagick-convert-program:           Image Variables.     (line  35)
 * w3m-imitate-widget-button:             General Variables.   (line 226)
-* w3m-init-file <1>:                     Minimal Settings.    (line  20)
-* w3m-init-file:                         Customizable Variables.
+* w3m-init-file <1>:                     Customizable Variables.
                                                               (line   6)
+* w3m-init-file:                         Minimal Settings.    (line  20)
 * w3m-input-coding-system:               General Variables.   (line 241)
 * w3m-keep-arrived-urls:                 General Variables.   (line 246)
 * w3m-keep-cache-size:                   General Variables.   (line 249)
@@ -6319,9 +6319,9 @@ Variable Index
 * w3m-process-connection-type:           Other Variables.     (line  47)
 * w3m-process-modeline-format:           Other Variables.     (line  51)
 * w3m-profile-directory:                 General Variables.   (line 357)
-* w3m-quick-start <1>:                   Launching and Jumping.
+* w3m-quick-start <1>:                   Moving over pages.   (line  32)
+* w3m-quick-start:                       Launching and Jumping.
                                                               (line  18)
-* w3m-quick-start:                       Moving over pages.   (line  32)
 * w3m-redirect-with-get:                 General Variables.   (line 368)
 * w3m-relationship-estimate-rules:       General Variables.   (line 379)
 * w3m-resize-image-scale:                Image Variables.     (line  68)
@@ -6446,8 +6446,8 @@ Function Index
 * w3m-reload-this-page:                  Launching and Jumping.
                                                               (line 108)
 * w3m-save-image:                        Inline Images.       (line  39)
-* w3m-scroll-down-or-previous-url <1>:   Moving in a page.    (line  28)
-* w3m-scroll-down-or-previous-url:       Moving over pages.   (line 110)
+* w3m-scroll-down-or-previous-url <1>:   Moving over pages.   (line 110)
+* w3m-scroll-down-or-previous-url:       Moving in a page.    (line  28)
 * w3m-scroll-left:                       Moving in a page.    (line  33)
 * w3m-scroll-right:                      Moving in a page.    (line  38)
 * w3m-scroll-up-or-next-url <1>:         Moving over pages.   (line  61)
@@ -6473,7 +6473,7 @@ Function Index
 * w3m-view-source:                       HTML File Information.
                                                               (line  26)
 * w3m-view-this-url:                     Launching and Jumping.
-                                                              (line  68)
+                                                              (line  55)
 * w3m-view-url-with-external-browser:    HTML File Information.
                                                               (line  45)
 * w3m-zoom-in-image:                     Inline Images.       (line  48)
@@ -6482,118 +6482,118 @@ Function Index
 
 
 Tag Table:
-Node: Top1928
-Node: Introduction6427
-Node: Getting Started7475
-Node: Required Emacs Version8269
-Node: You Need w3m9347
-Node: Other Requirements9874
-Node: Installing Emacs-w3m14616
-Node: Non-UNIX-like systems17855
-Node: Minimal Settings18589
-Node: Basic Usage20885
-Node: Browsing Web Pages21580
-Node: Key Binding22315
-Node: Launching and Jumping23666
-Node: Moving in a page28245
-Node: Moving over pages31954
-Node: Browsing with Mouse Operations37292
-Node: Going Back to Daily Hacking and/or Daily Writing38977
-Node: Inline Images40063
-Node: Tracing History42065
-Node: Managing Bookmarks46686
-Node: Adding Bookmarks47216
-Node: Consulting Bookmarks48755
-Node: Editing Bookmarks49450
-Node: Using Tabs50324
-Ref: Using Tabs-Footnote-153958
-Ref: Using Tabs-Footnote-254144
-Node: Working with buffers54221
-Node: Creating and killing buffers54837
-Node: Moving across buffers55922
-Ref: Moving across buffers-Footnote-158263
-Node: Selecting buffers58449
-Node: Downloading61085
-Node: Submitting Forms62116
-Node: HTML File Information63735
-Node: Pretty Good Features65915
-Node: Using Search Engines66663
-Node: The Search Interface68038
-Node: Quick Searching69613
-Node: Adding New Search Engines72139
-Node: Grouping URLs74483
-Node: Weather Information75586
-Node: Using Antenna75768
-Node: Setting up Antenna76440
-Node: Daily web tracking77054
-Node: Showing Directory Tree78815
-Node: Viewing Perl Documents80477
-Node: Using Namazu80666
-Node: Octet80869
-Node: Frame Local Buffers81314
-Node: Customizable Variables82891
-Node: General Variables85658
-Node: Image Variables109694
-Node: Form Variables113771
-Node: Cookie Variables114687
-Node: Bookmark Variables115335
-Node: Search Variables116160
-Node: Weather Variables117245
-Node: Dtree Variables117884
-Node: Antenna Variables118892
-Node: Perldoc Variables120203
-Node: Namazu Variables121144
-Node: Octet Variables122882
-Node: Hooks123128
-Node: Other Variables124926
-Node: Hooking into MUAs127428
-Node: Gnus128500
-Node: Mew132416
-Node: SEMI MUAs134788
-Node: VM137584
-Node: Frequently Asked Questions138196
-Node: General FAQ138546
-Node: Trouble FAQ140491
-Ref: Trouble FAQ-Footnote-1149952
-Node: Shimbun FAQ150024
-Node: Known Problems150857
-Node: Shimbun Library151026
-Node: Nnshimbun153795
-Ref: Nnshimbun-Footnote-1165240
-Ref: Nnshimbun-Footnote-2165440
-Ref: Nnshimbun-Footnote-3166127
-Ref: Nnshimbun-Footnote-4166231
-Node: Mew Shimbun166701
-Ref: Mew Shimbun-Footnote-1176169
-Ref: Mew Shimbun-Footnote-2176299
-Node: Shimbun with Wanderlust176464
-Node: Shimbun Sites176843
-Node: Newspapers Supported by Shimbun177404
-Node: News Sites Supported by Shimbun186933
-Node: Mailing Lists Supported by Shimbun195262
-Node: Sport Sites Supported by Shimbun208665
-Node: Misc Sites Supported by Shimbun209523
-Node: Shimbun Basics219825
-Node: Overview220420
-Node: Getting web page and header information224255
-Ref: Getting web page and header information-Footnote-1230015
-Ref: Getting web page and header information-Footnote-2230108
-Node: Displaying an article230216
-Node: Inheriting shimbun module233015
-Ref: Inheriting shimbun module-Footnote-1235198
-Ref: Inheriting shimbun module-Footnote-2235283
-Node: Making text/plain articles235337
-Node: Zenkaku to hankaku conversion237667
-Node: Coding convention of Shimbun238777
-Node: Tips239949
-Node: Mailing List244807
-Node: Emacs-w3m Functions246149
-Node: External Packages246337
-Node: Authors247477
-Node: Index247828
-Node: Concept Index248097
-Node: Key Index254776
-Node: Variable Index263854
-Node: Function Index278484
+Node: Top1930
+Node: Introduction6429
+Node: Getting Started7477
+Node: Required Emacs Version8271
+Node: You Need w3m9349
+Node: Other Requirements9876
+Node: Installing Emacs-w3m14618
+Node: Non-UNIX-like systems17857
+Node: Minimal Settings18591
+Node: Basic Usage20887
+Node: Browsing Web Pages21582
+Node: Key Binding22317
+Node: Launching and Jumping23668
+Node: Moving in a page28247
+Node: Moving over pages31956
+Node: Browsing with Mouse Operations37294
+Node: Going Back to Daily Hacking and/or Daily Writing38979
+Node: Inline Images40065
+Node: Tracing History42067
+Node: Managing Bookmarks46688
+Node: Adding Bookmarks47218
+Node: Consulting Bookmarks48757
+Node: Editing Bookmarks49452
+Node: Using Tabs50326
+Ref: Using Tabs-Footnote-153960
+Ref: Using Tabs-Footnote-254146
+Node: Working with buffers54223
+Node: Creating and killing buffers54839
+Node: Moving across buffers55924
+Ref: Moving across buffers-Footnote-158265
+Node: Selecting buffers58451
+Node: Downloading61087
+Node: Submitting Forms62118
+Node: HTML File Information63737
+Node: Pretty Good Features65917
+Node: Using Search Engines66665
+Node: The Search Interface68040
+Node: Quick Searching69615
+Node: Adding New Search Engines72141
+Node: Grouping URLs74485
+Node: Weather Information75588
+Node: Using Antenna75770
+Node: Setting up Antenna76442
+Node: Daily web tracking77056
+Node: Showing Directory Tree78817
+Node: Viewing Perl Documents80479
+Node: Using Namazu80668
+Node: Octet80871
+Node: Frame Local Buffers81316
+Node: Customizable Variables82893
+Node: General Variables85660
+Node: Image Variables109696
+Node: Form Variables113773
+Node: Cookie Variables114689
+Node: Bookmark Variables115337
+Node: Search Variables116162
+Node: Weather Variables117247
+Node: Dtree Variables117886
+Node: Antenna Variables118894
+Node: Perldoc Variables120205
+Node: Namazu Variables121146
+Node: Octet Variables122884
+Node: Hooks123130
+Node: Other Variables124928
+Node: Hooking into MUAs127430
+Node: Gnus128502
+Node: Mew132418
+Node: SEMI MUAs134790
+Node: VM137586
+Node: Frequently Asked Questions138198
+Node: General FAQ138548
+Node: Trouble FAQ140493
+Ref: Trouble FAQ-Footnote-1149954
+Node: Shimbun FAQ150026
+Node: Known Problems150859
+Node: Shimbun Library151028
+Node: Nnshimbun153797
+Ref: Nnshimbun-Footnote-1165242
+Ref: Nnshimbun-Footnote-2165442
+Ref: Nnshimbun-Footnote-3166129
+Ref: Nnshimbun-Footnote-4166233
+Node: Mew Shimbun166703
+Ref: Mew Shimbun-Footnote-1176171
+Ref: Mew Shimbun-Footnote-2176301
+Node: Shimbun with Wanderlust176466
+Node: Shimbun Sites176845
+Node: Newspapers Supported by Shimbun177406
+Node: News Sites Supported by Shimbun186935
+Node: Mailing Lists Supported by Shimbun195264
+Node: Sport Sites Supported by Shimbun208667
+Node: Misc Sites Supported by Shimbun209525
+Node: Shimbun Basics219827
+Node: Overview220422
+Node: Getting web page and header information224257
+Ref: Getting web page and header information-Footnote-1230017
+Ref: Getting web page and header information-Footnote-2230110
+Node: Displaying an article230218
+Node: Inheriting shimbun module233017
+Ref: Inheriting shimbun module-Footnote-1235200
+Ref: Inheriting shimbun module-Footnote-2235285
+Node: Making text/plain articles235339
+Node: Zenkaku to hankaku conversion237669
+Node: Coding convention of Shimbun238779
+Node: Tips239951
+Node: Mailing List244809
+Node: Emacs-w3m Functions246151
+Node: External Packages246339
+Node: Authors247479
+Node: Index247830
+Node: Concept Index248099
+Node: Key Index254778
+Node: Variable Index263856
+Node: Function Index278486
 
 End Tag Table

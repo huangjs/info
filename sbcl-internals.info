@@ -1,4 +1,4 @@
-This is sbcl-internals.info, produced by makeinfo version 4.7 from
+This is sbcl-internals.info, produced by makeinfo version 4.11 from
 sbcl-internals.texinfo.
 
 INFO-DIR-SECTION Software development
@@ -90,12 +90,12 @@ File: sbcl-internals.info,  Node: Calling Convention,  Next: Discriminating Func
 * IR2 Conversion::
 * Additional Notes::
 
-   The calling convention used within Lisp code on SBCL/x86 was, for
-the longest time, really bad. If it weren't for the fact that it
-predates modern x86 CPUs, one might almost believe it to have been
-designed explicitly to defeat the branch-prediction hardware therein.
-This chapter is somewhat of a brain-dump of information that might be
-useful when attempting to improve the situation further, mostly written
+   The calling convention used within Lisp code on SBCL/x86 was, for the
+longest time, really bad. If it weren't for the fact that it predates
+modern x86 CPUs, one might almost believe it to have been designed
+explicitly to defeat the branch-prediction hardware therein. This
+chapter is somewhat of a brain-dump of information that might be useful
+when attempting to improve the situation further, mostly written
 immediately after having made a dent in the problem.
 
    Assumptions about the calling convention are embedded throughout the
@@ -106,10 +106,6 @@ registers are involved in a call situation,
 implementing function call/return, and `src/compiler/ir2tran.lisp' has
 assumptions about frame allocation and argument/return-value passing
 locations.
-
-   The current round of changes has been limited to VOPs,
-assembly-routines, related support functions, and the required support
-in the runtime.
 
    Note that most of this documentation also applies to other CPUs,
 modulo the actual registers involved, the displacement used in the
@@ -190,12 +186,45 @@ in `EDX', `EDI', and `ESI'. `EBP' points to just past the start of the
 frame (the first frame slot is at `[EBP-4]', not the traditional
 `[EBP]', due in part to how the frame allocation works). The caller
 stores the link for the old frame at `[EBP-4]' and reserved space for a
-return address at `[EBP-8]'. `[EBP-12]' appears to be an empty slot
-available to the compiler within a function, it may-or-may-not be used
-by some of the call/return junk. The first stack argument is at
-`[EBP-16]'. The callee then reallocates the frame to include sufficient
-space for its local variables, after possibly converting any `&rest'
-arguments to a proper list.
+return address at `[EBP-8]'. `[EBP-12]' appears to be an empty slot that
+conveniently makes just enough space for the first three multiple
+return values (returned in the argument passing registers) to be
+written over the beginning of the frame by the receiver. The first
+stack argument is at `[EBP-16]'. The callee then reallocates the frame
+to include sufficient space for its local variables, after possibly
+converting any `&rest' arguments to a proper list.
+
+   The above scheme was changed in 1.0.27 on x86 and x86-64 by swapping
+the old frame pointer with the return address and making EBP point two
+words later:
+
+   On x86/x86-64 the stack now looks like this (stack grows downwards):
+
+
+----------
+RETURN PC
+----------
+OLD FP
+---------- <- FP points here
+EMPTY SLOT
+----------
+FIRST ARG
+----------
+
+   just as if the function had been CALLed and upon entry executed the
+standard prologue: PUSH EBP; MOV EBP, ESP. On other architectures the
+stack looks like this (stack grows upwards):
+
+
+----------
+FIRST ARG
+----------
+EMPTY SLOT
+----------
+RETURN PC
+----------
+OLD FP
+---------- <- FP points here
 
 
 File: sbcl-internals.info,  Node: Unknown-Values Returns,  Next: IR2 Conversion,  Prev: Full Calls,  Up: Calling Convention
@@ -206,7 +235,7 @@ File: sbcl-internals.info,  Node: Unknown-Values Returns,  Next: IR2 Conversion,
 The unknown-values return convention consists of two parts. The first
 part is that of returning a single value. The second is that of
 returning a different number of values. We also changed the convention
-here recently, so we should describe both the old and new versions. The
+in 0.9.10, so we should describe both the old and new versions. The
 three interesting VOPs here are `return-single', `return', and
 `return-multiple'.
 
@@ -218,7 +247,7 @@ increment the return address by two before returning, typically via a
 The new convention is to return with the carry flag clear.
 
    For a multiple-value return, we pass the first three values in the
-argument-passing registers, and the remainder on the stack.  `ECX'
+argument-passing registers, and the remainder on the stack. `ECX'
 contains the total number of values as a fixnum, `EBX' points to where
 the callee frame was, `EBP' has been restored to point to the caller
 frame, and the first of the values on the stack (the fourth overall) is
@@ -237,8 +266,8 @@ ESP, EBX' instruction. When expecting more than one value, we need to
 arrange to set up default values when a single-value return happens, so
 we encode a jump around a stub of code which fakes up the register use
 convention of a multiple-value return. Again, in the old convention
-this was a two-byte unconditionl jump, and in the new convention this is
-a conditional jump based on the carry flag.
+this was a two-byte unconditionl jump, and in the new convention this
+is a conditional jump based on the carry flag.
 
 
 File: sbcl-internals.info,  Node: IR2 Conversion,  Next: Additional Notes,  Prev: Unknown-Values Returns,  Up: Calling Convention
@@ -259,9 +288,11 @@ File: sbcl-internals.info,  Node: Additional Notes,  Prev: IR2 Conversion,  Up: 
 2.6 Additional Notes
 ====================
 
-The low-hanging fruit here is going to be changing every call and
-return to use `CALL' and `RETURN' instructions instead of `JMP'
-instructions.
+The low-hanging fruit is going to be changing every call and return to
+use `CALL' and `RETURN' instructions instead of `JMP' instructions
+which is partly done on x86oids: a trampoline is `CALL'ed and that
+`JMP's to the target which is sufficient to negate (most of?) the
+penalty.
 
    A more involved change would be to reduce the number of argument
 passing registers from three to two, which may be beneficial in terms
@@ -386,7 +417,7 @@ Those in the second category can transition into the third, or into a
 `SB-PCL::CHECKING' state where the choice between `SB-PCL::CACHING' and
 `SB-PCL::DISPATCH' has not yet been made.
 
-   The possible transitions are shown in *Note Figure 3.1:
+   The possible transitions are shown in *note Figure 3.1:
 fig:dfun-transitions.
 
    ---------- Footnotes ----------
@@ -423,7 +454,7 @@ standard-method-combination and no eql-specialized methods, then the
 `SB-PCL::CONSTANT-VALUE' discriminating function can simply cache the
 return values for given argument types.  Though this may initially
 appear to have limited applicability, type predicates are usually of
-this form, as in *Note ex:pred::(4).
+this form, as in *note ex:pred::(4).
 
      (defgeneric foop (x))
      (defmethod foop ((foo foo)) t)
@@ -431,7 +462,7 @@ this form, as in *Note ex:pred::(4).
 
 Example 3.1
 
-   More details of the cacheing mechanism are given in *Note The
+   More details of the cacheing mechanism are given in *note The
 Cacheing Mechanism:: below.
 
    ---------- Footnotes ----------
@@ -818,19 +849,18 @@ File: sbcl-internals.info,  Node: Groups of signals,  Next: The deferral mechani
 
 There are two distinct groups of signals.
 
-6.1.1 Semi-synchronous signals
-------------------------------
+6.1.1 Synchronous signals
+-------------------------
 
-The first group, tentatively named "semi-synchronous", consists of
-signals that are raised on illegal instruction, hitting a protected
-page, or on a trap. Examples from this group are: `SIGBUS'/`SIGSEGV',
-`SIGTRAP', `SIGILL' and `SIGEMT'. The exact meaning and function of
-these signals varies by platform and OS. Understandably, because these
-signals are raised in a controllable manner they are never blocked or
-deferred.
+This group consists of signals that are raised on illegal instruction,
+hitting a protected page, or on a trap. Examples from this group are:
+`SIGBUS'/`SIGSEGV', `SIGTRAP', `SIGILL' and `SIGEMT'. The exact meaning
+and function of these signals varies by platform and OS.
+Understandably, because these signals are raised in a controllable
+manner they are never blocked or deferred.
 
-6.1.2 Blockable signals
------------------------
+6.1.2 Asynchronous or blockable signals
+---------------------------------------
 
 The other group is of blockable signals. Typically, signal handlers
 block them to protect against being interrupted at all. For example
@@ -882,35 +912,66 @@ Something of a special case, a signal that is blockable but not
 deferrable by `WITHOUT-INTERRUPTS' is `SIG_STOP_FOR_GC'. It is deferred
 by pseudo atomic and `WITHOUT-GCING'.
 
+6.2.4 When are signals handled?
+-------------------------------
+
+At once or as soon as the mechanism that deferred them allows.
+
+   First, if something is deferred by pseudo atomic then it is run at
+the end of pseudo atomic without exceptions. Even when both a GC request
+or a `SIG_STOP_FOR_GC' and a deferrable signal such as
+SIG_INTERRUPT_THREAD interrupts the pseudo atomic section.
+
+   Second, an interrupt deferred by WITHOUT-INTERRUPTS is run when the
+interrupts are enabled again. GC cannot interfere.
+
+   Third, if GC or `SIG_STOP_FOR_GC' is deferred by `WITHOUT-GCING'
+then the GC or stopping for GC will happen when GC is not inhibited
+anymore. Interrupts cannot delay a gc.
+
 
 File: sbcl-internals.info,  Node: Implementation warts,  Next: Programming with signal handling in mind,  Prev: The deferral mechanism,  Up: Signal handling
 
 6.3 Implementation warts
 ========================
 
-6.3.1 RT signals
-----------------
-
-Sending and receiving the same number of signals is crucial for
-`INTERRUPT-THREAD' and `sig_stop_for_gc', hence they are real-time
-signals for which the kernel maintains a queue as opposed to just
-setting a flag for "sigint pending".
-
-   Note, however, that the rt signal queue is finite and on current
-linux kernels a system wide resource. If the queue is full, SBCL tries
-to signal until it succeeds. This behaviour can lead to deadlocks, if a
-thread in a `WITHOUT-INTERRUPTS' is interrupted many times, filling up
-the queue and then a gc hits and tries to send `SIG_STOP_FOR_GC'.
-
-6.3.2 Miscellaneous issues
+6.3.1 Miscellaneous issues
 --------------------------
 
-Signal handlers should automatically restore errno and fp state.
-Currently, this is not the case.
+Signal handlers automatically restore errno and fp state, but
+arrange_return_to_lisp_function does not restore errno.
 
-   Furthormore, while `arrange_return_to_lisp_function' exits, most
-signal handlers invoke unsafe functions without hesitation: gc and all
-lisp level handlers think nothing of it.
+6.3.2 POSIX - Letter and Spirit
+-------------------------------
+
+POSIX restricts signal handlers to a use only a narrow subset of POSIX
+functions, and declares anything else to have undefined semantics.
+
+   Apparently the real reason is that a signal handler is potentially
+interrupting a POSIX call: so the signal safety requirement is really a
+re-entrancy requirement. We can work around the letter of the standard
+by arranging to handle the interrupt when the signal handler returns
+(see: `arrange_return_to_lisp_function'.) This does, however, in no way
+protect us from the real issue of re-entrancy: even though we would no
+longer be in a signal handler, we might still be in the middle of an
+interrupted POSIX call.
+
+   For some signals this appears to be a non-issue: `SIGSEGV' and other
+synchronous signals are raised by our code for our code, and so we can
+be sure that we are not interrupting a POSIX call with any of them.
+
+   For asynchronous signals like `SIGALARM' and `SIGINT' this is a real
+issue.
+
+   The right thing to do in multithreaded builds would probably be to
+use POSIX semaphores (which are signal safe) to inform a separate
+handler thread about such asynchronous events. In single-threaded
+builds there does not seem to be any other option aside from generally
+blocking asynch signals and listening for them every once and a while
+at safe points. Neither of these is implemented as of SBCL 1.0.4.
+
+   Currently all our handlers invoke unsafe functions without
+hesitation.
 
 
 File: sbcl-internals.info,  Node: Programming with signal handling in mind,  Prev: Implementation warts,  Up: Signal handling
@@ -952,6 +1013,10 @@ suspended thread B has. From this scenario one can easily derive the
 rule: in a `WITHOUT-GCING' form (or pseudo atomic for that matter)
 never wait for another thread that's not in `WITHOUT-GCING'.
 
+   Somewhat of a special case, it is enforced by the runtime that
+`SIG_STOP_FOR_GC' and `SIG_RESUME_FROM_GC' always unblocked when we
+might trigger a gc (i.e. on alloc or calling into Lisp).
+
 6.4.3 Calling user code
 -----------------------
 
@@ -959,6 +1024,21 @@ For the reasons above, calling user code, i.e. functions passed in, or
 in other words code that one cannot reason about, from non-reentrant
 code (holding locks), `WITHOUT-INTERRUPTS', `WITHOUT-GCING' is
 dangerous and best avoided.
+
+6.5 Debugging
+=============
+
+It is not easy to debug signal problems. The best bet probably is to
+enable `QSHOW' and `QSHOW_SIGNALS' in runtime.h and once SBCL runs into
+problems attach gdb. A simple `thread apply all ba' is already
+tremendously useful. Another possibility is to send a SIGABORT to SBCL
+to provoke landing in LDB, if it's compiled with it and it has not yet
+done so on its own.
+
+   Note, that fprintf used by QSHOW is not reentrant and at least on x86
+linux it is known to cause deadlocks, so place SHOW and co carefully,
+ideally to places where blockable signals are blocked. Use `QSHOW_SAFE'
+if you like.
 
 
 File: sbcl-internals.info,  Node: Slot-Value,  Next: Specials,  Prev: Signal handling,  Up: Top
@@ -998,7 +1078,7 @@ applies to `(setf slot-value)' and to `slot-boundp', and could in
 principle be extended to `slot-makunbound'.
 
    The basic implementation of `slot-value', following the suggestion
-in the standards document, is shown in *Note ex:slot-value::; the
+in the standards document, is shown in *note ex:slot-value::; the
 implementation of the other slot operators is similar.  The work to be
 done simply to arrive at the generic function call is already
 substantial: we need to look up the object's class and iterate over the
@@ -1016,7 +1096,7 @@ directly.
 Example 7.1
 
    The basic implementation of `slot-value-using-class' specialized on
-the standard metaobject classes is shown in *Note
+the standard metaobject classes is shown in *note
 ex:slot-value-using-class::.  First, we check for an obsolete instance
 (that is, one whose class has been redefined since the object was last
 accessed; if it has, the object must be updated by
@@ -1101,12 +1181,12 @@ is compiled into a call to a generic function named
 code providing load-time assurance (via `load-time-value') that the
 generic function is bound and has a suitable accessor method.  This
 generic function then benefits from the same optimizations as ordinary
-accessors, described in *Note Accessor Discriminating Functions::.
+accessors, described in *note Accessor Discriminating Functions::.
 
    (FIXME: how does this get invalidated if we later add methods on
 `slot-value-using-class'?  Hm, maybe it isn't.  I think this is
 probably a bug, and that adding methods to `slot-value-using-class'
-needs to invalidate accessor caches.  Bah, humbug.  Test code in *Note
+needs to invalidate accessor caches.  Bah, humbug.  Test code in *note
 ex:buggycache::, and note that I think that the analogous case
 involving adding or removing methods from `compute-applicable-methods'
 is handled correctly by `update-all-c-a-m-gf-info'.)
@@ -1132,7 +1212,7 @@ File: sbcl-internals.info,  Node: MOP Optimizations,  Prev: Compiler Transformat
 =====================
 
 Even when nothing is known at compile-time about the call to
-`slot-value', it is possible to do marginally better than in *Note
+`slot-value', it is possible to do marginally better than in *note
 Example 7.2: ex:slot-value-using-class.  Each effective slot definition
 metaobject can cache its own effective method, and the discriminating
 function for `slot-value-using-class' is set to simply call the
@@ -1352,58 +1432,58 @@ parallelized.  Work is ongoing in this area.
 
 
 Tag Table:
-Node: Top498
-Node: Build1052
-Node: Cold init1185
-Node: Calling Convention2197
-Node: Assembly Routines3802
-Node: Local Calls5258
-Node: Full Calls6299
-Node: Unknown-Values Returns7749
-Node: IR2 Conversion10054
-Node: Additional Notes10620
-Node: Discriminating Functions11688
-Node: The Initial Discriminating Function13256
-Ref: fig:dfun-transitions14072
-Ref: The Initial Discriminating Function-Footnote-115879
-Node: Method-Based Discriminating Functions16010
-Ref: ex:pred17699
-Ref: Method-Based Discriminating Functions-Footnote-117941
-Ref: Method-Based Discriminating Functions-Footnote-217997
-Ref: Method-Based Discriminating Functions-Footnote-318066
-Ref: Method-Based Discriminating Functions-Footnote-418171
-Node: Accessor Discriminating Functions18302
-Ref: Accessor Discriminating Functions-Footnote-120097
-Node: Cacheing and Dispatch Functions20237
-Node: The Cacheing Mechanism20939
-Ref: The Cacheing Mechanism-Footnote-123021
-Node: Foreign Linkage23080
-Node: Linkage-table23311
-Node: Lazy Alien Resolution27038
-Node: Callbacks28144
-Node: Funcallable Instances30222
-Node: Overview of Funcallable Instances30480
-Node: Implementation of Funcallable Instances31842
-Node: Signal handling33498
-Node: Groups of signals33776
-Node: The deferral mechanism34780
-Node: Implementation warts36453
-Node: Programming with signal handling in mind37618
-Node: Slot-Value39566
-Ref: Slot-Value-Footnote-140293
-Node: Basic Implementation40430
-Ref: ex:slot-value41261
-Ref: ex:slot-value-using-class42161
-Node: Compiler Transformations43127
-Ref: ex:buggycache46178
-Node: MOP Optimizations46667
-Node: Specials47671
-Node: Overview47853
-Node: Binding and unbinding48643
-Node: Character and String Types50560
-Node: Memory Layout52206
-Node: Reader and Printer53822
-Node: Threads54362
-Node: Implementation (Linux x86)54516
+Node: Top499
+Node: Build1053
+Node: Cold init1186
+Node: Calling Convention2198
+Node: Assembly Routines3657
+Node: Local Calls5113
+Node: Full Calls6154
+Node: Unknown-Values Returns8336
+Node: IR2 Conversion10636
+Node: Additional Notes11202
+Node: Discriminating Functions12406
+Node: The Initial Discriminating Function13974
+Ref: fig:dfun-transitions14790
+Ref: The Initial Discriminating Function-Footnote-116597
+Node: Method-Based Discriminating Functions16728
+Ref: ex:pred18417
+Ref: Method-Based Discriminating Functions-Footnote-118659
+Ref: Method-Based Discriminating Functions-Footnote-218715
+Ref: Method-Based Discriminating Functions-Footnote-318784
+Ref: Method-Based Discriminating Functions-Footnote-418889
+Node: Accessor Discriminating Functions19020
+Ref: Accessor Discriminating Functions-Footnote-120815
+Node: Cacheing and Dispatch Functions20955
+Node: The Cacheing Mechanism21657
+Ref: The Cacheing Mechanism-Footnote-123739
+Node: Foreign Linkage23798
+Node: Linkage-table24029
+Node: Lazy Alien Resolution27756
+Node: Callbacks28862
+Node: Funcallable Instances30940
+Node: Overview of Funcallable Instances31198
+Node: Implementation of Funcallable Instances32560
+Node: Signal handling34216
+Node: Groups of signals34494
+Node: The deferral mechanism35476
+Node: Implementation warts37835
+Node: Programming with signal handling in mind39720
+Node: Slot-Value42485
+Ref: Slot-Value-Footnote-143212
+Node: Basic Implementation43349
+Ref: ex:slot-value44180
+Ref: ex:slot-value-using-class45080
+Node: Compiler Transformations46046
+Ref: ex:buggycache49097
+Node: MOP Optimizations49586
+Node: Specials50590
+Node: Overview50772
+Node: Binding and unbinding51562
+Node: Character and String Types53479
+Node: Memory Layout55125
+Node: Reader and Printer56741
+Node: Threads57281
+Node: Implementation (Linux x86)57435
 
 End Tag Table

@@ -1,32 +1,165 @@
-This is slime.info, produced by makeinfo version 4.8 from slime.texi.
+This is slime.info, produced by makeinfo version 4.13 from slime.texi.
 
 INFO-DIR-SECTION Emacs
 START-INFO-DIR-ENTRY
 * SLIME: (slime).    Superior Lisp Interaction Mode for Emacs.
 END-INFO-DIR-ENTRY
 
+   Written by Luke Gorrie.
+
+   Additional contributions: Jeff Cunningham,
+
+   This file has been placed in the public domain.
+
 
-File: slime.info,  Node: Top,  Next: Introduction,  Prev: (dir),  Up: (dir)
+File: slime.info,  Node: Top,  Next: Introduction,  Up: (dir)
 
 SLIME
 *****
 
 SLIME is the "Superior Lisp Interaction Mode for Emacs". This is the
-manual for version 1.2.
+manual for version 3.0-alpha. (Last updated `$Date: 2011-08-30 15:34:10
+$')
+
+   Written by Luke Gorrie.
+
+   Additional contributions: Jeff Cunningham,
+
+   This file has been placed in the public domain.
 
 * Menu:
 
 * Introduction::
 * Getting started::
-* slime-mode::
-* REPL::
+* SLIME mode::
 * Debugger::
-* Extras::
+* Misc::
 * Customization::
 * Tips and Tricks::
+* Contributed Packages::
 * Credits::
-* Index to Key Bindings::
-* Index to Functions::
+* Key Index::
+* Command Index::
+* Variable Index::
+
+ --- The Detailed Node Listing ---
+
+Getting started
+
+* Platforms::
+* Downloading::
+* Installation::
+* Running::
+* Setup Tuning::
+
+Downloading SLIME
+
+* CVS::
+* CVS Incantations::
+
+Downloading from CVS
+
+* CVS Incantations::
+
+Setup Tuning
+
+* Autoloading::
+* Multiple Lisps::
+* Loading Swank faster::
+
+Using Slime mode
+
+* User-interface conventions::
+* Evaluation::
+* Compilation::
+* Completion::
+* Finding definitions::
+* Documentation::
+* Cross-reference::
+* Macro-expansion::
+* Disassembly::
+* Recovery::
+* Inspector::
+* Profiling::
+* Other::
+* Semantic indentation::
+* Reader conditionals::
+
+User-interface conventions
+
+* Temporary buffers::
+* Inferior-lisp::
+* Multithreading::
+* Key bindings::
+
+SLDB: the SLIME debugger
+
+* Examining frames::
+* Restarts::
+* Frame Navigation::
+* Stepping::
+* Miscellaneous::
+
+Misc
+
+* slime-selector::
+* slime-macroexpansion-minor-mode::
+* Multiple connections::
+
+Customization
+
+* Emacs-side customization::
+* Lisp-side::
+
+Emacs-side
+
+* Hooks::
+
+Lisp-side (Swank)
+
+* Communication style::
+* Other configurables::
+
+Tips and Tricks
+
+* Connecting to a remote lisp::
+* Global IO Redirection::
+* Auto-SLIME::
+
+Connecting to a remote lisp
+
+* Setting up the lisp image::
+* Setting up Emacs::
+* Setting up pathname translations::
+
+Contributed Packages
+
+* Loading Contribs::
+* REPL::
+* slime-mrepl::
+* inferior-slime-mode::
+* Compound Completion::
+* Fuzzy Completion::
+* slime-autodoc-mode::
+* ASDF::
+* Banner::
+* Editing Commands::
+* Fancy Inspector::
+* Presentations::
+* Typeout frames::
+* TRAMP::
+* Documentation Links::
+* Xref and Class Browser::
+* Highlight Edits::
+* Scratch Buffer::
+* slime-sprof::
+* slime-fancy::
+
+REPL: the ``top level''
+
+* REPL commands::
+* Input Navigation::
+* Shortcuts::
 
 
 File: slime.info,  Node: Introduction,  Next: Getting started,  Prev: Top,  Up: Top
@@ -36,7 +169,7 @@ File: slime.info,  Node: Introduction,  Next: Getting started,  Prev: Top,  Up: 
 
 SLIME is the "Superior Lisp Interaction Mode for Emacs."
 
-   SLIME extends Emacs with new support for interactive programming in
+   SLIME extends Emacs with support for interactive programming in
 Common Lisp. The features are centered around `slime-mode', an Emacs
 minor-mode that complements the standard `lisp-mode'. While `lisp-mode'
 supports editing Lisp source files, `slime-mode' adds support for
@@ -58,7 +191,7 @@ well-defined interface and implemented separately for each Lisp
 implementation. This makes SLIME readily portable.
 
 
-File: slime.info,  Node: Getting started,  Next: slime-mode,  Prev: Introduction,  Up: Top
+File: slime.info,  Node: Getting started,  Next: SLIME mode,  Prev: Introduction,  Up: Top
 
 2 Getting started
 *****************
@@ -71,39 +204,42 @@ This chapter tells you how to get SLIME up and running.
 * Downloading::
 * Installation::
 * Running::
+* Setup Tuning::
 
 
-File: slime.info,  Node: Platforms,  Next: Downloading,  Prev: Getting started,  Up: Getting started
+File: slime.info,  Node: Platforms,  Next: Downloading,  Up: Getting started
 
 2.1 Supported Platforms
 =======================
 
 SLIME supports a wide range of operating systems and Lisp
 implementations. SLIME runs on Unix systems, Mac OSX, and Microsoft
-Windows. GNU Emacs versions 20 and 21 and XEmacs version 21 are
+Windows. GNU Emacs versions 21, 22, and 23 and XEmacs version 21 are
 supported.
 
    The supported Lisp implementations, roughly ordered from the
 best-supported, are:
 
-   * CMU Common Lisp (CMUCL), 18e or newer
+   * CMU Common Lisp (CMUCL), 19d or newer
 
-   * Steel Bank Common Lisp (SBCL), latest official release
+   * Steel Bank Common Lisp (SBCL), 1.0 or newer
 
-   * OpenMCL, version 0.14.3 or newer
+   * Clozure Common Lisp (CCL), version 1.3 or newer
 
    * LispWorks, version 4.3 or newer
 
    * Allegro Common Lisp (ACL), version 6 or newer
 
-   * CLISP, version 2.33.2 or newer
+   * CLISP, version 2.35 or newer
 
    * Armed Bear Common Lisp (ABCL)
 
-   * Corman Common Lisp (CCL), version 2.51 or newer with the patches
-     from `http://www.grumblesmurf.org/lisp/corman-patches')
+   * Corman Common Lisp, version 2.51 or newer with the patches from
+     `http://www.grumblesmurf.org/lisp/corman-patches')
 
    * Scieneer Common Lisp (SCL), version 1.2.7 or newer
+
+   * Embedded Common Lisp (ECL)
 
    Most features work uniformly across implementations, but some are
 prone to variation. These include the precision of placing
@@ -131,7 +267,7 @@ list use the CVS version of the code.
 * CVS Incantations::
 
 
-File: slime.info,  Node: CVS,  Next: CVS Incantations,  Prev: Downloading,  Up: Downloading
+File: slime.info,  Node: CVS,  Next: CVS Incantations,  Up: Downloading
 
 2.2.1 Downloading from CVS
 --------------------------
@@ -151,7 +287,7 @@ the safe option.
 
    If you checkout from CVS then remember to `cvs update' occasionally.
 Improvements are continually being committed, and the `FAIRLY-STABLE'
-tag is moved forward from time to time (about once per month).
+tag is moved forward from time to time.
 
 * Menu:
 
@@ -190,12 +326,19 @@ File: slime.info,  Node: Installation,  Next: Running,  Prev: Downloading,  Up: 
 ================
 
 With a Lisp implementation that can be started from the command-line,
-installation just requires a few lines in your `~/.emacs':
+installation just requires a few lines in your `.emacs':
 
-     (setq inferior-lisp-program "_the path to your Lisp system_")
-     (add-to-list 'load-path "_the path of your `slime' directory_")
+     (setq inferior-lisp-program "/opt/sbcl/bin/sbcl") ; _your Lisp system_
+     (add-to-list 'load-path "~/hacking/lisp/slime/")  ; _your SLIME directory_
      (require 'slime)
      (slime-setup)
+
+   The snippet above also appears in the `README' file. You can
+copy&paste it from there, but remember to fill in the appropriate paths.
+
+   This is the minimal configuration with the fewest frills.  If the
+basic setup is working, you can try additional modules (*note Loading
+Contribs::).
 
    We recommend not loading the ILISP package into Emacs if you intend
 to use SLIME. Doing so will add a lot of extra bindings to the keymap
@@ -203,7 +346,7 @@ for Lisp source files that may be confusing and may not work correctly
 for a Lisp process started by SLIME.
 
 
-File: slime.info,  Node: Running,  Prev: Installation,  Up: Getting started
+File: slime.info,  Node: Running,  Next: Setup Tuning,  Prev: Installation,  Up: Getting started
 
 2.4 Running SLIME
 =================
@@ -216,15 +359,148 @@ where you can enter Lisp expressions for evaluation.
 
    At this point SLIME is up and running and you can start exploring.
 
-   You can restart the `inferior-lisp' process using the function:
-`M-x'
-     `slime-restart-inferior-lisp'
+
+File: slime.info,  Node: Setup Tuning,  Prev: Running,  Up: Getting started
+
+2.5 Setup Tuning
+================
+
+This section explains ways to reduce SLIME's startup time and how to
+configure SLIME for multiple Lisp systems.
+
+   Please proceed with this section only if your basic setup works.  If
+you are happy with the basic setup, skip this section.
+
+   For contrib modules *note Loading Contribs::.
+
+* Menu:
+
+* Autoloading::
+* Multiple Lisps::
+* Loading Swank faster::
 
 
-File: slime.info,  Node: slime-mode,  Next: REPL,  Prev: Getting started,  Up: Top
+File: slime.info,  Node: Autoloading,  Next: Multiple Lisps,  Up: Setup Tuning
 
-3 `slime-mode'
-**************
+2.5.1 Autoloading
+-----------------
+
+The basic setup loads SLIME always, even if you don't use SLIME.  Emacs
+will start up a little faster if we load SLIME only on demand.  To
+achieve that, you have to change your `~/.emacs' slightly:
+
+     (setq inferior-lisp-program "_the path to your Lisp system_")
+     (add-to-list 'load-path "_the path of your `slime' directory_")
+     (require 'slime-autoloads)
+     (slime-setup)
+
+   The only difference compared to the basic setup is the line
+`(require 'slime-autoloads)'.  It tells Emacs that the rest of SLIME
+should be loaded automatically when one of the commands `M-x slime' or
+`M-x slime-connect' is executed the first time.
+
+
+File: slime.info,  Node: Multiple Lisps,  Next: Loading Swank faster,  Prev: Autoloading,  Up: Setup Tuning
+
+2.5.2 Multiple Lisps
+--------------------
+
+By default, the command `M-x slime' starts the program specified with
+`inferior-lisp-program'.  If you invoke `M-x slime' with a prefix
+argument, Emacs prompts for the program which should be started
+instead.  If you need that frequently or if the command involves long
+filenames it's more convenient to set the `slime-lisp-implementations'
+variable in your `.emacs'.  For example here we define two programs:
+
+     (setq slime-lisp-implementations
+           '((cmucl ("cmucl" "-quiet"))
+             (sbcl ("/opt/sbcl/bin/sbcl") :coding-system utf-8-unix)))
+
+   This variable holds a list of programs and if you invoke SLIME with
+a negative prefix argument, `M-- M-x slime', you can select a program
+from that list. When called without a prefix, either the name specified
+in `slime-default-lisp', or the first item of the list will be used.
+The elements of the list should look like
+
+     (NAME (PROGRAM PROGRAM-ARGS...) &key CODING-SYSTEM INIT INIT-FUNCTION ENV)
+
+`NAME'
+     is a symbol and is used to identify the program.
+
+`PROGRAM'
+     is the filename of the program.  Note that the filename can contain
+     spaces.
+
+`PROGRAM-ARGS'
+     is a list of command line arguments.
+
+`CODING-SYSTEM'
+     the coding system for the connection.  (*note
+     slime-net-coding-system::)x
+
+`INIT'
+     should be a function which takes two arguments: a filename and a
+     character encoding.  The function should return a Lisp expression
+     as a string which instructs Lisp to start the Swank server and to
+     write the port number to the file.  At startup, SLIME starts the
+     Lisp process and sends the result of this function to Lisp's
+     standard input.  As default, `slime-init-command' is used.  An
+     example is shown in *note Loading Swank faster: init-example.
+
+`INIT-FUNCTION'
+     should be a function which takes no arguments.  It is called after
+     the connection is established. (See also *note
+     slime-connected-hook::.)
+
+`ENV'
+     specifies a list of environment variables for the subprocess. E.g.
+          (sbcl-cvs ("/home/me/sbcl-cvs/src/runtime/sbcl"
+                     "--core" "/home/me/sbcl-cvs/output/sbcl.core")
+                    :env ("SBCL_HOME=/home/me/sbcl-cvs/contrib/"))
+     initializes `SBCL_HOME' in the subprocess.
+
+
+File: slime.info,  Node: Loading Swank faster,  Prev: Multiple Lisps,  Up: Setup Tuning
+
+2.5.3 Loading Swank faster
+--------------------------
+
+For SBCL, we recommend that you create a custom core file with socket
+support and POSIX bindings included because those modules take the most
+time to load.  To create such a core, execute the following steps:
+
+     shell$ sbcl
+     * (mapc 'require '(sb-bsd-sockets sb-posix sb-introspect sb-cltl2 asdf))
+     * (save-lisp-and-die "sbcl.core-for-slime")
+
+   After that, add something like this to your `.emacs':
+
+     (setq slime-lisp-implementations
+           '((sbcl ("sbcl" "--core" "sbcl.core-for-slime"))))
+
+   For maximum startup speed you can include the Swank server directly
+in a core file.  The disadvantage of this approach is that the setup is
+a bit more involved and that you need to create a new core file when you
+want to update SLIME or SBCL.  The steps to execute are:
+
+     shell$ sbcl
+     * (load ".../slime/swank-loader.lisp")
+     * (swank-loader:dump-image "sbcl.core-with-swank")
+
+Then add this to your `.emacs':
+
+     (setq slime-lisp-implementations
+           '((sbcl ("sbcl" "--core" "sbcl.core-with-swank")
+                   :init (lambda (port-file _)
+                           (format "(swank:start-server %S)\n" port-file)))))
+
+Similar setups should also work for other Lisp implementations.
+
+
+File: slime.info,  Node: SLIME mode,  Next: Debugger,  Prev: Getting started,  Up: Top
+
+3 Using Slime mode
+******************
 
 SLIME's commands are provided via `slime-mode', a minor-mode used in
 conjunction with Emacs's `lisp-mode'. This chapter describes the
@@ -233,12 +509,23 @@ conjunction with Emacs's `lisp-mode'. This chapter describes the
 * Menu:
 
 * User-interface conventions::
-* Commands::
+* Evaluation::
+* Compilation::
+* Completion::
+* Finding definitions::
+* Documentation::
+* Cross-reference::
+* Macro-expansion::
+* Disassembly::
+* Recovery::
+* Inspector::
+* Profiling::
+* Other::
 * Semantic indentation::
 * Reader conditionals::
 
 
-File: slime.info,  Node: User-interface conventions,  Next: Commands,  Prev: slime-mode,  Up: slime-mode
+File: slime.info,  Node: User-interface conventions,  Next: Evaluation,  Up: SLIME mode
 
 3.1 User-interface conventions
 ==============================
@@ -250,12 +537,12 @@ described in this section.
 * Menu:
 
 * Temporary buffers::
-* About key bindings::
-* inferior-lisp::
+* Inferior-lisp::
 * Multithreading::
+* Key bindings::
 
 
-File: slime.info,  Node: Temporary buffers,  Next: About key bindings,  Prev: User-interface conventions,  Up: User-interface conventions
+File: slime.info,  Node: Temporary buffers,  Next: Inferior-lisp,  Up: User-interface conventions
 
 3.1.1 Temporary buffers
 -----------------------
@@ -281,17 +568,61 @@ addition to any special mode of their own. This makes the usual SLIME
 commands available for describing symbols, looking up function
 definitions, and so on.
 
+   Initial focus of those "description" buffers depends on the variable
+`slime-description-autofocus'. If `nil' (the default), description
+buffers do not receive focus automatically, and vice versa.
+
 
-File: slime.info,  Node: About key bindings,  Next: inferior-lisp,  Prev: Temporary buffers,  Up: User-interface conventions
+File: slime.info,  Node: Inferior-lisp,  Next: Multithreading,  Prev: Temporary buffers,  Up: User-interface conventions
 
-3.1.2 About key bindings
-------------------------
+3.1.2 `*inferior-lisp*' buffer
+------------------------------
 
-A (near) complete list of the default keybindings set by SLIME is given
-in an appendix (*note Index to Key Bindings::), with links to their
-descriptions.
+SLIME internally uses the `comint' package to start Lisp processes.
+This has a few user-visible consequences, some good and some
+not-so-terribly. To avoid confusion it is useful to understand the
+interactions.
 
-   In general we try to make our key bindings fit with the overall Emacs
+   The buffer `*inferior-lisp*' contains the Lisp process's own
+top-level. This direct access to Lisp is useful for troubleshooting,
+and some degree of SLIME integration is available using the
+inferior-slime-mode.  Many people load the better integrated SLIME REPL
+contrib module (*note REPL::) and ignore the `*inferior-lisp*' buffer.
+(*note Loading Contribs:: for information on how to enable the REPL.)
+
+
+File: slime.info,  Node: Multithreading,  Next: Key bindings,  Prev: Inferior-lisp,  Up: User-interface conventions
+
+3.1.3 Multithreading
+--------------------
+
+If the Lisp system supports multithreading, SLIME spawns a new thread
+for each request, e.g., `C-x C-e' creates a new thread to evaluate the
+expression.  An exception to this rule are requests from the REPL: all
+commands entered in the REPL buffer are evaluated in a dedicated REPL
+thread.
+
+   Some complications arise with multithreading and special variables.
+Non-global special bindings are thread-local, e.g., changing the value
+of a let bound special variable in one thread has no effect on the
+binding of the variables with the same name in other threads.  This
+makes it sometimes difficult to change the printer or reader behaviour
+for new threads.  The variable `swank:*default-worker-thread-bindings*'
+was introduced for such situations: instead of modifying the global
+value of a variable, add a binding the
+`swank:*default-worker-thread-bindings*'.  E.g., with the following
+code, new threads will read floating point values as doubles by default:
+
+     (push '(*read-default-float-format* . double-float)
+            swank:*default-worker-thread-bindings*).
+
+
+File: slime.info,  Node: Key bindings,  Prev: Multithreading,  Up: User-interface conventions
+
+3.1.4 Key bindings
+------------------
+
+In general we try to make our key bindings fit with the overall Emacs
 style. We also have the following somewhat unusual convention of our
 own: when entering a three-key sequence, the final key can be pressed
 either with control or unmodified. For example, the
@@ -309,120 +640,194 @@ starting with that prefix, so `C-c C-d C-h' will actually list the
 bindings for all documentation commands.  This feature is just a bit
 too useful to clobber!
 
+     "Are you deliberately spiting Emacs's brilliant online help
+     facilities? The gods will be angry!"
+
+This is a brilliant piece of advice. The Emacs online help facilities
+are your most immediate, up-to-date and complete resource for keybinding
+information. They are your friends:
+
+`C-h k <key>'
+     `describe-key' "What does this key do?"
+     Describes current function bound to `<key>' for focus buffer.
+
+`C-h b'
+     `describe-bindings' "Exactly what bindings are available?"
+     Lists the current key-bindings for the focus buffer.
+
+`C-h m'
+     `describe-mode' "Tell me all about this mode"
+     Shows all the available major mode keys, then the minor mode keys,
+     for the modes of the focus buffer.
+
+`C-h l'
+     `view-lossage' "Woah, what key chord did I just do?"
+     Shows you the literal sequence of keys you've pressed in order.
+
+
+   _Note:_ In this documentation the designation `C-h' is a "canonical
+key" which might actually mean Ctrl-h, or F1, or whatever you have
+`help-command' bound to in your `.emacs'. Here is a common situation:
+
+     (global-set-key [f1]   'help-command)
+     (global-set-key "\C-h" 'delete-backward-char)
+
+In this situation everywhere you see `C-h' in the documentation you
+would substitute `F1'.
+
    You can assign or change default key bindings globally using the
 `global-set-key' function in your `~/.emacs' file like this:
      (global-set-key "\C-c s" 'slime-selector)
    which binds `C-c s' to the function `slime-selector'.
 
    Alternatively, if you want to assign or change a key binding in just
-a particular slime mode, you can use the `global-set-key' function in
-your `~/.emacs' file like this:
-     (define-key slime-repl-mode-map (kbd "C-c ;") 'slime-insert-balanced-comments)
+a particular slime mode, you can use the `define-key' function in your
+`~/.emacs' file like this:
+     (define-key slime-repl-mode-map (kbd "C-c ;")
+                 'slime-insert-balanced-comments)
    which binds `C-c ;' to the function `slime-insert-balanced-comments'
 in the REPL buffer.
 
 
-File: slime.info,  Node: inferior-lisp,  Next: Multithreading,  Prev: About key bindings,  Up: User-interface conventions
+File: slime.info,  Node: Evaluation,  Next: Compilation,  Prev: User-interface conventions,  Up: SLIME mode
 
-3.1.3 `*inferior-lisp*' buffer
-------------------------------
+3.2 Evaluation commands
+=======================
 
-SLIME internally uses the `inferior-lisp' package to start Lisp
-processes. This has a few user-visible consequences, some good and some
-not-so-terribly. To avoid confusion it is useful to understand the
-interactions.
+These commands each evaluate a Common Lisp expression in a different
+way.  Usually they mimic commands for evaluating Emacs Lisp code.  By
+default they show their results in the echo area, but a prefix argument
+causes the results to be inserted in the current buffer.
 
-   The buffer `*inferior-lisp*' contains the Lisp process's own
-top-level. This direct access to Lisp is useful for troubleshooting,
-and some degree of SLIME integration is available using the
-`inferior-slime-mode'. However, in normal use we recommend using the
-fully-integrated SLIME REPL and ignoring the `*inferior-lisp*' buffer.
+`C-x C-e'
+`M-x slime-eval-last-expression'
+     Evaluate the expression before point and show the result in the
+     echo area.
 
-   An unfortunate property of `inferior-lisp' is it inserts some
-commands of its own directly into the `lisp-mode' keymap, such that
-they aren't easily disabled. This makes Lisp source buffers slightly
-schizophrenic, having both SLIME and `inferior-lisp' commands bound to
-keys and operating independently.
+`C-M-x'
+`M-x slime-eval-defun'
+     Evaluate the current toplevel form and show the result in the echo
+     area.  `C-M-x' treats `defvar' expressions specially.  Normally,
+     evaluating a `defvar' expression does nothing if the variable it
+     defines already has a value.  But `C-M-x' unconditionally resets
+     the variable to the initial value specified in the `defvar'
+     expression.  This special feature is convenient for debugging Lisp
+     programs.
 
-   SLIME overrides most key bindings, so in practice you are unlikely
-to accidentally use an `inferior-lisp' command. If you do find a
-command that pops up the `*inferior-lisp*' buffer, that command doesn't
-belong to SLIME, and you should probably lookup our equivalent.
 
-
-File: slime.info,  Node: Multithreading,  Prev: inferior-lisp,  Up: User-interface conventions
+   If `C-M-x' or `C-x C-e' is given a numeric argument, it inserts the
+value into the current buffer, rather than displaying it in the echo
+area.
 
-3.1.4 Multithreading
---------------------
+`C-c :'
+`M-x slime-interactive-eval'
+     Evaluate an expression read from the minibuffer.
 
-If the Lisp system supports multithreading, SLIME spawns a new thread
-for each request, e.g., `C-x C-e' creates a new thread to evaluate the
-expression.  An exception to this rule are requests from the REPL: all
-commands entered in the REPL buffer are evaluated in a dedicated REPL
-thread.
+`C-c C-r'
+`M-x slime-eval-region'
+     Evaluate the region.
 
-   Some complications arise with multithreading and special variables.
-Non-global special bindings are thread-local, e.g., changing the value
-of a let bound special variable in one thread has no effect on the
-binding of the variables with the same name in other threads.  This
-makes it sometimes difficult to change the printer or reader behaviour
-for new threads.  The variable `swank:*default-worker-thread-bindings*'
-was introduced for such situtuations: instead of modifying the global
-value of a variable, add a binding the
-`swank:*default-worker-thread-bindings*'.  E.g., with the following
-code, new threads will read floating point values as doubles by default:
+`C-c C-p'
+`M-x slime-pprint-eval-last-expression'
+     Evaluate the expression before point and pretty-print the result
+     in a fresh buffer.
 
-     (push '(*read-default-float-format* . double-float)
-            swank:*default-worker-thread-bindings*).
+`C-c E'
+`M-x slime-edit-value'
+     Edit the value of a setf-able form in a new buffer `*Edit <form>*'.
+     The value is inserted into a temporary buffer for editing and then
+     set in Lisp when committed with `C-c C-c'.
 
-
-File: slime.info,  Node: Commands,  Next: Semantic indentation,  Prev: User-interface conventions,  Up: slime-mode
+`C-x M-e'
+`M-x slime-eval-last-expression-display-output'
+     Display the output buffer and evaluate the expression preceding
+     point.  This is useful if the expression writes something to the
+     output stream.
 
-3.2 Commands
-============
+`C-c C-u'
+`M-x slime-undefine-function'
+     Undefine the function, with `fmakunbound', for the symbol at point.
 
-SLIME commands are divided into the following general categories:
-*Programming, Compilation, Evaluation, Recovery, Inspector, and
-Profiling*, discussed in separate sections below. There are also
-comprehensive indices to commands by function (*note Index to
-Functions::) and by key binding (*note Index to Key Bindings::).
-
-* Menu:
-
-* Programming::
-* Compilation::
-* Evaluation::
-* Recovery::
-* Inspector::
-* Profiling::
-* Other::
 
 
-File: slime.info,  Node: Programming,  Next: Compilation,  Up: Commands
+File: slime.info,  Node: Compilation,  Next: Completion,  Prev: Evaluation,  Up: SLIME mode
 
-3.2.1 Programming commands
---------------------------
+3.3 Compilation commands
+========================
 
-Programming commands are divided into the following categories:
-*Completion, Documentation, Coss-reference, Finding definitions,
-Macro-expansion, and Disassembly*, discussed in separate sections below.
+SLIME has fancy commands for compiling functions, files, and packages.
+The fancy part is that notes and warnings offered by the Lisp compiler
+are intercepted and annotated directly onto the corresponding
+expressions in the Lisp source buffer. (Give it a try to see what this
+means.)
 
-* Menu:
+`C-c C-c'
+`M-x slime-compile-defun'
+     Compile the top-level form at point.  The region blinks shortly to
+     give some feedback which part was chosen.
 
-* Completion::
-* Closure::
-* Indentation::
-* Documentation::
-* Cross-reference::
-* Finding definitions::
-* Macro-expansion::
-* Disassembly::
+     With (positive) prefix argument the form is compiled with maximal
+     debug settings (`C-u C-c C-c'). With negative prefix argument it
+     is compiled for speed (`M-- C-c C-c'). If a numeric argument is
+     passed set debug or speed settings to it depending on its sign.
+
+     The code for the region is executed after compilation.  In
+     principle, the command writes the region to a file, compiles that
+     file, and loads the resulting code.
+
+`C-c C-k'
+`M-x slime-compile-and-load-file'
+     Compile and load the current buffer's source file.  If the
+     compilation step fails, the file is not loaded.  It's not always
+     easy to tell whether the compilation failed: occasionally you may
+     end up in the debugger during the load step.
+
+     With (positive) prefix argument the file is compiled with maximal
+     debug settings (`C-u C-c C-k'). With negative prefix argument it
+     is compiled for speed (`M-- C-c C-k'). If a numeric argument is
+     passed set debug or speed settings to it depending on its sign.
+
+`C-c M-k'
+`M-x slime-compile-file'
+     Compile (but don't load) the current buffer's source file.
+
+`C-c C-l'
+`M-x slime-load-file'
+     Load a Lisp file.  This command uses the Common Lisp LOAD function.
+
+`M-x slime-compile-region'
+     Compile the selected region.
+
+
+   The annotations are indicated as underlining on source forms. The
+compiler message associated with an annotation can be read either by
+placing the mouse over the text or with the selection commands below.
+
+`M-n'
+`M-x slime-next-note'
+     Move the point to the next compiler note and displays the note.
+
+`M-p'
+`M-x slime-previous-note'
+     Move the point to the previous compiler note and displays the note.
+
+`C-c M-c'
+`M-x slime-remove-notes'
+     Remove all annotations from the buffer.
+
+`C-x `'
+`M-x next-error'
+     Visit the next-error message.  This is not actually a SLIME command
+     but SLIME creates a hidden buffer so that most of the Compilation
+     mode commands (*note (emacs)Compilation Mode::) work similarly for
+     Lisp as for batch compilers.
+
 
 
-File: slime.info,  Node: Completion,  Next: Closure,  Up: Programming
+File: slime.info,  Node: Completion,  Next: Finding definitions,  Prev: Compilation,  Up: SLIME mode
 
-3.2.1.1 Completion commands
-...........................
+3.4 Completion commands
+=======================
 
 Completion commands are used to complete a symbol or form based on what
 is already present at point. Classical completion assumes an exact
@@ -430,128 +835,72 @@ prefix and gives choices only where branches may occur. Fuzzy
 completion tries harder.
 
 `M-TAB'
-
-`C-c C-i'
-
-`C-M-i'
-     `slime-complete-symbol'
+`M-x slime-complete-symbol'
      Complete the symbol at point. Note that three styles of completion
-     are available in SLIME, and the default differs from normal Emacs
-     completion (*note slime-complete-symbol-function::).  *Note
-     Emacs-side customization::.
+     are available in SLIME; the default is similar to normal Emacs
+     completion (*note slime-complete-symbol-function::).
 
-`C-c C-s'
-     `slime-complete-form'
-     Looks up and inserts into the current buffer the argument list for
-     the function at point, if there is one.  More generally, the
-     command completes an incomplete form with a template for the
-     missing arguments.  There is special code for discovering extra
-     keywords of generic functions and for handling `make-instance' and
-     `defmethod'. Examples:
-
-          (subseq "abc" <C-c C-s>
-            --inserts--> start [end])
-          (find 17 <C-c C-s>
-            --inserts--> sequence :from-end from-end :test test
-                         :test-not test-not :start start :end end
-                         :key key)
-          (find 17 '(17 18 19) :test #'= <C-c C-s>
-            --inserts--> :from-end from-end
-                         :test-not test-not :start start :end end
-                         :key key)
-          (defclass foo () ((bar :initarg :bar)))
-          (defmethod print-object <C-c C-s>
-            --inserts-->   (object stream)
-                         body...)
-          (defmethod initialize-instance :after ((object foo) &key blub))
-          (make-instance 'foo <C-c C-s>
-            --inserts--> :bar bar :blub blub initargs...)
-
-`C-c M-i'
-     `slime-fuzzy-complete-symbol'
-     Presents a list of likely completions to choose from for an
-     abbreviation at point.  This is a third completion method and it is
-     very different from the more traditional completion to which
-     `slime-complete-symbol' defaults.  It attempts to complete a
-     symbol all at once, instead of in pieces.  For example, "mvb" will
-     find "`multiple-value-bind'" and "norm-df" will find
-     "`least-positive-normalized-double-float'".  This can also be
-     selected as the method of completion used for
-     `slime-complete-symbol'.
-
-`M-x'
-     `slime-fuzzy-completions-mode'
-`M-x'
-     `slime-fuzzy-abort'
 
 
-File: slime.info,  Node: Closure,  Next: Indentation,  Prev: Completion,  Up: Programming
+File: slime.info,  Node: Finding definitions,  Next: Documentation,  Prev: Completion,  Up: SLIME mode
 
-3.2.1.2 Closure commands
-........................
+3.5 Finding definitions ("Meta-Point" commands).
+================================================
 
-Closure commands are used to fill in missing parenthesis.
+The familiar `M-.' command is provided. For generic functions this
+command finds all methods, and with some systems it does other fancy
+things (like tracing structure accessors to their `DEFSTRUCT'
+definition).
 
-`C-c C-q'
-     `slime-close-parens-at-point'
-     Closes parentheses at point to complete the top-level-form by
-     inserting ')' characters at until `beginning-of-defun' and
-     `end-of-defun' execute without errors, or
-     `slime-close-parens-limit' is exceeded.
+`M-.'
+`M-x slime-edit-definition'
+     Go to the definition of the symbol at point.
 
-`C-]'
-     `slime-close-all-sexp'
-     Balance parentheses of open s-expressions at point.  Insert enough
-     right-parentheses to balance unmatched left-parentheses.  Delete
-     extra left-parentheses.  Reformat trailing parentheses
-     Lisp-stylishly.
+`M-,'
+`M-*'
+`M-x slime-pop-find-definition-stack'
+     Go back to the point where `M-.' was invoked. This gives
+     multi-level backtracking when `M-.' has been used several times.
 
-     If `REGION' is true, operate on the region. Otherwise operate on
-     the top-level sexp before point.
+`C-x 4 .'
+`M-x slime-edit-definition-other-window'
+     Like `slime-edit-definition' but switches to the other window to
+     edit the definition in.
 
-
-File: slime.info,  Node: Indentation,  Next: Documentation,  Prev: Closure,  Up: Programming
+`C-x 5 .'
+`M-x slime-edit-definition-other-frame'
+     Like `slime-edit-definition' but opens another frame to edit the
+     definition in.
 
-3.2.1.3 Indentation commands
-............................
+`M-x slime-edit-definition-with-etags'
+     Use an ETAGS table to find definition at point.
 
-`C-c M-q'
-     `slime-reindent-defun'
-     Re-indents the current defun, or refills the current paragraph.
-     If point is inside a comment block, the text around point will be
-     treated as a paragraph and will be filled with `fill-paragraph'.
-     Otherwise, it will be treated as Lisp code, and the current defun
-     will be reindented.  If the current defun has unbalanced parens,
-     an attempt will be made to fix it before reindenting.
-
-     When given a prefix argument, the text around point will always be
-     treated as a paragraph.  This is useful for filling docstrings."
 
 
-File: slime.info,  Node: Documentation,  Next: Cross-reference,  Prev: Indentation,  Up: Programming
+File: slime.info,  Node: Documentation,  Next: Cross-reference,  Prev: Finding definitions,  Up: SLIME mode
 
-3.2.1.4 Documentation commands
-..............................
+3.6 Documentation commands
+==========================
 
 SLIME's online documentation commands follow the example of Emacs Lisp.
 The commands all share the common prefix `C-c C-d' and allow the final
-key to be modified or unmodified (*note About key bindings::.)
+key to be modified or unmodified (*note Key bindings::.)
 
 `SPC'
-     `slime-space'
+`M-x slime-space'
      The space key inserts a space, but also looks up and displays the
      argument list for the function at point, if there is one.
 
 `C-c C-d d'
-     `slime-describe-symbol'
+`M-x slime-describe-symbol'
      Describe the symbol at point.
 
-`C-c C-f'
-     `slime-describe-function'
+`C-c C-d f'
+`M-x slime-describe-function'
      Describe the function at point.
 
-`C-c C-d a'
-     `slime-apropos'
+`C-c C-d A'
+`M-x slime-apropos'
      Perform an apropos search on Lisp symbol names for a regular
      expression match and display their documentation strings. By
      default the external symbols of all packages are searched. With a
@@ -559,18 +908,18 @@ key to be modified or unmodified (*note About key bindings::.)
      include unexported symbols.
 
 `C-c C-d z'
-     `slime-apropos-all'
+`M-x slime-apropos-all'
      Like `slime-apropos' but also includes internal symbols by default.
 
 `C-c C-d p'
-     `slime-apropos-package'
+`M-x slime-apropos-package'
      Show apropos results of all symbols in a package. This command is
      for browsing a package at a high-level. With package-name
      completion it also serves as a rudimentary Smalltalk-ish
      image-browser.
 
 `C-c C-d h'
-     `slime-hyperspec-lookup'
+`M-x slime-hyperspec-lookup'
      Lookup the symbol at point in the `Common Lisp Hyperspec'. This
      uses the familiar `hyperspec.el' to show the appropriate section
      in a web browser. The Hyperspec is found either on the Web or in
@@ -581,14 +930,18 @@ key to be modified or unmodified (*note About key bindings::.)
      C-d C-h'.
 
 `C-c C-d ~'
-     `common-lisp-hyperspec-format'
+`M-x hyperspec-lookup-format'
      Lookup a _format character_ in the `Common Lisp Hyperspec'.
 
-
-File: slime.info,  Node: Cross-reference,  Next: Finding definitions,  Prev: Documentation,  Up: Programming
+`C-c C-d #'
+`M-x hyperspec-lookup-reader-macro'
+     Lookup a _reader macro_ in the `Common Lisp Hyperspec'.
 
-3.2.1.5 Cross-reference commands
-................................
+
+File: slime.info,  Node: Cross-reference,  Next: Macro-expansion,  Prev: Documentation,  Up: SLIME mode
+
+3.7 Cross-reference commands
+============================
 
 SLIME's cross-reference commands are based on the support provided by
 the Lisp system, which varies widely between Lisps. For systems with no
@@ -598,35 +951,38 @@ taken from the `CMU AI Repository' and bundled with SLIME.
    Each command operates on the symbol at point, or prompts if there is
 none. With a prefix argument they always prompt. You can either enter
 the key bindings as shown here or with the control modified on the last
-key, *Note About key bindings::.
+key, *Note Key bindings::.
+
+* Menu:
+
+* Xref buffer commands::
 
 `C-c C-w c'
-     `slime-who-calls'
+`M-x slime-who-calls'
      Show function callers.
 
+`C-c C-w w'
+`M-x slime-calls-who'
+     Show all known callees.
+
 `C-c C-w r'
-     `slime-who-references'
+`M-x slime-who-references'
      Show references to global variable.
 
 `C-c C-w b'
-     `slime-who-binds'
+`M-x slime-who-binds'
      Show bindings of a global variable.
 
 `C-c C-w s'
-     `slime-who-sets'
+`M-x slime-who-sets'
      Show assignments to a global variable.
 
 `C-c C-w m'
-     `slime-who-macroexpands'
+`M-x slime-who-macroexpands'
      Show expansions of a macro.
 
-`M-x'
-     `slime-who-specializes'
+`M-x slime-who-specializes'
      Show all known methods specialized on a class.
-
-`M-x'
-     `slime-goto-xref'
-     Go to the cross-referenced location at point.
 
 
    There are also "List callers/callees" commands. These operate by
@@ -636,349 +992,238 @@ systems, and are most useful as a fallback when precise XREF
 information is unavailable.
 
 `C-c <'
-     `slime-list-callers'
+`M-x slime-list-callers'
      List callers of a function.
 
 `C-c >'
-     `slime-list-callees'
+`M-x slime-list-callees'
      List callees of a function.
 
-`M-x'
-     `slime-calls-who'
-     Show all known functions called by the function SYMBOL.
 
 
-File: slime.info,  Node: Finding definitions,  Next: Macro-expansion,  Prev: Cross-reference,  Up: Programming
+File: slime.info,  Node: Xref buffer commands,  Up: Cross-reference
 
-3.2.1.6 Finding definitions ("Meta-Point" commands).
-....................................................
+3.7.1 Xref buffer commands
+--------------------------
 
-The familiar `M-.' command is provided. For generic functions this
-command finds all methods, and with some systems it does other fancy
-things (like tracing structure accessors to their `DEFSTRUCT'
-definition).
+Commands available in Xref buffers
+`RET'
+`M-x slime-show-xref'
+     Show definition at point in the other window. Do not leave Xref
+     buffer.
 
-`M-.'
-     `slime-edit-definition'
-     Go to the definition of the symbol at point.
+`Space'
+`M-x slime-goto-xref'
+     Show definition at point in the other window and close Xref buffer.
 
-`M-,'
-`M-*'
-     `slime-pop-find-definition-stack' Go back to the point where `M-.'
-     was invoked. This gives multi-level backtracking when `M-.' has
-     been used several times.
+`C-c C-c'
+`M-x slime-recompile-xref'
+     Recompile definition at point.
 
-`C-x 4 .'
-     `slime-edit-definition-other-window'
-     Like `slime-edit-definition' but switchs to the other window to
-     edit the definition in.
+`C-c C-c'
+`M-x slime-recompile-all-xrefs'
+     Recompile all definitions.
 
-`C-x 5 .'
-     `slime-edit-definition-other-frame'
-     Like `slime-edit-definition' but opens another frame to edit the
-     definition in.
-
-`M-x'
-     `slime-edit-definition-with-etags'
-     Use an ETAGS table to find definition at point.
 
 
-File: slime.info,  Node: Macro-expansion,  Next: Disassembly,  Prev: Finding definitions,  Up: Programming
+File: slime.info,  Node: Macro-expansion,  Next: Disassembly,  Prev: Cross-reference,  Up: SLIME mode
 
-3.2.1.7 Macro-expansion commands
-................................
+3.8 Macro-expansion commands
+============================
 
 `C-c C-m'
-`C-c RET'
-     `slime-macroexpand-1'
+`M-x slime-macroexpand-1'
      Macroexpand the expression at point once.  If invoked with a prefix
      argument, use macroexpand instead of macroexpand-1.
 
 `C-c M-m'
-     `slime-macroexpand-all'
+`M-x slime-macroexpand-all'
      Fully macroexpand the expression at point.
 
-`C-c C-t'
-     `slime-toggle-trace-fdefinition'
-     Toggle tracing of the function at point.  If invoked with a prefix
-     argument, read additional information, like which particular method
-     should be traced.
+`M-x slime-compiler-macroexpand-1'
+     Display the compiler-macro expansion of sexp at point.
 
-`M-x'
-     `slime-untrace-all'
-     Untrace all functions.
+`M-x slime-compiler-macroexpand'
+     Repeatedy expand compiler macros of sexp at point.
 
 
    For additional minor-mode commands and discussion, *note
 slime-macroexpansion-minor-mode::.
 
 
-File: slime.info,  Node: Disassembly,  Prev: Macro-expansion,  Up: Programming
+File: slime.info,  Node: Disassembly,  Next: Recovery,  Prev: Macro-expansion,  Up: SLIME mode
 
-3.2.1.8 Disassembly commands
-............................
+3.9 Disassembly commands
+========================
 
 `C-c M-d'
-     `slime-disassemble-symbol'
+`M-x slime-disassemble-symbol'
      Disassemble the function definition of the symbol at point.
 
-
-File: slime.info,  Node: Compilation,  Next: Evaluation,  Prev: Programming,  Up: Commands
+`C-c C-t'
+`M-x slime-toggle-trace-fdefinition'
+     Toggle tracing of the function at point.  If invoked with a prefix
+     argument, read additional information, like which particular method
+     should be traced.
 
-3.2.2 Compilation commands
---------------------------
+`M-x slime-untrace-all'
+     Untrace all functions.
 
-SLIME has fancy commands for compiling functions, files, and packages.
-The fancy part is that notes and warnings offered by the Lisp compiler
-are intercepted and annotated directly onto the corresponding
-expressions in the Lisp source buffer. (Give it a try to see what this
-means.)
-
-`C-c C-c'
-     `slime-compile-defun'
-     Compile the top-level form at point.  
-
-`C-c C-y'
-     `slime-call-defun'
-     Insert a call to the function defined around point into the REPL.
-
-`C-c C-k'
-     `slime-compile-and-load-file'
-     Compile and load the current buffer's source file.
-
-`C-c M-k'
-     `slime-compile-file'
-     Compile (but don't load) the current buffer's source file.
-
-`C-c C-l'
-     `slime-load-file'
-     Load a source file and compile if necessary, without loading into
-     a buffer..
-
-`C-c C-z'
-     `slime-switch-to-output-buffer'
-     Select the output buffer, preferably in a different window.
-
-`M-x'
-     `slime-compile-region'
-     Compile region at point.
-
-`M-x'
-     `slime-compiler-macroexpand'
-     Display the compiler-macro expansion of sexp at point.
-
-`M-x'
-     `slime-compiler-macroexpand-1'
-     Display the compiler-macro expansion of sexp at point.
-
-`M-x'
-     `slime-compiler-notes-default-action-or-show-details'
-     Invoke the action at point, or show details.
-
-`M-x'
-     `slime-compiler-notes-default-action-or-show-details/mouse'
-     Invoke the action pointed at by the mouse, or show details.
-
-`M-x'
-     `slime-compiler-notes-mode'
-`M-x'
-     `slime-compiler-notes-quit'
-`M-x'
-     `slime-compiler-notes-show-details'
-
-   The annotations are indicated as underlining on source forms. The
-compiler message associated with an annotation can be read either by
-placing the mouse over the text or with the selection commands below.
-
-`M-n'
-     `slime-next-note'
-     Move the point to the next compiler note and displays the note.
-
-`M-p'
-     `slime-previous-note'
-     Move the point to the previous compiler note and displays the note.
-
-`C-c M-c'
-     `slime-remove-notes'
-     Remove all annotations from the buffer.
 
 
-File: slime.info,  Node: Evaluation,  Next: Recovery,  Prev: Compilation,  Up: Commands
+File: slime.info,  Node: Recovery,  Next: Inspector,  Prev: Disassembly,  Up: SLIME mode
 
-3.2.3 Evaluation commands
--------------------------
-
-These commands each evaluate a Lisp expression in a different way. By
-default they show their results in a message, but a prefix argument
-causes the results to be printed in the REPL instead.
-
-`C-M-x'
-     `slime-eval-defun'
-     Evaluate the current toplevel form.  Use
-     `slime-re-evaluate-defvar' if the from starts with `(defvar'.
-
-`C-x C-e'
-     `slime-eval-last-expression'
-     Evaluate the expression before point.
-
-   If `C-M-x' or `C-x C-e' is given a numeric argument, it inserts the
-value into the current buffer at point, rather than displaying it in the
-echo area.
-
-`C-c C-p'
-     `slime-pprint-eval-last-expression'
-     Evaluate the expression before point and pretty-print the result.
-
-`C-c C-r'
-     `slime-eval-region'
-     Evaluate the region.
-
-`C-x M-e'
-     `slime-eval-last-expression-display-output'
-     Display output buffer and evaluate the expression preceding point.
-
-`C-c :'
-     `slime-interactive-eval'
-     Evaluate an expression read from the minibuffer.
-
-`M-x'
-     `slime-scratch'
-     Create a `*slime-scratch*' buffer. In this buffer you can enter
-     Lisp expressions and evaluate them with `C-j', like in Emacs's
-     `*scratch*' buffer.
-
-`C-c E'
-     `slime-edit-value'
-     Edit the value of a setf-able form in a new buffer `*Edit <form>*'.
-     The value is inserted into a temporary buffer for editing and then
-     set in Lisp when committed with `slime-edit-value-commit'.
-
-`C-c C-u'
-     `slime-undefine-function'
-     Unbind symbol for function at point.
-
-
-File: slime.info,  Node: Recovery,  Next: Inspector,  Prev: Evaluation,  Up: Commands
-
-3.2.4 Abort/Recovery commands
------------------------------
+3.10 Abort/Recovery commands
+============================
 
 `C-c C-b'
-     `slime-interrupt'
+`M-x slime-interrupt'
      Interrupt Lisp (send `SIGINT').
 
+`M-x slime-restart-inferior-lisp'
+     Restart the `inferior-lisp' process.
+
 `C-c ~'
-     `slime-sync-package-and-default-directory'
+`M-x slime-sync-package-and-default-directory'
      Synchronize the current package and working directory from Emacs to
      Lisp.
 
 `C-c M-p'
-     `slime-repl-set-package'
+`M-x slime-repl-set-package'
      Set the current package of the REPL.
+
+`M-x slime-cd'
+     Set the current directory of the Lisp process.  This also changes
+     the current directory of the REPL buffer.
+
+`M-x slime-pwd'
+     Print the current directory of the Lisp process.
 
 
 
-File: slime.info,  Node: Inspector,  Next: Profiling,  Prev: Recovery,  Up: Commands
+File: slime.info,  Node: Inspector,  Next: Profiling,  Prev: Recovery,  Up: SLIME mode
 
-3.2.5 Inspector commands
-------------------------
+3.11 Inspector commands
+=======================
 
-The SLIME inspector is a very fancy Emacs-based alternative to the
-standard `INSPECT' function. The inspector presents objects in Emacs
-buffers using a combination of plain text, hyperlinks to related
-objects, and "actions" that can be selected to invoke Lisp code on the
-inspected object. For example, to present a generic function the
-inspector shows the documentation in plain text and presents each
-method with both a hyperlink to inspect the method object and a "remove
-method" action that you can invoke interactively.
+The SLIME inspector is a Emacs-based alternative to the standard
+`INSPECT' function. The inspector presents objects in Emacs buffers
+using a combination of plain text, hyperlinks to related objects.
 
    The inspector can easily be specialized for the objects in your own
 programs. For details see the the `inspect-for-emacs' generic function
 in `swank-backend.lisp'.
 
 `C-c I'
-     `slime-inspect'
+`M-x slime-inspect'
      Inspect the value of an expression entered in the minibuffer.
 
 
    The standard commands available in the inspector are:
 
 `RET'
-     `slime-inspector-operate-on-point'
-     If point is on a value then recursivly call the inspcetor on that
+`M-x slime-inspector-operate-on-point'
+     If point is on a value then recursively call the inspector on that
      value. If point is on an action then call that action.
 
 `d'
-     `slime-inspector-describe'
+`M-x slime-inspector-describe'
      Describe the slot at point.
 
+`e'
+`M-x slime-inspector-eval'
+     Evaluate an expression in the context of the inspected object.
+
+`v'
+`M-x slime-inspector-toggle-verbose'
+     Toggle between verbose and terse mode. Default is determined by
+     `swank:*inspector-verbose*'.
+
 `l'
-     `slime-inspector-pop'
+`M-x slime-inspector-pop'
      Go back to the previous object (return from `RET').
 
 `n'
-     `slime-inspector-next'
+`M-x slime-inspector-next'
      The inverse of `l'. Also bound to `SPC'.
 
+`g'
+`M-x slime-inspector-reinspect'
+     Reinspect.
+
 `q'
-     `slime-inspector-quit'
+`M-x slime-inspector-quit'
      Dismiss the inspector buffer.
 
+`p'
+`M-x slime-inspector-pprint'
+     Pretty print in another buffer object at point.
+
+`.'
+`M-x slime-inspector-show-source'
+     Find source of object at point.
+
+`>'
+`M-x slime-inspector-fetch-all'
+     Fetch all inspector contents and go to the end.
+
 `M-RET'
-     `slime-inspector-copy-down'
-     Evaluate the value under point via the REPL (to set `*').
+`M-x slime-inspector-copy-down'
+     Store the value under point in the variable `*'.  This can then be
+     used to access the object in the REPL.
+
+`TAB, M-x slime-inspector-next-inspectable-object'
+`S-TAB, M-x slime-inspector-previous-inspectable-object'
+     Jump to the next and previous inspectable object respectively.
 
 
 
-File: slime.info,  Node: Profiling,  Next: Other,  Prev: Inspector,  Up: Commands
+File: slime.info,  Node: Profiling,  Next: Other,  Prev: Inspector,  Up: SLIME mode
 
-3.2.6 Profiling commands
-------------------------
+3.12 Profiling commands
+=======================
 
-`M-x'
-     `slime-toggle-profile-fdefinition'
+The profiling commands are based on CMUCL's profiler.  These are simple
+wrappers around functions which usually print something to the output
+buffer.
+
+`M-x slime-toggle-profile-fdefinition'
      Toggle profiling of a function.
 
-`M-x'
-     `slime-profile-package'
+`M-x slime-profile-package'
      Profile all functions in a package.
 
-`M-x'
-     `slime-unprofile-all'
+`M-x slime-profile-by-substring'
+     Profile all functions which names contain a substring.
+
+`M-x slime-unprofile-all'
      Unprofile all functions.
 
-`M-x'
-     `slime-profile-report'
+`M-x slime-profile-report'
      Report profiler data.
 
-`M-x'
-     `slime-profile-reset'
+`M-x slime-profile-reset'
      Reset profiler data.
 
-`M-x'
-     `slime-profiled-functions'
+`M-x slime-profiled-functions'
      Show list of currently profiled functions.
 
 
-File: slime.info,  Node: Other,  Prev: Profiling,  Up: Commands
+File: slime.info,  Node: Other,  Next: Semantic indentation,  Prev: Profiling,  Up: SLIME mode
 
-3.2.7 Shadowed Commands
------------------------
+3.13 Shadowed Commands
+======================
 
-`C-c C-a'
-     `slime-nop'
-     This key-binding is shadowed from lisp-inf.
-
-`C-c C-v'
-     `slime-nop'
-     This key-binding is shadowed from lisp-inf.
+`C-c C-a, M-x slime-nop'
+`C-c C-v, M-x slime-nop'
+     This key-binding is shadowed from inf-lisp.
 
 
 
-File: slime.info,  Node: Semantic indentation,  Next: Reader conditionals,  Prev: Commands,  Up: slime-mode
+File: slime.info,  Node: Semantic indentation,  Next: Reader conditionals,  Prev: Other,  Up: SLIME mode
 
-3.3 Semantic indentation
-========================
+3.14 Semantic indentation
+=========================
 
 SLIME automatically discovers how to indent the macros in your Lisp
 system. To do this the Lisp side scans all the macros in the system and
@@ -1024,189 +1269,19 @@ be scanned for indentation information.
 the ugly optimization.
 
 
-File: slime.info,  Node: Reader conditionals,  Prev: Semantic indentation,  Up: slime-mode
+File: slime.info,  Node: Reader conditionals,  Prev: Semantic indentation,  Up: SLIME mode
 
-3.4 Reader conditional fontification
-====================================
+3.15 Reader conditional fontification
+=====================================
 
-SLIME automatically evaluates reader-conditional expressions in source
-buffers and "grays out" code that will be skipped for the current Lisp
-connection.
-
-
-File: slime.info,  Node: REPL,  Next: Debugger,  Prev: slime-mode,  Up: Top
-
-4 REPL: the "top level"
-***********************
-
-SLIME uses a custom Read-Eval-Print Loop (REPL, also known as a "top
-level"). The REPL user-interface is written in Emacs Lisp, which gives
-more Emacs-integration than the traditional `comint'-based Lisp
-interaction:
-
-   * Conditions signalled in REPL expressions are debugged with SLDB.
-
-   * Return values are distinguished from printed output by separate
-     Emacs faces (colours).
-
-   * Emacs manages the REPL prompt with markers. This ensures that Lisp
-     output is inserted in the right place, and doesn't get mixed up
-     with user input.
-
-* Menu:
-
-* REPL commands::
-* Input Navigation::
-* Shortcuts::
+SLIME automatically evaluates reader-conditional expressions, like
+`#+linux', in source buffers and "grays out" code that will be skipped
+for the current Lisp connection.
 
 
-File: slime.info,  Node: REPL commands,  Next: Input Navigation,  Prev: REPL,  Up: REPL
+File: slime.info,  Node: Debugger,  Next: Misc,  Prev: SLIME mode,  Up: Top
 
-4.1 REPL commands
-=================
-
-`RET'
-     `slime-repl-return'
-     Evaluate the current input in Lisp if it is complete. If
-     incomplete, open a new line and indent. If a prefix argument is
-     given then the input is evaluated without checking for
-     completeness.
-
-`C-RET'
-     `slime-repl-closing-return'
-     Close any unmatched parenthesis and then evaluate the current
-     input in Lisp. Also bound to `M-RET'.
-
-`C-j'
-     `slime-repl-newline-and-indent'
-     Open and indent a new line.
-
-`C-c C-c'
-     `slime-interrupt'
-     Interrupt the Lisp process with `SIGINT'.
-
-`C-c M-g'
-     `slime-quit'
-     Quit slime.
-
-`C-c C-o'
-     `slime-repl-clear-output'
-     Remove the output and result of the previous expression from the
-     buffer.
-
-`C-c C-t'
-     `slime-repl-clear-buffer'
-     Clear the entire buffer, leaving only a prompt.
-
-
-
-File: slime.info,  Node: Input Navigation,  Next: Shortcuts,  Prev: REPL commands,  Up: REPL
-
-4.2 Input navigation
-====================
-
-`C-a'
-     `slime-repl-bol'
-     Go to the beginning of the line, but stop at the REPL prompt.
-
-`M-n'
-`M-p'
-     `slime-repl-next-input, slime-repl-previous-input'
-     Go to next/previous in command history.
-
-`M-s'
-`M-r'
-     `slime-repl-next-matching-input,
-     slime-repl-previous-matching-input'
-     Search forward/reverse through command history with regex
-
-`C-c C-n'
-`C-c C-p'
-     `slime-repl-next-prompt, slime-repl-previous-prompt'
-     Move between the current and previous prompts in the REPL buffer.
-
-`C-M-a'
-`C-M-e'
-     `slime-repl-beginning-of-defun, slime-repl-end-of-defun' These
-     commands are like `beginning-of-defun' and `end-of-defun', but
-     when used inside the REPL input area they instead go directly to
-     the beginning or the end, respectively.
-
-
-
-File: slime.info,  Node: Shortcuts,  Prev: Input Navigation,  Up: REPL
-
-4.3 Shortcuts
-=============
-
-"Shortcuts" are a special set of REPL commands that are invoked by
-name. To invoke a shortcut you first press `,' (comma) at the REPL
-prompt and then enter the shortcut's name when prompted.
-
-   Shortcuts deal with things like switching between directories and
-compiling and loading Lisp systems. The set of shortcuts is listed
-below, and you can also use the `help' shortcut to list them
-interactively.
-
-`change-directory (aka !d, cd)'
-     Change the current directory.
-
-`change-package (aka !p)'
-     Change the current package.
-
-`compile-and-load (aka cl)'
-     Compile (if neccessary) and load a lisp file.
-
-`compile-system'
-     Compile (but not load) an ASDF system.
-
-`defparameter (aka !)'
-     Define a new global, special, variable.
-
-`force-compile-system'
-     Recompile (but not load) an ASDF system.
-
-`force-load-system'
-     Recompile and load an ASDF system.
-
-`help (aka ?)'
-     Display the help.
-
-`load-system'
-     Compile (as needed) and load an ASDF system.
-
-`pop-directory (aka -d)'
-     Pop the current directory.
-
-`pop-package (aka -p)'
-     Pop the top of the package stack.
-
-`push-directory (aka +d, pushd)'
-     Push a new directory onto the directory stack.
-
-`push-package (aka +p)'
-     Push a package onto the package stack.
-
-`pwd'
-     Show the current directory.
-
-`quit'
-     Quit the current Lisp.
-
-`resend-form'
-     Resend the last form.
-
-`restart-inferior-lisp'
-     Restart *inferior-lisp* and reconnect SLIME.
-
-`sayoonara'
-     Quit all Lisps and close all SLIME buffers.
-
-
-
-File: slime.info,  Node: Debugger,  Next: Extras,  Prev: REPL,  Up: Top
-
-5 SLDB: the SLIME debugger
+4 SLDB: the SLIME debugger
 **************************
 
 SLIME has a custom Emacs-based debugger called SLDB. Conditions
@@ -1223,61 +1298,69 @@ backtrace, and poking around in stack frames.
 * Examining frames::
 * Restarts::
 * Frame Navigation::
+* Stepping::
 * Miscellaneous::
 
 
-File: slime.info,  Node: Examining frames,  Next: Restarts,  Prev: Debugger,  Up: Debugger
+File: slime.info,  Node: Examining frames,  Next: Restarts,  Up: Debugger
 
-5.1 Examining frames
+4.1 Examining frames
 ====================
 
 Commands for examining the stack frame at point.
 
 `t'
-     `sldb-toggle-details'
+`M-x sldb-toggle-details'
      Toggle display of local variables and `CATCH' tags.
 
 `v'
-     `sldb-show-source'
+`M-x sldb-show-source'
      View the frame's current source expression. The expression is
      presented in the Lisp source file's buffer.
 
 `e'
-     `sldb-eval-in-frame'
+`M-x sldb-eval-in-frame'
      Evaluate an expression in the frame. The expression can refer to
      the available local variables in the frame.
 
 `d'
-     `sldb-pprint-eval-in-frame'
+`M-x sldb-pprint-eval-in-frame'
      Evaluate an expression in the frame and pretty-print the result in
      a temporary buffer.
 
 `D'
-     `sldb-disassemble'
+`M-x sldb-disassemble'
      Disassemble the frame's function. Includes information such as the
      instruction pointer within the frame.
 
 `i'
-     `sldb-inspect-in-frame'
+`M-x sldb-inspect-in-frame'
      Inspect the result of evaluating an expression in the frame.
+
+`C-c C-c'
+`M-x sldb-recompile-frame-source'
+     Recompile frame. `C-u C-c C-c' for recompiling with maximum debug
+     settings.
+
 
 
 File: slime.info,  Node: Restarts,  Next: Frame Navigation,  Prev: Examining frames,  Up: Debugger
 
-5.2 Invoking restarts
+4.2 Invoking restarts
 =====================
 
 `a'
-     `sldb-abort'
+`M-x sldb-abort'
      Invoke the `ABORT' restart.
 
 `q'
-     `sldb-quit'
-     "Quit" - `THROW' to a tag that the top-level SLIME request-loop
-     catches.
+`M-x sldb-quit'
+     "Quit" - For SLIME evaluation requests, invoke a restart which
+     restores to a known program state. For errors in other threads, see
+     *note SWANK:*SLDB-QUIT-RESTART*::.
 
 `c'
-     `sldb-continue'
+`M-x sldb-continue'
      Invoke the `CONTINUE' restart.
 
 `0 ... 9'
@@ -1287,79 +1370,107 @@ File: slime.info,  Node: Restarts,  Next: Frame Navigation,  Prev: Examining fra
 in the buffer.
 
 
-File: slime.info,  Node: Frame Navigation,  Next: Miscellaneous,  Prev: Restarts,  Up: Debugger
+File: slime.info,  Node: Frame Navigation,  Next: Stepping,  Prev: Restarts,  Up: Debugger
 
-5.3 Navigating between frames
+4.3 Navigating between frames
 =============================
 
-`n'
-
-`p'
-     `sldb-down, sldb-up'
+`n, M-x sldb-down'
+`p, M-x sldb-up'
      Move between frames.
 
-`M-n'
-
-`M-p'
-     `sldb-details-{down,up}'
+`M-n, M-x sldb-details-down'
+`M-p, M-x sldb-details-up'
      Move between frames "with sugar": hide the details of the original
      frame and display the details and source code of the next. Sugared
      motion makes you see the details and source code for the current
      frame only.
 
-
-File: slime.info,  Node: Miscellaneous,  Prev: Frame Navigation,  Up: Debugger
+`>'
+`M-x sldb-end-of-backtrace'
+     Fetch the entire backtrace and go to the last frame.
 
-5.4 Miscellaneous Commands
+`<'
+`M-x sldb-beginning-of-backtrace'
+     Goto the first frame.
+
+
+
+File: slime.info,  Node: Stepping,  Next: Miscellaneous,  Prev: Frame Navigation,  Up: Debugger
+
+4.4 Stepping
+============
+
+Stepping is not available in all implementations and works very
+differently in those in which it is available.
+
+`s'
+`M-x sldb-step'
+     Step to the next expression in the frame.  For CMUCL that means,
+     set a breakpoint at all those code locations in the current code
+     block which are reachable from the current code location.
+
+`x'
+`M-x sldb-next'
+     Step to the next form in the current function.
+
+`o'
+`M-x sldb-out'
+     Stop single-stepping temporarily, but resume it once the current
+     function returns.
+
+
+
+File: slime.info,  Node: Miscellaneous,  Prev: Stepping,  Up: Debugger
+
+4.5 Miscellaneous Commands
 ==========================
 
 `r'
-     `sldb-restart-frame'
+`M-x sldb-restart-frame'
      Restart execution of the frame with the same arguments it was
      originally called with. (This command is not available in all
      implementations.)
 
 `R'
-     `sldb-return-from-frame'
+`M-x sldb-return-from-frame'
      Return from the frame with a value entered in the minibuffer. (This
      command is not available in all implementations.)
 
-`s'
-     `sldb-step'
-     Step to the next expression in the frame. (This command is not
-     available in all implementations.)
-
 `B'
-     `sldb-break-with-default-debugger'
+`M-x sldb-break-with-default-debugger'
      Exit SLDB and debug the condition using the Lisp system's default
      debugger.
 
-`M-x'
-     `in-sldb-face'
-     Return STRING propertised with face sldb-NAME-face.
+`C'
+`M-x sldb-inspect-condition'
+     Inspect the condition currently being debugged.
 
-`C-c :'
-     `slime-interactive-eval'
+`:'
+`M-x slime-interactive-eval'
      Evaluate an expression entered in the minibuffer.
 
-
-File: slime.info,  Node: Extras,  Next: Customization,  Prev: Debugger,  Up: Top
+`A'
+`M-x sldb-break-with-system-debugger'
+     Attach debugger (e.g. gdb) to the current lisp process.
 
-6 Extras
-********
+
+
+File: slime.info,  Node: Misc,  Next: Customization,  Prev: Debugger,  Up: Top
+
+5 Misc
+******
 
 * Menu:
 
 * slime-selector::
-* slime-autodoc-mode::
 * slime-macroexpansion-minor-mode::
 * Multiple connections::
-* Typeout frames::
 
 
-File: slime.info,  Node: slime-selector,  Next: slime-autodoc-mode,  Prev: Extras,  Up: Extras
+File: slime.info,  Node: slime-selector,  Next: slime-macroexpansion-minor-mode,  Up: Misc
 
-6.1 `slime-selector'
+5.1 `slime-selector'
 ====================
 
 The `slime-selector' command is for quickly switching to important
@@ -1380,7 +1491,16 @@ buffer it should display. Here are some of the options:
      The most recently visited `lisp-mode' source buffer.
 
 `s'
-     The `*slime-scratch*' buffer. *Note slime-scratch::.
+     The `*slime-scratch*' buffer (*note slime-scratch::).
+
+`c'
+     SLIME connections buffer (*note Multiple connections::).
+
+`n'
+     Cycle to the next Lisp connection (*note Multiple connections::).
+
+`t'
+     SLIME threads buffer (*note Multiple connections::).
 
    `slime-selector' doesn't have a key binding by default but we
 suggest that you assign it a global one. You can bind it to `C-c s'
@@ -1394,26 +1514,9 @@ And then you can switch to the REPL from anywhere with `C-c s r'.
 buffers for `slime-selector' to find.
 
 
-File: slime.info,  Node: slime-autodoc-mode,  Next: slime-macroexpansion-minor-mode,  Prev: slime-selector,  Up: Extras
+File: slime.info,  Node: slime-macroexpansion-minor-mode,  Next: Multiple connections,  Prev: slime-selector,  Up: Misc
 
-6.2 `slime-autodoc-mode'
-========================
-
-`M-x'
-     `slime-autodoc-mode'
-     Autodoc mode is an additional minor-mode for automatically showing
-     information about symbols near the point. For function names the
-     argument list is displayed, and for global variables, the value.
-     This is a clone of `eldoc-mode' for Emacs Lisp.
-
-   The mode can be enabled by default in the `slime-setup' call of your
-`~/.emacs':
-     (slime-setup :autodoc t)
-
-
-File: slime.info,  Node: slime-macroexpansion-minor-mode,  Next: Multiple connections,  Prev: slime-autodoc-mode,  Up: Extras
-
-6.3 slime-macroexpansion-minor-mode
+5.2 slime-macroexpansion-minor-mode
 ===================================
 
 Within a slime macroexpansion buffer some extra commands are provided
@@ -1421,24 +1524,28 @@ Within a slime macroexpansion buffer some extra commands are provided
 macroexpansion buffer).
 
 `C-c C-m'
-     `slime-macroexpand-1-inplace'
+`M-x slime-macroexpand-1-inplace'
      Just like slime-macroexpand-1 but the original form is replaced
      with the expansion.
 
 `g'
-     `slime-macroexpand-1-inplace'
+`M-x slime-macroexpand-1-inplace'
      The last macroexpansion is performed again, the current contents of
      the macroexpansion buffer are replaced with the new expansion.
 
 `q'
-     `slime-temp-buffer-quit'
+`M-x slime-temp-buffer-quit'
      Close the expansion buffer.
+
+`C-_'
+`M-x slime-macroexpand-undo'
+     Undo last macroexpansion operation.
 
 
 
-File: slime.info,  Node: Multiple connections,  Next: Typeout frames,  Prev: slime-macroexpansion-minor-mode,  Up: Extras
+File: slime.info,  Node: Multiple connections,  Prev: slime-macroexpansion-minor-mode,  Up: Misc
 
-6.4 Multiple connections
+5.3 Multiple connections
 ========================
 
 SLIME is able to connect to multiple Lisp processes at the same time.
@@ -1463,19 +1570,21 @@ recently established connection, but this can be reassigned via the
 "connection list" buffer:
 
 `C-c C-x c'
-     `slime-list-connections'
-     Pop up a buffer listing the established connections.
+`M-x slime-list-connections'
+     Pop up a buffer listing the established connections.  It is also
+     available by the typing `c' from the SLIME selector (*note
+     slime-selector::).
+
+`C-c C-x n'
+`M-x slime-cycle-connections'
+     Change current Lisp connection by cycling through all connections.
+     It is also available by the typing `n' from the SLIME selector
+     (*note slime-selector::).
 
 `C-c C-x t'
-     `slime-list-threads'
-     Pop up a buffer listing the current threads.
-
-`M-x'
-     `slime-abort-connection'
-     Abort the current connection.
-
-`M-x'
-     `slime-restart-connection-at-point'
+`M-x slime-list-threads'
+     Pop up a buffer listing the current threads.  It is also available
+     by the typing `t' from the SLIME selector (*note slime-selector::).
 
    The buffer displayed by `slime-list-connections' gives a one-line
 summary of each connection. The summary shows the connection's serial
@@ -1486,65 +1595,41 @@ asterisk.
    The commands available in the connection-list buffer are:
 
 `RET'
-     `slime-goto-connection'
+`M-x slime-goto-connection'
      Pop to the REPL buffer of the connection at point.
 
 `d'
-     `slime-connection-list-make-default'
+`M-x slime-connection-list-make-default'
      Make the connection at point the "default" connection. It will then
      be used for commands in `slime-mode' source buffers.
 
 `g'
-     `slime-update-connection-list'
+`M-x slime-update-connection-list'
      Update the connection list in the buffer.
 
 `q'
-     `slime-temp-buffer-quit'
+`M-x slime-temp-buffer-quit'
      Quit the connection list (kill buffer, restore window
      configuration).
 
-`M-x'
-     `slime-connect'
+`R'
+`M-x slime-restart-connection-at-point'
+     Restart the Lisp process for the connection at point.
+
+`M-x slime-connect'
      Connect to a running Swank server.
 
-`M-x'
-     `slime-disconnect'
+`M-x slime-disconnect'
      Disconnect all connections.
 
-`M-x'
-     `slime-connection-list-mode'
-     Connection-list. SLIME Connection List Mode.
+`M-x slime-abort-connection'
+     Abort the current attempt to connect.
+
 
 
-File: slime.info,  Node: Typeout frames,  Prev: Multiple connections,  Up: Extras
+File: slime.info,  Node: Customization,  Next: Tips and Tricks,  Prev: Misc,  Up: Top
 
-6.5 Typeout frames
-==================
-
-A "typeout frame" is a special Emacs frame which is used instead of the
-echo area (minibuffer) to display messages from SLIME commands.  This
-is an optional feature. The advantage of a typeout frame over the echo
-area is that it can hold more text, it can be scrolled, and its
-contents don't disappear when you press a key. All potentially long
-messages are sent to the typeout frame, such as argument lists, macro
-expansions, and so on.
-
-`M-x'
-     `slime-ensure-typeout-frame'
-     Ensure that a typeout frame exists, creating one if necessary.
-
-   If the typeout frame is closed then the echo area will be used again
-as usual.
-
-   To have a typeout frame created automatically at startup you can add
-the `slime-connected-hook' to your `~/.emacs' file:
-
-     (add-hook 'slime-connected-hook 'slime-ensure-typeout-frame)
-
-
-File: slime.info,  Node: Customization,  Next: Tips and Tricks,  Prev: Extras,  Up: Top
-
-7 Customization
+6 Customization
 ***************
 
 * Menu:
@@ -1553,9 +1638,9 @@ File: slime.info,  Node: Customization,  Next: Tips and Tricks,  Prev: Extras,  
 * Lisp-side::
 
 
-File: slime.info,  Node: Emacs-side customization,  Next: Lisp-side,  Prev: Customization,  Up: Customization
+File: slime.info,  Node: Emacs-side customization,  Next: Lisp-side,  Up: Customization
 
-7.1 Emacs-side
+6.1 Emacs-side
 ==============
 
 The Emacs part of SLIME can be configured with the Emacs `customize'
@@ -1569,40 +1654,20 @@ configuration options here in the manual.
      that lines do not wrap in backtraces, apropos listings, and so on.
      It can however cause information to spill off the screen.
 
-`slime-multiprocessing'
-     This should be set to `t' if you want to use multiprocessing
-     (threads) in your Lisp system. It causes any necessary
-     initialization to be performed during Lisp server startup.
-
 `slime-complete-symbol-function'
      The function to use for completion of Lisp symbols. Three
-     completion styles are available. The default
-     `slime-complete-symbol*' performs completion "in parallel" over
-     the hyphen-delimited sub-words of a symbol name.  (1) Formally
-     this means that "`a-b-c'" can complete to any symbol matching the
-     regular expression "`^a.*-b.*-c.*'" (where "dot" matches anything
-     but a hyphen). Examples give a more intuitive feeling:
-        * `m-v-b' completes to `multiple-value-bind'.
+     completion styles are available: `slime-simple-complete-symbol',
+     `slime-complete-symbol*' (*note Compound Completion::), and
+     `slime-fuzzy-complete-symbol' (*note Fuzzy Completion::).
 
-        * `w-open' is ambiguous: it completes to either
-          `with-open-file' or `with-open-stream'. The symbol is
-          expanded to the longest common completion (`with-open-') and
-          the point is placed at the first point of ambiguity, which in
-          this case is the end.
-
-        * `w--stream' completes to `with-open-stream'.
-     An alternative is `slime-simple-complete-symbol', which completes
-     in the usual Emacs way.  Finally, there is
-     `slime-fuzzy-complete-symbol', which is quite different from both
-     of the above and tries to find best matches to an abbreviated
-     symbol.  It also has its own key binding, defaulting to `C-c M-i'.
-     *Note slime-fuzzy-complete-symbol::, for more information.
+     The default is `slime-simple-complete-symbol', which completes in
+     the usual Emacs way.
 
 `slime-filename-translations'
      This variable controls filename translation between Emacs and the
      Lisp system. It is useful if you run Emacs and Lisp on separate
      machines which don't share a common file system or if they share
-     the filessytem but have different layouts, as is the case with
+     the filesystem but have different layouts, as is the case with
      SMB-based file sharing.
 
 `slime-net-coding-system'
@@ -1614,31 +1679,25 @@ configuration options here in the manual.
      fonts, otherwise the characters will be rendered as hollow boxes.
      If you are using Allegro CL and GNU Emacs, you can also use
      `emacs-mule-unix' as coding system.  GNU Emacs has often nicer
-     fonts for the latter encoding.
+     fonts for the latter encoding.  (Different encodings can be used
+     for different Lisps, see *note Multiple Lisps::.)
 
 
 * Menu:
 
 * Hooks::
 
-   ---------- Footnotes ----------
-
-   (1) This style of completion is modelled on `completer.el' by Chris
-McConnell. That package is bundled with ILISP.
-
 
-File: slime.info,  Node: Hooks,  Prev: Emacs-side customization,  Up: Emacs-side customization
+File: slime.info,  Node: Hooks,  Up: Emacs-side customization
 
-7.1.1 Hooks
+6.1.1 Hooks
 -----------
 
-`M-x'
-     `slime-mode-hook'
 `slime-mode-hook'
      This hook is run each time a buffer enters `slime-mode'. It is
      most useful for setting buffer-local configuration in your Lisp
      source buffers. An example use is to enable `slime-autodoc-mode'
-     (*Note slime-autodoc-mode::.)
+     (*note slime-autodoc-mode::).
 
 `slime-connected-hook'
      This hook is run when SLIME establishes a connection to a Lisp
@@ -1655,7 +1714,7 @@ File: slime.info,  Node: Hooks,  Prev: Emacs-side customization,  Up: Emacs-side
 
 File: slime.info,  Node: Lisp-side,  Prev: Emacs-side customization,  Up: Customization
 
-7.2 Lisp-side (Swank)
+6.2 Lisp-side (Swank)
 =====================
 
 The Lisp server side of SLIME (known as "Swank") offers several
@@ -1669,9 +1728,9 @@ variables.
 * Other configurables::
 
 
-File: slime.info,  Node: Communication style,  Next: Other configurables,  Prev: Lisp-side,  Up: Lisp-side
+File: slime.info,  Node: Communication style,  Next: Other configurables,  Up: Lisp-side
 
-7.2.1 Communication style
+6.2.1 Communication style
 -------------------------
 
 The most important configurable is `SWANK:*COMMUNICATION-STYLE*', which
@@ -1719,14 +1778,14 @@ influence on SLIME's operation.
 capabilities of your Lisp system. The general order of preference is
 `:SPAWN', then `:SIGIO', then `:FD-HANDLER', with `NIL' as a last
 resort. You can check the default style by calling
-`SWANK-BACKEND:PREFERRED-COMMUNICATION-STYLE'. You can also override
+`SWANK-BACKEND::PREFERRED-COMMUNICATION-STYLE'. You can also override
 the default by setting `SWANK:*COMMUNICATION-STYLE*' in your Swank init
 file.
 
 
 File: slime.info,  Node: Other configurables,  Prev: Communication style,  Up: Lisp-side
 
-7.2.2 Other configurables
+6.2.2 Other configurables
 -------------------------
 
 These Lisp variables can be configured via your `~/.swank.lisp' file:
@@ -1751,8 +1810,18 @@ These Lisp variables can be configured via your `~/.swank.lisp' file:
      handle all debugging in the Lisp image. This is for debugging
      multithreaded and callback-driven applications.
 
-`SWANK:*SLDB-PRINTER-BINDINGS*'
+`SWANK:*SLDB-QUIT-RESTART*'
+     This variable names the restart that is invoked when pressing `q'
+     (*note sldb-quit::) in SLDB. For SLIME evaluation requests this is
+     _unconditionally_ bound to a restart that returns to a safe point.
+     This variable is supposed to customize what `q' does if an
+     application's thread lands into the debugger (see
+     `SWANK:*GLOBAL-DEBUGGER*').
+          (setf swank:*sldb-quit-restart* 'sb-thread:terminate-thread)
+
+`SWANK:*BACKTRACE-PRINTER-BINDINGS*'
 `SWANK:*MACROEXPAND-PRINTER-BINDINGS*'
+`SWANK:*SLDB-PRINTER-BINDINGS*'
 `SWANK:*SWANK-PPRINT-BINDINGS*'
      These variables can be used to customize the printer in various
      situations.  The values of the variables are association lists of
@@ -1762,12 +1831,20 @@ These Lisp variables can be configured via your `~/.swank.lisp' file:
           (push '(*print-pretty* . t) swank:*sldb-printer-bindings*).
 
 `SWANK:*USE-DEDICATED-OUTPUT-STREAM*'
-     This variable controls an optimization for sending printed output
-     from Lisp to Emacs. When `t' a separate socket is established
-     solely for Lisp to send printed output to Emacs through. Without
-     the optimization it is necessary to send output in
-     protocol-messages to Emacs which must then be decoded, and this
-     doesn't always keep up if Lisp starts "spewing" copious output.
+     This variable controls whether to use an unsafe efficiency hack for
+     sending printed output from Lisp to Emacs.  The default is `nil',
+     don't use it, and is strongly recommended to keep.
+
+     When `t', a separate socket is established solely for Lisp to send
+     printed output to Emacs through, which is faster than sending the
+     output in protocol-messages to Emacs.  However, as nothing can be
+     guaranteed about the timing between the dedicated output stream
+     and the stream of protocol messages, the output of a Lisp command
+     can arrive before or after the corresponding REPL results.  Thus
+     output and REPL results can end up in the wrong order, or even
+     interleaved, in the REPL buffer.  Using a dedicated output stream
+     also makes it more difficult to communicate to a Lisp running on a
+     remote host via SSH (*note Connecting to a remote lisp::).
 
 `SWANK:*DEDICATED-OUTPUT-STREAM-PORT*'
      When `*USE-DEDICATED-OUTPUT-STREAM*' is `t' the stream will be
@@ -1784,9 +1861,9 @@ These Lisp variables can be configured via your `~/.swank.lisp' file:
 
 
 
-File: slime.info,  Node: Tips and Tricks,  Next: Credits,  Prev: Customization,  Up: Top
+File: slime.info,  Node: Tips and Tricks,  Next: Contributed Packages,  Prev: Customization,  Up: Top
 
-8 Tips and Tricks
+7 Tips and Tricks
 *****************
 
 * Menu:
@@ -1798,7 +1875,7 @@ File: slime.info,  Node: Tips and Tricks,  Next: Credits,  Prev: Customization, 
 
 File: slime.info,  Node: Connecting to a remote lisp,  Next: Global IO Redirection,  Up: Tips and Tricks
 
-8.1 Connecting to a remote lisp
+7.1 Connecting to a remote lisp
 ===============================
 
 One of the advantages of the way SLIME is implemented is that we can
@@ -1818,13 +1895,14 @@ is that simple.
 
 File: slime.info,  Node: Setting up the lisp image,  Next: Setting up Emacs,  Up: Connecting to a remote lisp
 
-8.1.1 Setting up the lisp image
+7.1.1 Setting up the lisp image
 -------------------------------
 
 When you want to load swank without going through the normal, Emacs
 based, process just load the `swank-loader.lisp' file. Just execute
 
      (load "/path/to/swank-loader.lisp")
+     (swank-loader:init)
 
    inside a running lisp image(1). Now all we need to do is startup our
 swank server. The first example assumes we're using the default
@@ -1834,7 +1912,7 @@ settings.
 
    Since we're going to be tunneling our connection via ssh(2) and
 we'll only have one port open we want to tell swank to not use an extra
-connection for output:
+connection for output (this is actually the default in current SLIME):
 
      (setf swank:*use-dedicated-output-stream* nil)
 
@@ -1866,17 +1944,17 @@ arguments. Some of these arguments are
 
    ---------- Footnotes ----------
 
-   (1) SLIME also provides an ASDF system definiton which does the same
-thing
+   (1) SLIME also provides an ASDF system definition which does the
+same thing
 
    (2) there is a way to connect without an ssh tunnel, but it has the
-side-effect of giving the entire world access to your lisp image, se
-we're not gonig to talk about it
+side-effect of giving the entire world access to your lisp image, so
+we're not going to talk about it
 
 
 File: slime.info,  Node: Setting up Emacs,  Next: Setting up pathname translations,  Prev: Setting up the lisp image,  Up: Connecting to a remote lisp
 
-8.1.2 Setting up Emacs
+7.1.2 Setting up Emacs
 ----------------------
 
 Now we need to create the tunnel between the local machine and the
@@ -1905,7 +1983,7 @@ using that port number instead
 
 File: slime.info,  Node: Setting up pathname translations,  Prev: Setting up Emacs,  Up: Connecting to a remote lisp
 
-8.1.3 Setting up pathname translations
+7.1.3 Setting up pathname translations
 --------------------------------------
 
 One of the main problems with running swank remotely is that Emacs
@@ -1918,26 +1996,26 @@ to let our local Emacs refer to remote files.
 NFS or similar, the remote machine's hard disk on the local machine's
 file system in such a fashion that a filename like
 `/opt/project/source.lisp' refers to the same file on both machines.
-Unfortunetly NFS is usually slow, often buggy, and not always feasable,
-fortunetely we have an ssh connection and Emacs' `tramp-mode' can do
-the rest.
+Unfortunately NFS is usually slow, often buggy, and not always
+feasible, fortunately we have an ssh connection and Emacs' `tramp-mode'
+can do the rest.  (See *note TRAMP User Manual: (tramp)Top.)
 
    What we do is teach Emacs how to take a filename on the remote
 machine and translate it into something that tramp can understand and
-access (and vice-versa). Assuming the remote machine's host name is
+access (and vice versa). Assuming the remote machine's host name is
 `remote.example.com', `cl:machine-instance' returns "remote" and we
-login as the user "user" we can use SLIME's built-in mechanism to setup
-the proper transaltions by simply doing:
+login as the user "user" we can use `slime-tramp' contrib to setup the
+proper translations by simply doing:
 
-     (push (slime-create-filename-translator :machine-instance "remote.example.com"
-                                             :remote-host "remote"
+     (push (slime-create-filename-translator :machine-instance "remote"
+                                             :remote-host "remote.example.com"
                                              :username "user")
            slime-filename-translations)
 
 
 File: slime.info,  Node: Global IO Redirection,  Next: Auto-SLIME,  Prev: Connecting to a remote lisp,  Up: Tips and Tricks
 
-8.2 Globally redirecting all IO to the REPL
+7.2 Globally redirecting all IO to the REPL
 ===========================================
 
 By default SLIME does not change `*standard-output*' and friends
@@ -1962,7 +2040,7 @@ do that unless you know what you're doing.
 
 File: slime.info,  Node: Auto-SLIME,  Prev: Global IO Redirection,  Up: Tips and Tricks
 
-8.3 Connecting to SLIME automatically
+7.3 Connecting to SLIME automatically
 =====================================
 
 To make SLIME connect to your lisp whenever you open a lisp file just
@@ -1974,7 +2052,885 @@ add this to your `.emacs':
                    (save-excursion (slime)))))
 
 
-File: slime.info,  Node: Credits,  Next: Index to Key Bindings,  Prev: Tips and Tricks,  Up: Top
+File: slime.info,  Node: Contributed Packages,  Next: Credits,  Prev: Tips and Tricks,  Up: Top
+
+8 Contributed Packages
+**********************
+
+In version 3.0 we moved some functionality to separate packages.  This
+chapter tells you how to load contrib modules and describes what the
+particular packages do.
+
+* Menu:
+
+* Loading Contribs::
+* REPL::
+* slime-mrepl::
+* inferior-slime-mode::
+* Compound Completion::
+* Fuzzy Completion::
+* slime-autodoc-mode::
+* ASDF::
+* Banner::
+* Editing Commands::
+* Fancy Inspector::
+* Presentations::
+* Typeout frames::
+* TRAMP::
+* Documentation Links::
+* Xref and Class Browser::
+* Highlight Edits::
+* Scratch Buffer::
+* slime-sprof::
+* slime-fancy::
+
+
+File: slime.info,  Node: Loading Contribs,  Next: REPL,  Up: Contributed Packages
+
+8.1 Loading Contrib Packages
+============================
+
+Contrib packages aren't loaded by default.  You have to modify your
+setup a bit so that Emacs knows where to find them and which of them to
+load.  Generally, you should call `slime-setup' with the list of
+package-names that you want to use.  For example, a setup to load the
+`slime-scratch' and `slime-editing-commands' packages looks like:
+
+     (setq inferior-lisp-program "/opt/sbcl/bin/sbcl") ; _your Lisp system_
+     (add-to-list 'load-path "~/hacking/lisp/slime/")  ; _your SLIME directory_
+     (require 'slime-autoloads)
+     (slime-setup '(slime-scratch slime-editing-commands))
+
+   After starting SLIME, the commands of both packages should be
+available.
+
+   The REPL and `slime-fancy' modules deserve special mention.  Many
+users consider the REPL (*note REPL::) essential while `slime-fancy'
+(*note slime-fancy::) loads the REPL and almost all of the popular
+contribs.  So, if you aren't sure what to choose start with:
+
+     (slime-setup '(slime-repl)) ; repl only
+
+   If you like what you see try this:
+
+     (slime-setup '(slime-fancy)) ; almost everything
+
+
+File: slime.info,  Node: REPL,  Next: slime-mrepl,  Prev: Loading Contribs,  Up: Contributed Packages
+
+8.2 REPL: the "top level"
+=========================
+
+SLIME uses a custom Read-Eval-Print Loop (REPL, also known as a "top
+level", or listener). The REPL user-interface is written in Emacs Lisp,
+which gives more Emacs-integration than the traditional `comint'-based
+Lisp interaction:
+
+   * Conditions signalled in REPL expressions are debugged with SLDB.
+
+   * Return values are distinguished from printed output by separate
+     Emacs faces (colours).
+
+   * Emacs manages the REPL prompt with markers. This ensures that Lisp
+     output is inserted in the right place, and doesn't get mixed up
+     with user input.
+
+   To load the REPL call `(slime-setup '(slime-repl))' in your `.emacs'.
+
+`C-c C-z'
+`M-x slime-switch-to-output-buffer'
+     Select the output buffer, preferably in a different window.
+
+`C-c C-y'
+`M-x slime-call-defun'
+     Insert a call to the function defined around point into the REPL.
+
+`C-c C-j'
+`M-x slime-eval-last-expression-in-repl'
+     Inserts the last expression to the REPL and evaluates it there.
+     Switches to the current packae of the source buffer for the
+     duration.  If used with a prefix argument, doesn't switch back
+     afterwards.
+
+
+* Menu:
+
+* REPL commands::
+* Input Navigation::
+* Shortcuts::
+
+
+File: slime.info,  Node: REPL commands,  Next: Input Navigation,  Up: REPL
+
+8.2.1 REPL commands
+-------------------
+
+`RET'
+`M-x slime-repl-return'
+     Evaluate the current input in Lisp if it is complete. If
+     incomplete, open a new line and indent. If a prefix argument is
+     given then the input is evaluated without checking for
+     completeness.
+
+`C-RET'
+`M-x slime-repl-closing-return'
+     Close any unmatched parenthesis and then evaluate the current
+     input in Lisp. Also bound to `M-RET'.
+
+`TAB'
+`M-x slime-indent-and-complete-symbol'
+     Indent the current line and perform symbol completion.
+
+`C-j'
+`M-x slime-repl-newline-and-indent'
+     Open and indent a new line.
+
+`C-a'
+`M-x slime-repl-bol'
+     Go to the beginning of the line, but stop at the REPL prompt.
+
+`C-c C-c'
+`M-x slime-interrupt'
+     Interrupt the Lisp process with `SIGINT'.
+
+`C-c M-o'
+`M-x slime-repl-clear-buffer'
+     Clear the entire buffer, leaving only a prompt.
+
+`C-c C-o'
+`M-x slime-repl-clear-output'
+     Remove the output and result of the previous expression from the
+     buffer.
+
+
+
+File: slime.info,  Node: Input Navigation,  Next: Shortcuts,  Prev: REPL commands,  Up: REPL
+
+8.2.2 Input navigation
+----------------------
+
+The input navigation (a.k.a. history) commands are modelled after
+`coming'-mode.  Be careful if you are used to Bash-like keybindings:
+`M-p' and `M-n' use the current input as search pattern and only work
+Bash-like if the current line is empty. `C-<up>' and `C-<up>' work like
+the up and down keys in Bash.
+
+`C-<up>, M-x slime-repl-forward-input'
+`C-<down>, M-x slime-repl-backward-input'
+     Go to the next/previous history item.
+
+`M-n, M-x slime-repl-next-input'
+`M-p, M-x slime-repl-previous-input'
+     Search the next/previous item in the command history using the
+     current input as search pattern.  If `M-n'/`M-n' is typed two
+     times in a row, the second invocation uses the same search pattern
+     (even if the current input has changed).
+
+`M-s, M-x slime-repl-next-matching-input'
+`M-r, M-x slime-repl-previous-matching-input'
+     Search forward/reverse through command history with regex
+
+`C-c C-n, M-x slime-repl-next-prompt'
+`C-c C-p, M-x slime-repl-previous-prompt'
+     Move between the current and previous prompts in the REPL buffer.
+     Pressing RET on a line with old input copies that line to the
+     newest prompt.
+
+   The variable `slime-repl-wrap-history' controls wrap around
+behaviour, i.e. whether cycling should restart at the beginning of the
+history if the end is reached.
+
+
+File: slime.info,  Node: Shortcuts,  Prev: Input Navigation,  Up: REPL
+
+8.2.3 Shortcuts
+---------------
+
+"Shortcuts" are a special set of REPL commands that are invoked by
+name. To invoke a shortcut you first press `,' (comma) at the REPL
+prompt and then enter the shortcut's name when prompted.
+
+   Shortcuts deal with things like switching between directories and
+compiling and loading Lisp systems. The set of shortcuts is listed
+below, and you can also use the `help' shortcut to list them
+interactively.
+
+`change-directory (aka !d, cd)'
+     Change the current directory.
+
+`change-package (aka !p, in, in-package)'
+     Change the current package.
+
+`compile-and-load (aka cl)'
+     Compile (if necessary) and load a lisp file.
+
+`defparameter (aka !)'
+     Define a new global, special, variable.
+
+`disconnect'
+     Disconnect all connections.
+
+`help (aka ?)'
+     Display the help.
+
+`pop-directory (aka -d)'
+     Pop the current directory.
+
+`pop-package (aka -p)'
+     Pop the top of the package stack.
+
+`push-directory (aka +d, pushd)'
+     Push a new directory onto the directory stack.
+
+`push-package (aka +p)'
+     Push a package onto the package stack.
+
+`pwd'
+     Show the current directory.
+
+`quit'
+     Quit the current Lisp.
+
+`resend-form'
+     Resend the last form.
+
+`restart-inferior-lisp'
+     Restart *inferior-lisp* and reconnect SLIME.
+
+`sayoonara'
+     Quit all Lisps and close all SLIME buffers.
+
+
+
+File: slime.info,  Node: slime-mrepl,  Next: inferior-slime-mode,  Prev: REPL,  Up: Contributed Packages
+
+8.3 Multiple REPLs
+==================
+
+The `slime-mrepl' package adds support for multiple listener buffers.
+The command `M-x slime-open-listener' creates a new buffer.  In a
+multi-threaded Lisp, each listener is associated with a separate
+thread.  In a single-threaded Lisp it's also possible to create
+multiple listener buffers but the commands are executed sequentially by
+the same process.
+
+
+File: slime.info,  Node: inferior-slime-mode,  Next: Compound Completion,  Prev: slime-mrepl,  Up: Contributed Packages
+
+8.4 `inferior-slime-mode'
+=========================
+
+The `inferior-slime-mode' is a minor mode is intended to use with the
+`*inferior-lisp*' lisp buffer.  It provides some of the SLIME commands,
+like symbol completion and documentation lookup. It also tracks the
+current directory of the Lisp process.  To install it, add something
+like this to user `.emacs':
+
+     (slime-setup '(inferior-slime))
+
+`M-x inferior-slime-mode'
+     Turns inferior-slime-mode on or off.
+
+   The variable `inferior-slime-mode-map' contains the extra
+keybindings.
+
+
+File: slime.info,  Node: Compound Completion,  Next: Fuzzy Completion,  Prev: inferior-slime-mode,  Up: Contributed Packages
+
+8.5 Compound Completion
+=======================
+
+The package `slime-c-p-c' provides a different symbol completion
+algorithm, which performs completion "in parallel" over the
+hyphen-delimited sub-words of a symbol name.  (1) Formally this means
+that "`a-b-c'" can complete to any symbol matching the regular
+expression "`^a.*-b.*-c.*'" (where "dot" matches anything but a
+hyphen). Examples give a more intuitive feeling:
+   * `m-v-b' completes to `multiple-value-bind'.
+
+   * `w-open' is ambiguous: it completes to either `with-open-file' or
+     `with-open-stream'. The symbol is expanded to the longest common
+     completion (`with-open-') and the point is placed at the first
+     point of ambiguity, which in this case is the end.
+
+   * `w--stream' completes to `with-open-stream'.
+
+   The variable `slime-c-p-c-unambiguous-prefix-p' specifies where
+point should be placed after completion.  E.g. the possible completions
+for `f-o' are `finish-output' and `force-output'.  By the default point
+is moved after the `f', because that is the unambiguous prefix.  If
+`slime-c-p-c-unambiguous-prefix-p' is nil, point moves to the end of
+the inserted text, after the `o' in this case.
+
+   In addition, `slime-c-p-c' provides completion for character names
+(mostly useful for Unicode-aware implementations):
+
+     CL-USER> #\Sp<TAB>
+
+   Here SLIME will usually complete the character to `#\Space', but in
+a Unicode-aware implementation, this might provide the following
+completions:
+     Space                              Space
+     Sparkle                            Spherical_Angle
+     Spherical_Angle_Opening_Left       Spherical_Angle_Opening_Up
+
+   The package `slime-c-p-c' also provides context-sensitive completion
+for keywords.  Example:
+
+     CL-USER> (find 1 '(1 2 3) :s<TAB>
+
+   Here SLIME will complete `:start', rather than suggesting all
+ever-interned keywords starting with `:s'.
+
+`C-c C-s'
+`M-x slime-complete-form'
+     Looks up and inserts into the current buffer the argument list for
+     the function at point, if there is one.  More generally, the
+     command completes an incomplete form with a template for the
+     missing arguments.  There is special code for discovering extra
+     keywords of generic functions and for handling `make-instance',
+     `defmethod', and many other functions. Examples:
+
+          (subseq "abc" <C-c C-s>
+            --inserts--> start [end])
+          (find 17 <C-c C-s>
+            --inserts--> sequence :from-end from-end :test test
+                         :test-not test-not :start start :end end
+                         :key key)
+          (find 17 '(17 18 19) :test #'= <C-c C-s>
+            --inserts--> :from-end from-end
+                         :test-not test-not :start start :end end
+                         :key key)
+          (defclass foo () ((bar :initarg :bar)))
+          (defmethod print-object <C-c C-s>
+            --inserts-->   (object stream)
+                         body...)
+          (defmethod initialize-instance :after ((object foo) &key blub))
+          (make-instance 'foo <C-c C-s>
+            --inserts--> :bar bar :blub blub initargs...)
+
+   ---------- Footnotes ----------
+
+   (1) This style of completion is modelled on `completer.el' by Chris
+McConnell. That package is bundled with ILISP.
+
+
+File: slime.info,  Node: Fuzzy Completion,  Next: slime-autodoc-mode,  Prev: Compound Completion,  Up: Contributed Packages
+
+8.6 Fuzzy Completion
+====================
+
+The package `slime-fuzzy' implements yet another symbol completion
+heuristic.
+
+   [Somebody please describe what the algorithm actually does]
+
+   It attempts to complete a symbol all at once, instead of in pieces.
+For example, "mvb" will find "`multiple-value-bind'" and "norm-df" will
+find "`least-positive-normalized-double-float'".
+
+   The algorithm tries to expand every character in various ways and
+rates the list of possible completions with the following heuristic.
+
+   Letters are given scores based on their position in the string.
+Letters at the beginning of a string or after a prefix letter at the
+beginning of a string are scored highest.  Letters after a word
+separator such as #\- are scored next highest.  Letters at the end of a
+string or before a suffix letter at the end of a string are scored
+medium, and letters anywhere else are scored low.
+
+   If a letter is directly after another matched letter, and its
+intrinsic value in that position is less than a percentage of the
+previous letter's value, it will use that percentage instead.
+
+   Finally, a small scaling factor is applied to favor shorter matches,
+all other things being equal.
+
+`C-c M-i'
+`M-x slime-fuzzy-complete-symbol'
+     Presents a list of likely completions to choose from for an
+     abbreviation at point.  If you set the variable
+     `slime-complete-symbol-function' to this command, fuzzy completion
+     will also be used for `M-TAB'.
+
+
+File: slime.info,  Node: slime-autodoc-mode,  Next: ASDF,  Prev: Fuzzy Completion,  Up: Contributed Packages
+
+8.7 `slime-autodoc-mode'
+========================
+
+Autodoc mode is an additional minor-mode for automatically showing
+information about symbols near the point. For function names the
+argument list is displayed, and for global variables, the value.
+Autodoc is implemented by means of `eldoc-mode' of Emacs.
+
+   The mode can be enabled by default in the `slime-setup' call of your
+`~/.emacs':
+     (slime-setup '(slime-autodoc))
+
+`M-x slime-arglist NAME'
+     Show the argument list of the function NAME.
+
+`M-x slime-autodoc-mode'
+     Toggles autodoc-mode on or off according to the argument, and
+     toggles the mode when invoked without argument.
+
+`C-c C-d a'
+`M-x slime-autodoc-manually'
+     Like slime-autodoc, but when called twice, or after slime-autodoc
+     was already automatically called, display multiline arglist.
+
+   If the variable `slime-use-autodoc-mode' is set (default), Emacs
+starts a timer, otherwise the information is only displayed after
+pressing SPC.
+
+   If `slime-autodoc-use-multiline-p' is set to non-nil, allow long
+autodoc messages to resize echo area display.
+
+
+File: slime.info,  Node: ASDF,  Next: Banner,  Prev: slime-autodoc-mode,  Up: Contributed Packages
+
+8.8 ASDF
+========
+
+ASDF is a popular "system construction tool".  The package `slime-asdf'
+provides some commands to load and compile such systems from Emacs.
+ASDF itself is not included with SLIME; you have to load that yourself
+into your Lisp.  In particular, you must load ASDF before you connect,
+otherwise you will get errors about missing symbols.
+
+`M-x slime-load-system NAME'
+     Compile and load an ASDF system.  The default system name is taken
+     from the first file matching *.asd in the current directory.
+
+`M-x slime-reload-system NAME'
+     Recompile and load an ASDF system without recompiling its
+     dependencies.
+
+`M-x slime-open-system NAME &optional LOAD'
+     Open all files in a system, optionally load it if LOAD is non-nil.
+
+`M-x slime-browse-system NAME'
+     Browse files in a system using Dired.
+
+`M-x slime-delete-system-fasls NAME'
+     Delete FASLs produced by compiling a system.
+
+`M-x slime-rgrep-system NAME REGEXP'
+     Run `rgrep' on the base directory of an ASDF system.
+
+`M-x slime-isearch-system NAME'
+     Run `isearch-forward' on the files of an ASDF system.
+
+`M-x slime-query-replace-system NAME FROM TO &OPTIONAL DELIMITED'
+     Run `query-replace' on an ASDF system.
+   The package also installs some new REPL shortcuts (*note
+Shortcuts::):
+
+`load-system'
+     Compile (as needed) and load an ASDF system.
+
+`reload-system'
+     Recompile and load an ASDF system.
+
+`compile-system'
+     Compile (but not load) an ASDF system.
+
+`force-compile-system'
+     Recompile (but not load) an ASDF system.
+
+`force-load-system'
+     Recompile and load an ASDF system.
+
+`open-system'
+     Open all files in a system.
+
+`browse-system'
+     Browse files in a system using Dired.
+
+`delete-system-fasls'
+     Delete FASLs produced by compiling a system.
+
+
+File: slime.info,  Node: Banner,  Next: Editing Commands,  Prev: ASDF,  Up: Contributed Packages
+
+8.9 Banner
+==========
+
+The package `slime-banner' installs a window header line ( *note
+(elisp)Header Lines::.) in the REPL buffer.  It also runs an animation
+at startup.
+
+   By setting the variable `slime-startup-animation' to nil you can
+disable the animation respectively with the variable
+`slime-header-line-p' the header line.
+
+
+File: slime.info,  Node: Editing Commands,  Next: Fancy Inspector,  Prev: Banner,  Up: Contributed Packages
+
+8.10 Editing Commands
+=====================
+
+The package `slime-editing-commands' provides some commands to edit
+Lisp expressions.
+
+`C-c M-q'
+`M-x slime-reindent-defun'
+     Re-indents the current defun, or refills the current paragraph.
+     If point is inside a comment block, the text around point will be
+     treated as a paragraph and will be filled with `fill-paragraph'.
+     Otherwise, it will be treated as Lisp code, and the current defun
+     will be reindented.  If the current defun has unbalanced parens,
+     an attempt will be made to fix it before reindenting.
+
+`C-c C-]'
+`M-x slime-close-all-parens-in-sexp'
+     Balance parentheses of open s-expressions at point.  Insert enough
+     right parentheses to balance unmatched left parentheses.  Delete
+     extra left parentheses.  Reformat trailing parentheses
+     Lisp-stylishly.
+
+     If REGION is true, operate on the region. Otherwise operate on the
+     top-level sexp before point.
+
+`M-x slime-insert-balanced-comments'
+     Insert a set of balanced comments around the s-expression
+     containing the point.  If this command is invoked repeatedly
+     (without any other command occurring between invocations), the
+     comment progressively moves outward over enclosing expressions.
+     If invoked with a positive prefix argument, the s-expression arg
+     expressions out is enclosed in a set of balanced comments.
+
+`M-C-a'
+`M-x slime-beginning-of-defun'
+
+`M-C-e'
+`M-x slime-end-of-defun'
+
+
+File: slime.info,  Node: Fancy Inspector,  Next: Presentations,  Prev: Editing Commands,  Up: Contributed Packages
+
+8.11 Fancy Inspector
+====================
+
+An alternative to default inspector is provided by the package
+`slime-fancy-inspector'.  This inspector knows a lot about CLOS objects
+and methods.  It provides many "actions" that can be selected to invoke
+Lisp code on the inspected object. For example, to present a generic
+function the inspector shows the documentation in plain text and
+presents each method with both a hyperlink to inspect the method object
+and a "remove method" action that you can invoke interactively.  The
+key-bindings are the same as for the basic inspector (*note
+Inspector::).
+
+
+File: slime.info,  Node: Presentations,  Next: Typeout frames,  Prev: Fancy Inspector,  Up: Contributed Packages
+
+8.12 Presentations
+==================
+
+A "presentation"(1) in SLIME is a region of text associated with a Lisp
+object.  Right-clicking on the text brings up a menu with operations
+for the particular object.  Some operations, like inspecting, are
+available for all objects, but the object may also have specialized
+operations.  For instance, pathnames have a dired operation.
+
+   More importantly, it is possible to cut and paste presentations
+(i.e., Lisp objects, not just their printed presentation), using all
+standard Emacs commands.  This way it is possible to cut and paste the
+results of previous computations in the REPL.  This is of particular
+importance for unreadable objects.
+
+   The package `slime-presentations' installs presentations in the
+REPL, i.e. the results of evaluation commands become presentations.  In
+this way, presentations generalize the use of the standard Common Lisp
+REPL history variables `*', `**', `***'.  Example:
+
+     CL-USER> (find-class 'standard-class)
+     _#<STANDARD-CLASS STANDARD-CLASS>_
+     CL-USER>
+
+   Presentations appear in red color in the buffer.  (In this manual,
+we indicate the presentations _like this_.)  Using standard Emacs
+commands, the presentation can be copied to a new input in the REPL:
+
+     CL-USER> (eql '_#<STANDARD-CLASS STANDARD-CLASS>_
+                   '_#<STANDARD-CLASS STANDARD-CLASS>_)
+     _T_
+
+   Note that standard evaluation and quoting rules still apply.  So if a
+presentation is a list, it needs to be quoted in an evaluated context to
+avoid treating it as a function call:
+
+     CL-USER> (list (find-class 'standard-class) 2 3 4)
+     _(#<STANDARD-CLASS STANDARD-CLASS> 2 3 4)_
+     CL-USER> _(#<STANDARD-CLASS STANDARD-CLASS> 2 3 4)_
+     ; Funcall of #<STANDARD-CLASS STANDARD-CLASS> which is a non-function.
+     ; Evaluation aborted.
+     CL-USER> '_(#<STANDARD-CLASS STANDARD-CLASS> 2 3 4)_
+     (#<STANDARD-CLASS STANDARD-CLASS> 2 3 4)
+
+   When you copy an incomplete presentation or edit the text within a
+presentation, the presentation changes to plain text, losing the
+association with a Lisp object.  In the buffer, this is indicated by
+changing the color of the text from red to black.  This can be undone.
+
+   Presentations are also available in the inspector (all inspectable
+parts are presentations) and the debugger (all local variables are
+presentations).  This makes it possible to evaluate expressions in the
+REPL using objects that appear in local variables of some active
+debugger frame; this can be more convenient than using `M-x
+sldb-eval-in-frame'.  *Warning:* The presentations that stem from the
+inspector and debugger are only valid as long as the corresponding
+buffers are open.  Using them later can cause errors or confusing
+behavior.
+
+   For some Lisp implementations you can also install the package
+`slime-presentation-streams', which enables presentations on the Lisp
+`*standard-output*' stream and similar streams.  This means that not
+only results of computations, but also some objects that are printed to
+the standard output (as a side-effect of the computation) are
+associated with presentations.  Currently, all unreadable objects and
+pathnames get printed as presentations.
+
+     CL-USER> (describe (find-class 'standard-object))
+     _#<STANDARD-CLASS STANDARD-OBJECT>_ is an instance of
+         _#<STANDARD-CLASS STANDARD-CLASS>_:
+      The following slots have :INSTANCE allocation:
+       PLIST                   NIL
+       FLAGS                   1
+       DIRECT-METHODS          ((_#<STANDARD-METHOD
+                                   SWANK::ALL-SLOTS-FOR-INSPECTOR
+                                   (STANDARD-OBJECT T)>_
+       ...
+
+   Again, this makes it possible to inspect and copy-paste these
+objects.
+
+   In addition to the standard Emacs commands, there are several
+keyboard commands, a menu-bar menu, and a context menu to operate on
+presentations.  We describe the keyboard commands below; they are also
+shown in the menu-bar menu.
+
+`C-c C-v SPC'
+`M-x slime-mark-presentation'
+     If point is within a presentation, move point to the beginning of
+     the presentation and mark to the end of the presentation.  This
+     makes it possible to copy the presentation.
+
+`C-c C-v w'
+`M-x slime-copy-presentation-at-point-to-kill-ring'
+     If point is within a presentation, copy the surrounding
+     presentation to the kill ring.
+
+`C-c C-v r'
+`M-x slime-copy-presentation-at-point-to-repl'
+     If point is within a presentation, copy the surrounding
+     presentation to the REPL.
+
+`C-c C-v d'
+`M-x slime-describe-presentation-at-point'
+     If point is within a presentation, describe the associated object.
+
+`C-c C-v i'
+`M-x slime-inspect-presentation-at-point'
+     If point is within a presentation, inspect the associated object
+     with the SLIME inspector.
+
+`C-c C-v n'
+`M-x slime-next-presentation'
+     Move point to the next presentation in the buffer.
+
+`C-c C-v p'
+`M-x slime-previous-presentation'
+     Move point to the previous presentation in the buffer.
+
+   Similar operations are also possible from the context menu of every
+presentation.  Using `mouse-3' on a presentation, the context menu
+opens and offers various commands.  For some objects, specialized
+commands are also offered.  Users can define additional specialized
+commands by defining a method for
+`swank::menu-choices-for-presentation'.
+
+   *Warning:* On Lisp implementations without weak hash tables, all
+objects associated with presentations are protected from garbage
+collection.  If your Lisp image grows too large because of that, use
+`C-c C-v M-o' (`slime-clear-presentations') to remove these
+associations.  You can also use the command `C-c M-o'
+(`slime-repl-clear-buffer'), which both clears the REPL buffer and
+removes all associations of objects with presentations.
+
+   *Warning:* Presentations can confuse new users.
+
+     CL-USER> (cons 1 2)
+     _(1 . 2)_
+     CL-USER> (eq '_(1 . 2)_ '_(1 . 2)_)
+     _T_
+
+   One could have expected `NIL' here, because it looks like two fresh
+cons cells are compared regarding object identity.  However, in the
+example the presentation `_(1 . 2)_' was copied twice to the REPL.
+Thus `EQ' is really invoked with the same object, namely the cons cell
+that was returned by the first form entered in the REPL.
+
+   ---------- Footnotes ----------
+
+   (1) Presentations are a feature originating from the Lisp machines.
+It was possible to define `present' methods specialized to various
+devices, e.g. to draw an object to bitmapped screen or to write some
+text to a character stream.
+
+
+File: slime.info,  Node: Typeout frames,  Next: TRAMP,  Prev: Presentations,  Up: Contributed Packages
+
+8.13 Typeout frames
+===================
+
+A "typeout frame" is a special Emacs frame which is used instead of the
+echo area (minibuffer) to display messages from SLIME commands.  This
+is an optional feature. The advantage of a typeout frame over the echo
+area is that it can hold more text, it can be scrolled, and its
+contents don't disappear when you press a key. All potentially long
+messages are sent to the typeout frame, such as argument lists, macro
+expansions, and so on.
+
+`M-x slime-ensure-typeout-frame'
+     Ensure that a typeout frame exists, creating one if necessary.
+
+   If the typeout frame is closed then the echo area will be used again
+as usual.
+
+   To have a typeout frame created automatically at startup you should
+load the `slime-typeout-frame' package. (*note Loading Contribs::.)
+
+   The variable `slime-typeout-frame-properties' specifies the height
+and possibly other properties of the frame.  Its value is passed to
+`make-frame'. (*note (elisp)Creating Frames::.)
+
+
+File: slime.info,  Node: TRAMP,  Next: Documentation Links,  Prev: Typeout frames,  Up: Contributed Packages
+
+8.14 TRAMP
+==========
+
+The package `slime-tramp' provides some functions to set up filename
+translations for TRAMP. (*note Setting up pathname translations::)
+
+
+File: slime.info,  Node: Documentation Links,  Next: Xref and Class Browser,  Prev: TRAMP,  Up: Contributed Packages
+
+8.15 Documentation Links
+========================
+
+For certain error messages, SBCL includes references to the ANSI
+Standard or the SBCL User Manual.  The `slime-references' package turns
+those references into clickable links.  This makes finding the
+referenced section of the HyperSpec much easier.
+
+
+File: slime.info,  Node: Xref and Class Browser,  Next: Highlight Edits,  Prev: Documentation Links,  Up: Contributed Packages
+
+8.16 Xref and Class Browser
+===========================
+
+A rudimentary class browser is provided by the `slime-xref-browser'
+package.
+
+`M-x slime-browse-classes'
+     This command asks for a class name and displays inheritance tree of
+     for the class.
+
+`M-x slime-browse-xrefs'
+     This command prompts for a symbol and the kind of cross reference,
+     e.g. callers.  The cross reference tree rooted at the symbol is
+     then then displayed.
+
+
+
+File: slime.info,  Node: Highlight Edits,  Next: Scratch Buffer,  Prev: Xref and Class Browser,  Up: Contributed Packages
+
+8.17 Highlight Edits
+====================
+
+`slime-highlight-edits' is a minor mode to highlight those regions in a
+Lisp source file which are modified.  This is useful to quickly find
+those functions which need to be recompiled (with `C-c C-c')
+
+`M-x slime-highlight-edits-mode'
+     Turns `slime-highlight-edits-mode' on or off.
+
+
+File: slime.info,  Node: Scratch Buffer,  Next: slime-sprof,  Prev: Highlight Edits,  Up: Contributed Packages
+
+8.18 Scratch Buffer
+===================
+
+The SLIME scratch buffer, in contrib package `slime-scratch', imitates
+Emacs' usual `*scratch*' buffer.  If `slime-scratch-file' is set, it is
+used to back the scratch buffer, making it persistent. The buffer is
+like any other Lisp buffer, except for the command bound to `C-j'.
+
+`C-j'
+`M-x slime-eval-print-last-expression'
+     Evaluate the expression sexp before point and insert print value
+     into the current buffer.
+
+`M-x slime-scratch'
+     Create a `*slime-scratch*' buffer. In this buffer you can enter
+     Lisp expressions and evaluate them with `C-j', like in Emacs's
+     `*scratch*' buffer.
+
+
+
+File: slime.info,  Node: slime-sprof,  Next: slime-fancy,  Prev: Scratch Buffer,  Up: Contributed Packages
+
+8.19 `slime-sprof'
+==================
+
+`slime-sprof' is a package for integrating SBCL's statistical profiler,
+sb-sprof.
+
+   The variable `slime-sprof-exclude-swank' controls whether to display
+swank functions. The default value is NIL.
+
+`M-x slime-sprof-start'
+     Start profiling.
+
+`M-x slime-sprof-stop'
+     Stop profiling.
+
+`M-x slime-sprof-report'
+     Report results of the profiling.
+
+   The following keys are defined in slime-sprof-browser mode:
+`RET'
+`M-x slime-sprof-browser-toggle'
+     Expand / collapse function details (callers, calls to)
+
+`v'
+`M-x slime-sprof-browser-view-source'
+     View function sources.
+
+`d'
+`M-x slime-sprof-browser-disassemble-function'
+     Disassemble function.
+
+`s'
+`M-x slime-sprof-toggle-swank-exclusion'
+     Toggle exclusion of swank functions from the report.
+
+
+
+File: slime.info,  Node: slime-fancy,  Prev: slime-sprof,  Up: Contributed Packages
+
+8.20 Meta package: `slime-fancy'
+================================
+
+`slime-fancy' is a meta package which loads a combination of the most
+popular packages.
+
+
+File: slime.info,  Node: Credits,  Next: Key Index,  Prev: Contributed Packages,  Up: Top
 
 9 Credits
 *********
@@ -1987,41 +2943,51 @@ Hackers of the good hack
 SLIME is an Extension of SLIM by Eric Marsden. At the time of writing,
 the authors and code-contributors of SLIME are:
 
-Helmut Eller             Luke Gorrie              Matthias Koeppe
-Marco Baringer           Alan Ruttenberg          Edi Weitz
-Juho Snellman            Peter Seibel             Attila Lendvai
-Christophe Rhodes        Daniel Barlow            Wolfgang Jenkner
-Martin Simmons           Douglas Crosher          Nikodemus Siivola
-Lawrence Mitchell        Brian Downing            Andras Simon
-Espen Wiborg             Bill Clementson          Thomas Schilling
-Thomas F. Burdick        Michael Weber            Matthew Danish
-James Bielman            Gábor Melis              Antonio Menezes Leitao
-Zach Beane               Utz-Uwe Haus             Luís Oliveira
-Lars Magne Ingebrigtsen  John Paul Wallington     Joerg Hoehle
-Bryan O'Connor           Alan Shutko              Tobias Rittweiler
-Tiago Maduro-Dias        Stefan Kamphausen        Robert Lehr
-Robert E. Brown          Raymond Toy              Nathan Bird
-Jouni K Seppanen         Ivan Toshkov             Ian Eslick
-Harald Hanche-Olsen      Eric Blood               Eduardo Muñoz
-Christian Lynbech        Chris Capel              Bjørn Nordbø
-Andreas Fuchs            Alexey Dejneka           Yaroslav Kavenchuk
-Wolfgang Mederle         Wojciech Kaczmarek       William Bland
-Willem Broekema          Travis Cross             Tom Pierce
-Tobias C. Rittweiler     Tim Daly Jr.             Taylor R. Campbell
-Taylor R Campbell        Taylor Campbell          Svein Ove Aas
-Sean O'Rourke            Russell McManus          Rui Patrocínio
-Robert Macomber          Reini Urban              Pawel Ostrowski
-Paul Collins             NIIMI Satoshi            Mészáros Levente
-Mikel Bancroft           Matthew D. Swank         Mark Wooding
-Marco Monteiro           Lynn Quam                Levente Mészáros
-Lasse Rasinen            Kai Kaminski             Julian Stecklina
-Juergen Gmeiner          Johan Bockgård           Jan Rychter
-James McIlree            Ivan Boldyrev            Ignas Mikalajunas
-Hannu Koivisto           Gerd Flaig               Gary King
-Frederic Brunel          Daniel Koning            Dan Weinreb
-Dan Pierson              Brian Mastenbrook        Brandon Bergren
-Bob Halley               Barry Fishman            Aleksandar Bakic
-Alan Caulkins                                     
+Helmut Eller             Tobias C. Rittweiler     Luke Gorrie
+Stas Boukarev            Matthias Koeppe          Marco Baringer
+Nikodemus Siivola        Alan Ruttenberg          Edi Weitz
+Mark Evenson             Martin Simmons           Juho Snellman
+Christophe Rhodes        Peter Seibel             Geo Carncross
+Attila Lendvai           Douglas Crosher          Daniel Barlow
+Wolfgang Jenkner         Michael Weber            Lawrence Mitchell
+GÃ¡bor Melis              Terje Norderhaug         LuÃ­s Oliveira
+Brian Downing            Bill Clementson          Andras Simon
+Zach Beane               Espen Wiborg             Antonio Menezes Leitao
+Utz-Uwe Haus             Thomas Schilling         Thomas F. Burdick
+Takehiko Abe             Stelian Ionescu          Richard M Kreuter
+Raymond Toy              Matthew Danish           Mark Harig
+James Bielman            Harald Hanche-Olsen      Andreas Fuchs
+Willem Broekema          Taylor R. Campbell       Lars Magne Ingebrigtsen
+John Paul Wallington     Joerg Hoehle             Didier Verna
+Bryan O'Connor           Anton Kovalenko          Alan Shutko
+Travis Cross             Tobias Rittweiler        Tiago Maduro-Dias
+Stefan Kamphausen        Sean O'Rourke            Robert Lehr
+Robert E. Brown          Nathan Bird              Jouni K Seppanen
+Ivan Toshkov             Ian Eslick               Gary King
+Eric Blood               Eduardo MuÃ±oz            David Reitter
+Christian Lynbech        Chris Capel              BjÃ¸rn NordbÃ¸
+Ariel Badichi            Anton Vodonosov          Alexey Dejneka
+Alan Caulkins            Yaroslav Kavenchuk       Wolfgang Mederle
+Wojciech Kaczmarek       William Bland            Vitaly Mayatskikh
+Tom Pierce               Tim Daly Jr.             Sven Van Caekenberghe
+Svein Ove Aas            Steve Smith              StanisBaw Halik
+Russell McManus          Rui PatrocÃ­nio           Robert Macomber
+R. Matthew Emerson       Reini Urban              Pawel Ostrowski
+Paulo Madeira            Paul Collins             NIIMI Satoshi
+Neil Van Dyke            Mikel Bancroft           MÃ©szÃ¡ros Levente
+Matt Pillsbury           Matthew D. Swank         Masayuki Onjo
+Mark Wooding             Marco Monteiro           Lynn Quam
+Levente MÃ©szÃ¡ros         Lasse Rasinen            Knut Olav BÃ¸hmer
+Kai Kaminski             Julian Stecklina         Juergen Gmeiner
+Jon Allen Boone          Johan BockgÃ¥rd           Jan Rychter
+James McIlree            Ivan Shvedunov           Ivan Boldyrev
+Ignas Mikalajunas        Hannu Koivisto           Gerd Flaig
+Ga'bor Melis             Gail Zacharias           Frederic Brunel
+Dustin Long              Dan Weinreb              Dan Pierson
+Daniel Koning            Cyrus Harmon             Cecil Westerhof
+B.Scott Michel           Brian Mastenbrook        Brandon Bergren
+Bob Halley               Barry Fishman            Andrew Myers
+Aleksandar Bakic         Alain Picard             
 
    ... not counting the bundled code from `hyperspec.el', `CLOCC', and
 the `CMU AI Repository'.
@@ -2049,739 +3015,560 @@ Thanks also to Alain Picard and Memetrics for funding Martin's initial
 work on the LispWorks backend!
 
 
-File: slime.info,  Node: Index to Key Bindings,  Next: Index to Functions,  Prev: Credits,  Up: Top
+File: slime.info,  Node: Key Index,  Next: Command Index,  Prev: Credits,  Up: Top
 
-Appendix A Index to Key Bindings
-********************************
+Key (Character) Index
+*********************
 
-These are the keybindings set by default in Slime.
+ [index ]
+* Menu:
 
-`SPC'
-     *Note slime-space::.
-
-`C-c RET'
-     *Note slime-macroexpand-1::.
-
-`C-c :'
-     *Note slime-interactive-eval::.
-
-`C-c <'
-     *Note slime-list-callers::.
-
-`C-c >'
-     *Note slime-list-callees::.
-
-`C-c E'
-     *Note slime-edit-value::.
-
-`C-c I'
-     *Note slime-inspect::.
-
-`C-c u'
-     *Note slime-undefine-function::.
-
-`C-c ~'
-     *Note slime-sync-package-and-default-directory::.
-
-`C-c C-]'
-     *Note slime-close-all-sexp::.
-
-`C-c C-a'
-     *Note slime-nop::.
-
-`C-c C-b'
-     *Note slime-interrupt::.
-
-`C-c C-c'
-     *Note slime-compile-defun::.
-
-`C-c C-d d'
-     *Note slime-describe-symbol::.
-
-`C-c C-d ~'
-     *Note common-lisp-hyperspec-format::.
-
-`C-c C-e'
-     *Note slime-interactive-eval::.
-
-`C-c C-f'
-     *Note slime-describe-function::.
-
-`C-c C-i'
-     *Note slime-complete-symbol::.
-
-`C-c C-k'
-     *Note slime-compile-and-load-file::.
-
-`C-c C-l'
-     *Note slime-load-file::.
-
-`C-c C-m'
-     *Note slime-macroexpand-1::.
-
-`C-c C-p'
-     *Note slime-pprint-eval-last-expression::.
-
-`C-c C-q'
-     *Note slime-close-parens-at-point::.
-
-`C-c C-r'
-     *Note slime-eval-region::.
-
-`C-c C-s'
-     *Note slime-complete-form::.
-
-`C-c C-t'
-     *Note slime-toggle-trace-fdefinition::.
-
-`C-c C-v'
-     *Note slime-nop::.
-
-`C-c C-w s'
-     *Note slime-who-sets::.
-
-`C-c C-x c'
-     *Note slime-list-connections::.
-
-`C-c C-x t'
-     *Note slime-list-threads::.
-
-`C-c C-y'
-     *Note slime-call-defun::.
-
-`C-c C-z'
-     *Note slime-switch-to-output-buffer::.
-
-`C-c M-c'
-     *Note slime-remove-notes::..
-
-`C-c M-d'
-     *Note slime-disassemble-symbol::.
-
-`C-c M-i'
-     *Note slime-fuzzy-complete-symbol::.
-
-`C-c M-g'
-     *Note slime-quit::.
-
-`C-c M-k'
-     *Note slime-compile-file::.
-
-`C-c M-m'
-     *Note slime-macroexpand-all::.
-
-`C-c M-p'
-     *Note slime-repl-set-package::.
-
-`C-c M-q'
-     *Note slime-reindent-defun::.
-
-`C-x 4 .'
-     *Note slime-edit-definition-other-window::.
-
-`C-x 5 .'
-     *Note slime-edit-definition-other-frame::.
-
-`C-x C-e'
-     *Note slime-eval-last-expression::.
-
-`C-x M-e'
-     *Note slime-eval-last-expression-display-output::.
-
-`M-TAB'
-     *Note slime-complete-symbol::.
-
-`M-*'
-     *Note slime-pop-find-definition-stack::.
-
-`M-.'
-     *Note slime-edit-definition::.
-
-`M-,'
-     *Note slime-pop-find-definition-stack::.
-
-`M-n'
-     *Note slime-next-note::.
-
-`M-p'
-     *Note slime-previous-note::.
-
-`C-M-i'
-     *Note slime-complete-symbol::.
-
-`C-M-x'
-     *Note slime-eval-defun::.
+* .:                                     Inspector.           (line  61)
+* ::                                     Miscellaneous.       (line  28)
+* <:                                     Frame Navigation.    (line  23)
+* > <1>:                                 Frame Navigation.    (line  19)
+* >:                                     Inspector.           (line  65)
+* A:                                     Miscellaneous.       (line  32)
+* a:                                     Restarts.            (line   8)
+* B:                                     Miscellaneous.       (line  19)
+* C:                                     Miscellaneous.       (line  24)
+* c:                                     Restarts.            (line  18)
+* C-<down>:                              Input Navigation.    (line  14)
+* C-<up>:                                Input Navigation.    (line  14)
+* C-_:                                   slime-macroexpansion-minor-mode.
+                                                              (line  26)
+* C-a:                                   REPL commands.       (line  28)
+* C-c ::                                 Evaluation.          (line  33)
+* C-c <:                                 Cross-reference.     (line  56)
+* C-c >:                                 Cross-reference.     (line  60)
+* C-c C-]:                               Editing Commands.    (line  20)
+* C-c C-a:                               Other.               (line   8)
+* C-c C-b:                               Recovery.            (line   8)
+* C-c C-c <1>:                           REPL commands.       (line  32)
+* C-c C-c <2>:                           Examining frames.    (line  38)
+* C-c C-c <3>:                           Xref buffer commands.
+                                                              (line  18)
+* C-c C-c:                               Compilation.         (line  14)
+* C-c C-d #:                             Documentation.       (line  59)
+* C-c C-d a:                             slime-autodoc-mode.  (line  24)
+* C-c C-d A:                             Documentation.       (line  25)
+* C-c C-d d:                             Documentation.       (line  17)
+* C-c C-d f:                             Documentation.       (line  21)
+* C-c C-d h:                             Documentation.       (line  44)
+* C-c C-d p:                             Documentation.       (line  37)
+* C-c C-d z:                             Documentation.       (line  33)
+* C-c C-d ~:                             Documentation.       (line  55)
+* C-c C-j:                               REPL.                (line  32)
+* C-c C-k:                               Compilation.         (line  28)
+* C-c C-l:                               Compilation.         (line  44)
+* C-c C-m <1>:                           slime-macroexpansion-minor-mode.
+                                                              (line  12)
+* C-c C-m:                               Macro-expansion.     (line   8)
+* C-c C-n:                               Input Navigation.    (line  29)
+* C-c C-o:                               REPL commands.       (line  40)
+* C-c C-p <1>:                           Input Navigation.    (line  29)
+* C-c C-p:                               Evaluation.          (line  41)
+* C-c C-r:                               Evaluation.          (line  37)
+* C-c C-s:                               Compound Completion. (line  50)
+* C-c C-t:                               Disassembly.         (line  12)
+* C-c C-u:                               Evaluation.          (line  58)
+* C-c C-v:                               Other.               (line   8)
+* C-c C-v d:                             Presentations.       (line 107)
+* C-c C-v i:                             Presentations.       (line 111)
+* C-c C-v n:                             Presentations.       (line 116)
+* C-c C-v p:                             Presentations.       (line 120)
+* C-c C-v r:                             Presentations.       (line 102)
+* C-c C-v SPC:                           Presentations.       (line  91)
+* C-c C-v w:                             Presentations.       (line  97)
+* C-c C-w b:                             Cross-reference.     (line  34)
+* C-c C-w c:                             Cross-reference.     (line  22)
+* C-c C-w m:                             Cross-reference.     (line  42)
+* C-c C-w r:                             Cross-reference.     (line  30)
+* C-c C-w s:                             Cross-reference.     (line  38)
+* C-c C-w w:                             Cross-reference.     (line  26)
+* C-c C-x c:                             Multiple connections.
+                                                              (line  29)
+* C-c C-x n:                             Multiple connections.
+                                                              (line  35)
+* C-c C-x t:                             Multiple connections.
+                                                              (line  41)
+* C-c C-y:                               REPL.                (line  28)
+* C-c C-z:                               REPL.                (line  24)
+* C-c E:                                 Evaluation.          (line  46)
+* C-c I:                                 Inspector.           (line  16)
+* C-c M-c:                               Compilation.         (line  64)
+* C-c M-d:                               Disassembly.         (line   8)
+* C-c M-i:                               Fuzzy Completion.    (line  34)
+* C-c M-k:                               Compilation.         (line  40)
+* C-c M-m:                               Macro-expansion.     (line  13)
+* C-c M-o:                               REPL commands.       (line  36)
+* C-c M-p:                               Recovery.            (line  20)
+* C-c M-q:                               Editing Commands.    (line  11)
+* C-c ~:                                 Recovery.            (line  15)
+* C-j <1>:                               Scratch Buffer.      (line  13)
+* C-j:                                   REPL commands.       (line  24)
+* C-M-x:                                 Evaluation.          (line  18)
+* C-RET:                                 REPL commands.       (line  15)
+* C-x 4 .:                               Finding definitions. (line  23)
+* C-x 5 .:                               Finding definitions. (line  28)
+* C-x `:                                 Compilation.         (line  68)
+* C-x C-e:                               Evaluation.          (line  13)
+* C-x M-e:                               Evaluation.          (line  52)
+* d <1>:                                 slime-sprof.         (line  32)
+* d:                                     Multiple connections.
+                                                              (line  58)
+* D:                                     Examining frames.    (line  29)
+* d <1>:                                 Examining frames.    (line  24)
+* d:                                     Inspector.           (line  28)
+* e <1>:                                 Examining frames.    (line  19)
+* e:                                     Inspector.           (line  32)
+* g <1>:                                 Multiple connections.
+                                                              (line  63)
+* g <2>:                                 slime-macroexpansion-minor-mode.
+                                                              (line  17)
+* g:                                     Inspector.           (line  49)
+* i:                                     Examining frames.    (line  34)
+* l:                                     Inspector.           (line  41)
+* M-,:                                   Finding definitions. (line  18)
+* M-.:                                   Finding definitions. (line  13)
+* M-C-a:                                 Editing Commands.    (line  38)
+* M-C-e:                                 Editing Commands.    (line  41)
+* M-n <1>:                               Input Navigation.    (line  18)
+* M-n <2>:                               Frame Navigation.    (line  12)
+* M-n:                                   Compilation.         (line  56)
+* M-p <1>:                               Input Navigation.    (line  18)
+* M-p <2>:                               Frame Navigation.    (line  12)
+* M-p:                                   Compilation.         (line  60)
+* M-r:                                   Input Navigation.    (line  25)
+* M-RET:                                 Inspector.           (line  69)
+* M-s:                                   Input Navigation.    (line  25)
+* M-TAB:                                 Completion.          (line  13)
+* n <1>:                                 Frame Navigation.    (line   8)
+* n:                                     Inspector.           (line  45)
+* o:                                     Stepping.            (line  21)
+* p <1>:                                 Frame Navigation.    (line   8)
+* p:                                     Inspector.           (line  57)
+* q <1>:                                 Multiple connections.
+                                                              (line  67)
+* q <2>:                                 slime-macroexpansion-minor-mode.
+                                                              (line  22)
+* q <3>:                                 Restarts.            (line  12)
+* q:                                     Inspector.           (line  53)
+* R <1>:                                 Multiple connections.
+                                                              (line  72)
+* R:                                     Miscellaneous.       (line  14)
+* r:                                     Miscellaneous.       (line   8)
+* RET <1>:                               slime-sprof.         (line  24)
+* RET <2>:                               REPL commands.       (line   8)
+* RET <3>:                               Multiple connections.
+                                                              (line  54)
+* RET <4>:                               Inspector.           (line  23)
+* RET:                                   Xref buffer commands.
+                                                              (line   9)
+* s <1>:                                 slime-sprof.         (line  36)
+* s:                                     Stepping.            (line  11)
+* S-TAB:                                 Inspector.           (line  74)
+* Space:                                 Xref buffer commands.
+                                                              (line  14)
+* SPC:                                   Documentation.       (line  12)
+* t:                                     Examining frames.    (line  10)
+* TAB <1>:                               REPL commands.       (line  20)
+* TAB:                                   Inspector.           (line  74)
+* v <1>:                                 slime-sprof.         (line  28)
+* v <2>:                                 Examining frames.    (line  14)
+* v:                                     Inspector.           (line  36)
+* x:                                     Stepping.            (line  17)
 
 
-File: slime.info,  Node: Index to Functions,  Prev: Index to Key Bindings,  Up: Top
-
-Appendix B Index to Functions
-*****************************
-
-These functions are all available (when relevant). To find the
-keybinding (if there is one) refer to the function description.
-
-`common-lisp-hyperspec-format'
-     *Note common-lisp-hyperspec-format::.
-
-`in-sldb-face'
-     *Note in-sldb-face::.
-
-`sldb-abort'
-     *Note sldb-abort::.
-
-`sldb-break-with-default-debugger'
-     *Note sldb-break-with-default-debugger::.
-
-`sldb-continue'
-     *Note sldb-continue::.
-
-`sldb-disassemble'
-     *Note sldb-disassemble::.
-
-`sldb-eval-in-frame'
-     *Note sldb-eval-in-frame::.
-
-`sldb-inspect-in-frame'
-     *Note sldb-inspect-in-frame::.
-
-`sldb-pprint-eval-in-frame'
-     *Note sldb-pprint-eval-in-frame::.
-
-`sldb-quit'
-     *Note sldb-quit::.
-
-`sldb-restart-frame'
-     *Note sldb-restart-frame::.
-
-`sldb-return-from-frame'
-     *Note sldb-return-from-frame::.
-
-`sldb-show-source'
-     *Note sldb-show-source::.
-
-`sldb-step'
-     *Note sldb-step::.
-
-`sldb-toggle-details'
-     *Note sldb-toggle-details::.
-
-`slime-abort-connection'
-     *Note slime-abort-connection::.
-
-`slime-apropos'
-     *Note slime-apropos::.
-
-`slime-apropos-all'
-     *Note slime-apropos-all::.
-
-`slime-apropos-package'
-     *Note slime-apropos-package::.
-
-`slime-autodoc-mode'
-     *Note slime-autodoc-mode::.
-
-`slime-call-defun'
-     *Note slime-call-defun::.
-
-`slime-calls-who'
-     *Note slime-calls-who::.
-
-`slime-close-all-sexp'
-     *Note slime-close-all-sexp::.
-
-`slime-close-parens-at-point'
-     *Note slime-close-parens-at-point::.
-
-`slime-compile-and-load-file'
-     *Note slime-compile-and-load-file::.
-
-`slime-compile-defun'
-     *Note slime-compile-defun::.
-
-`slime-compile-file'
-     *Note slime-compile-file::.
-
-`slime-compile-region'
-     *Note slime-compile-region::.
-
-`slime-compiler-macroexpand'
-     *Note slime-compiler-macroexpand::.
-
-`slime-compiler-macroexpand-1'
-     *Note slime-compiler-macroexpand-1::.
-
-`slime-compiler-notes-default-action-or-show-details'
-     *Note slime-compiler-notes-default-action-or-show-details::.
-
-`slime-compiler-notes-default-action-or-show-details/mouse'
-     *Note slime-compiler-notes-default-action-or-show-details/mouse::.
-
-`slime-compiler-notes-quit'
-     *Note slime-compiler-notes-quit::.
-
-`slime-compiler-notes-show-details'
-     *Note slime-compiler-notes-show-details::.
-
-`slime-complete-form'
-     *Note slime-complete-form::.
-
-`slime-complete-symbol'
-     *Note slime-complete-symbol::.
-
-`slime-connect'
-     *Note slime-connect::.
-
-`slime-connection-list-make-default'
-     *Note slime-connection-list-make-default::.
-
-`slime-connection-list-mode'
-     *Note slime-connection-list-mode::.
-
-`slime-describe-function'
-     *Note slime-describe-function::.
-
-`slime-describe-symbol'
-     *Note slime-describe-symbol::.
-
-`slime-disassemble-symbol'
-     *Note slime-disassemble-symbol::.
-
-`slime-disconnect'
-     *Note slime-disconnect::.
-
-`slime-edit-definition'
-     *Note slime-edit-definition::.
-
-`slime-edit-definition-other-frame'
-     *Note slime-edit-definition-other-frame::.
-
-`slime-edit-definition-other-window'
-     *Note slime-edit-definition-other-window::.
-
-`slime-edit-definition-with-etags'
-     *Note slime-edit-definition-with-etags::.
-
-`slime-edit-value'
-     *Note slime-edit-value::.
-
-`slime-ensure-typeout-frame'
-     *Note slime-ensure-typeout-frame::.
-
-`slime-eval-defun'
-     *Note slime-eval-defun::.
-
-`slime-eval-last-expression'
-     *Note slime-eval-last-expression::.
-
-`slime-eval-last-expression-display-output'
-     *Note slime-eval-last-expression-display-output::.
-
-`slime-eval-region'
-     *Note slime-eval-region::.
-
-`slime-fuzzy-abort'
-     *Note slime-fuzzy-abort::.
-
-`slime-fuzzy-complete-symbol'
-     *Note slime-fuzzy-complete-symbol::.
-
-`slime-fuzzy-completions-mode'
-     *Note slime-fuzzy-completions-mode::.
-
-`slime-goto-connection'
-     *Note slime-goto-connection::.
-
-`slime-goto-xref'
-     *Note slime-goto-xref::.
-
-`slime-hyperspec-lookup'
-     *Note slime-hyperspec-lookup::.
-
-`slime-inspect'
-     *Note slime-inspect::.
-
-`slime-inspector-copy-down'
-     *Note slime-inspector-copy-down::.
-
-`slime-inspector-describe'
-     *Note slime-inspector-describe::.
-
-`slime-inspector-next'
-     *Note slime-inspector-next::.
-
-`slime-inspector-quit'
-     *Note slime-inspector-quit::.
-
-`slime-interactive-eval'
-     *Note slime-interactive-eval::.
-
-`slime-interrupt'
-     *Note slime-interrupt::.
-
-`slime-list-callees'
-     *Note slime-list-callees::.
-
-`slime-list-callers'
-     *Note slime-list-callers::.
-
-`slime-list-connections'
-     *Note slime-list-connections::.
-
-`slime-list-threads'
-     *Note slime-list-threads::.
-
-`slime-load-file'
-     *Note slime-load-file::.
-
-`slime-macroexpand-1'
-     *Note slime-macroexpand-1::.
-
-`slime-macroexpand-1-inplace'
-     *Note slime-macroexpand-1-inplace::.
-
-`slime-macroexpand-all'
-     *Note slime-macroexpand-all::.
-
-`slime-mode'
-     *Note slime-mode::.
-
-`slime-next-note'
-     *Note slime-next-note::.
-
-`slime-nop'
-     *Note slime-nop::.
-
-`slime-pop-find-definition-stack'
-     *Note slime-pop-find-definition-stack::.
-
-`slime-pprint-eval-last-expression'
-     *Note slime-pprint-eval-last-expression::.
-
-`slime-previous-note'
-     *Note slime-previous-note::.
-
-`slime-profile-package'
-     *Note slime-profile-package::.
-
-`slime-profile-report'
-     *Note slime-profile-report::.
-
-`slime-profile-reset'
-     *Note slime-profile-reset::.
-
-`slime-profiled-functions'
-     *Note slime-profiled-functions::.
-
-`slime-quit'
-     *Note slime-quit::.
-
-`slime-reindent-defun'
-     *Note slime-reindent-defun::.
-
-`slime-remove-notes'
-     *Note slime-remove-notes::.
-
-`slime-repl-beginning-of-defun'
-     *Note slime-repl-beginning-of-defun::.
-
-`slime-repl-bol'
-     *Note slime-repl-bol::.
-
-`slime-repl-clear-buffer'
-     *Note slime-repl-clear-buffer::.
-
-`slime-repl-clear-output'
-     *Note slime-repl-clear-output::.
-
-`slime-repl-closing-return'
-     *Note slime-repl-closing-return::.
-
-`slime-repl-end-of-defun'
-     *Note slime-repl-end-of-defun::.
-
-`slime-repl-newline-and-indent'
-     *Note slime-repl-newline-and-indent::.
-
-`slime-repl-next-input'
-     *Note slime-repl-next-input::.
-
-`slime-repl-next-matching-input'
-     *Note slime-repl-next-matching-input::.
-
-`slime-repl-next-prompt'
-     *Note slime-repl-next-prompt::.
-
-`slime-repl-previous-input'
-     *Note slime-repl-previous-input::.
-
-`slime-repl-previous-matching-input'
-     *Note slime-repl-previous-matching-input::.
-
-`slime-repl-previous-prompt'
-     *Note slime-repl-previous-prompt::.
-
-`slime-repl-return'
-     *Note slime-repl-return::.
-
-`slime-repl-set-package'
-     *Note slime-repl-set-package::.
-
-`slime-restart-connection-at-point'
-     *Note slime-restart-connection-at-point::.
-
-`slime-restart-inferior-lisp'
-     *Note slime-restart-inferior-lisp::.
-
-`slime-scratch'
-     *Note slime-scratch::.
-
-`slime-selector'
-     *Note slime-selector::.
-
-`slime-space'
-     *Note slime-space::.
-
-`slime-switch-to-output-buffer'
-     *Note slime-switch-to-output-buffer::.
-
-`slime-sync-package-and-default-directory'
-     *Note slime-sync-package-and-default-directory::.
-
-`slime-temp-buffer-quit'
-     *Note slime-temp-buffer-quit::.
-
-`slime-toggle-profile-fdefinition'
-     *Note slime-toggle-profile-fdefinition::.
-
-`slime-toggle-trace-fdefinition'
-     *Note slime-toggle-trace-fdefinition::.
-
-`slime-undefine-function'
-     *Note slime-undefine-function::.
-
-`slime-unprofile-all'
-     *Note slime-unprofile-all::.
-
-`slime-untrace-all'
-     *Note slime-untrace-all::.
-
-`slime-update-connection-list'
-     *Note slime-update-connection-list::.
-
-`slime-who-binds'
-     *Note slime-who-binds::.
-
-`slime-who-calls'
-     *Note slime-who-calls::.
-
-`slime-who-macroexpands'
-     *Note slime-who-macroexpands::.
-
-`slime-who-references'
-     *Note slime-who-references::.
-
-`slime-who-sets'
-     *Note slime-who-sets::.
-
-`slime-who-specializes'
-     *Note slime-who-specializes::.
+File: slime.info,  Node: Command Index,  Next: Variable Index,  Prev: Key Index,  Up: Top
+
+Command and Function Index
+**************************
+
+ [index ]
+* Menu:
+
+* hyperspec-lookup-format:               Documentation.       (line  55)
+* hyperspec-lookup-reader-macro:         Documentation.       (line  59)
+* inferior-slime-mode:                   inferior-slime-mode. (line  15)
+* next-error:                            Compilation.         (line  68)
+* sldb-abort:                            Restarts.            (line   8)
+* sldb-beginning-of-backtrace:           Frame Navigation.    (line  23)
+* sldb-break-with-default-debugger:      Miscellaneous.       (line  19)
+* sldb-break-with-system-debugger:       Miscellaneous.       (line  32)
+* sldb-continue:                         Restarts.            (line  18)
+* sldb-details-down:                     Frame Navigation.    (line  12)
+* sldb-details-up:                       Frame Navigation.    (line  12)
+* sldb-disassemble:                      Examining frames.    (line  29)
+* sldb-down:                             Frame Navigation.    (line   8)
+* sldb-end-of-backtrace:                 Frame Navigation.    (line  19)
+* sldb-eval-in-frame:                    Examining frames.    (line  19)
+* sldb-inspect-condition:                Miscellaneous.       (line  24)
+* sldb-inspect-in-frame:                 Examining frames.    (line  34)
+* sldb-next:                             Stepping.            (line  17)
+* sldb-out:                              Stepping.            (line  21)
+* sldb-pprint-eval-in-frame:             Examining frames.    (line  24)
+* sldb-quit:                             Restarts.            (line  12)
+* sldb-recompile-frame-source:           Examining frames.    (line  38)
+* sldb-restart-frame:                    Miscellaneous.       (line   8)
+* sldb-return-from-frame:                Miscellaneous.       (line  14)
+* sldb-show-source:                      Examining frames.    (line  14)
+* sldb-step:                             Stepping.            (line  11)
+* sldb-toggle-details:                   Examining frames.    (line  10)
+* sldb-up:                               Frame Navigation.    (line   8)
+* slime-abort-connection:                Multiple connections.
+                                                              (line  81)
+* slime-apropos:                         Documentation.       (line  25)
+* slime-apropos-all:                     Documentation.       (line  33)
+* slime-apropos-package:                 Documentation.       (line  37)
+* slime-arglist NAME:                    slime-autodoc-mode.  (line  16)
+* slime-autodoc-manually:                slime-autodoc-mode.  (line  24)
+* slime-autodoc-mode:                    slime-autodoc-mode.  (line  19)
+* slime-beginning-of-defun:              Editing Commands.    (line  38)
+* slime-browse-classes:                  Xref and Class Browser.
+                                                              (line  10)
+* slime-browse-system NAME:              ASDF.                (line  24)
+* slime-browse-xrefs:                    Xref and Class Browser.
+                                                              (line  14)
+* slime-call-defun:                      REPL.                (line  28)
+* slime-calls-who:                       Cross-reference.     (line  26)
+* slime-cd:                              Recovery.            (line  23)
+* slime-close-all-parens-in-sexp:        Editing Commands.    (line  20)
+* slime-compile-and-load-file:           Compilation.         (line  28)
+* slime-compile-defun:                   Compilation.         (line  14)
+* slime-compile-file:                    Compilation.         (line  40)
+* slime-compile-region:                  Compilation.         (line  47)
+* slime-compiler-macroexpand:            Macro-expansion.     (line  19)
+* slime-compiler-macroexpand-1:          Macro-expansion.     (line  16)
+* slime-complete-form:                   Compound Completion. (line  50)
+* slime-complete-symbol:                 Completion.          (line  13)
+* slime-connect:                         Multiple connections.
+                                                              (line  75)
+* slime-connection-list-make-default:    Multiple connections.
+                                                              (line  58)
+* slime-copy-presentation-at-point-to-kill-ring: Presentations.
+                                                              (line  97)
+* slime-copy-presentation-at-point-to-repl: Presentations.    (line 102)
+* slime-cycle-connections:               Multiple connections.
+                                                              (line  35)
+* slime-delete-system-fasls NAME:        ASDF.                (line  27)
+* slime-describe-function:               Documentation.       (line  21)
+* slime-describe-presentation-at-point:  Presentations.       (line 107)
+* slime-describe-symbol:                 Documentation.       (line  17)
+* slime-disassemble-symbol:              Disassembly.         (line   8)
+* slime-disconnect:                      Multiple connections.
+                                                              (line  78)
+* slime-edit-definition:                 Finding definitions. (line  13)
+* slime-edit-definition-other-frame:     Finding definitions. (line  28)
+* slime-edit-definition-other-window:    Finding definitions. (line  23)
+* slime-edit-definition-with-etags:      Finding definitions. (line  32)
+* slime-edit-value:                      Evaluation.          (line  46)
+* slime-end-of-defun:                    Editing Commands.    (line  41)
+* slime-ensure-typeout-frame:            Typeout frames.      (line  15)
+* slime-eval-defun:                      Evaluation.          (line  18)
+* slime-eval-last-expression:            Evaluation.          (line  13)
+* slime-eval-last-expression-display-output: Evaluation.      (line  52)
+* slime-eval-last-expression-in-repl:    REPL.                (line  32)
+* slime-eval-print-last-expression:      Scratch Buffer.      (line  13)
+* slime-eval-region:                     Evaluation.          (line  37)
+* slime-fuzzy-complete-symbol:           Fuzzy Completion.    (line  34)
+* slime-goto-connection:                 Multiple connections.
+                                                              (line  54)
+* slime-goto-xref:                       Xref buffer commands.
+                                                              (line  14)
+* slime-highlight-edits-mode:            Highlight Edits.     (line  11)
+* slime-hyperspec-lookup:                Documentation.       (line  44)
+* slime-indent-and-complete-symbol:      REPL commands.       (line  20)
+* slime-insert-balanced-comments:        Editing Commands.    (line  29)
+* slime-inspect:                         Inspector.           (line  16)
+* slime-inspect-presentation-at-point:   Presentations.       (line 111)
+* slime-inspector-copy-down:             Inspector.           (line  69)
+* slime-inspector-describe:              Inspector.           (line  28)
+* slime-inspector-eval:                  Inspector.           (line  32)
+* slime-inspector-fetch-all:             Inspector.           (line  65)
+* slime-inspector-next:                  Inspector.           (line  45)
+* slime-inspector-next-inspectable-object: Inspector.         (line  74)
+* slime-inspector-operate-on-point:      Inspector.           (line  23)
+* slime-inspector-pop:                   Inspector.           (line  41)
+* slime-inspector-pprint:                Inspector.           (line  57)
+* slime-inspector-previous-inspectable-object: Inspector.     (line  74)
+* slime-inspector-quit:                  Inspector.           (line  53)
+* slime-inspector-reinspect:             Inspector.           (line  49)
+* slime-inspector-show-source:           Inspector.           (line  61)
+* slime-inspector-toggle-verbose:        Inspector.           (line  36)
+* slime-interactive-eval <1>:            Miscellaneous.       (line  28)
+* slime-interactive-eval:                Evaluation.          (line  33)
+* slime-interrupt <1>:                   REPL commands.       (line  32)
+* slime-interrupt:                       Recovery.            (line   8)
+* slime-isearch-system NAME:             ASDF.                (line  33)
+* slime-list-callees:                    Cross-reference.     (line  60)
+* slime-list-callers:                    Cross-reference.     (line  56)
+* slime-list-connections:                Multiple connections.
+                                                              (line  29)
+* slime-list-threads:                    Multiple connections.
+                                                              (line  41)
+* slime-load-file:                       Compilation.         (line  44)
+* slime-load-system NAME:                ASDF.                (line  13)
+* slime-macroexpand-1:                   Macro-expansion.     (line   8)
+* slime-macroexpand-1-inplace:           slime-macroexpansion-minor-mode.
+                                                              (line  12)
+* slime-macroexpand-all:                 Macro-expansion.     (line  13)
+* slime-macroexpand-undo:                slime-macroexpansion-minor-mode.
+                                                              (line  26)
+* slime-mark-presentation:               Presentations.       (line  91)
+* slime-next-note:                       Compilation.         (line  56)
+* slime-next-presentation:               Presentations.       (line 116)
+* slime-nop:                             Other.               (line   8)
+* slime-open-system NAME &optional LOAD: ASDF.                (line  21)
+* slime-pop-find-definition-stack:       Finding definitions. (line  18)
+* slime-pprint-eval-last-expression:     Evaluation.          (line  41)
+* slime-previous-note:                   Compilation.         (line  60)
+* slime-previous-presentation:           Presentations.       (line 120)
+* slime-profile-by-substring:            Profiling.           (line  17)
+* slime-profile-package:                 Profiling.           (line  14)
+* slime-profile-report:                  Profiling.           (line  23)
+* slime-profile-reset:                   Profiling.           (line  26)
+* slime-profiled-functions:              Profiling.           (line  29)
+* slime-pwd:                             Recovery.            (line  27)
+* slime-query-replace-system NAME FROM TO &OPTIONAL DELIMITED: ASDF.
+                                                              (line  36)
+* slime-recompile-all-xrefs:             Xref buffer commands.
+                                                              (line  22)
+* slime-recompile-xref:                  Xref buffer commands.
+                                                              (line  18)
+* slime-reindent-defun:                  Editing Commands.    (line  11)
+* slime-reload-system NAME:              ASDF.                (line  17)
+* slime-remove-notes:                    Compilation.         (line  64)
+* slime-repl-backward-input:             Input Navigation.    (line  14)
+* slime-repl-bol:                        REPL commands.       (line  28)
+* slime-repl-clear-buffer:               REPL commands.       (line  36)
+* slime-repl-clear-output:               REPL commands.       (line  40)
+* slime-repl-closing-return:             REPL commands.       (line  15)
+* slime-repl-forward-input:              Input Navigation.    (line  14)
+* slime-repl-newline-and-indent:         REPL commands.       (line  24)
+* slime-repl-next-input:                 Input Navigation.    (line  18)
+* slime-repl-next-matching-input:        Input Navigation.    (line  25)
+* slime-repl-next-prompt:                Input Navigation.    (line  29)
+* slime-repl-previous-input:             Input Navigation.    (line  18)
+* slime-repl-previous-matching-input:    Input Navigation.    (line  25)
+* slime-repl-previous-prompt:            Input Navigation.    (line  29)
+* slime-repl-return:                     REPL commands.       (line   8)
+* slime-repl-set-package:                Recovery.            (line  20)
+* slime-restart-connection-at-point:     Multiple connections.
+                                                              (line  72)
+* slime-restart-inferior-lisp:           Recovery.            (line  11)
+* slime-rgrep-system NAME REGEXP:        ASDF.                (line  30)
+* slime-scratch:                         Scratch Buffer.      (line  17)
+* slime-show-xref:                       Xref buffer commands.
+                                                              (line   9)
+* slime-space:                           Documentation.       (line  12)
+* slime-sprof-browser-disassemble-function: slime-sprof.      (line  32)
+* slime-sprof-browser-toggle:            slime-sprof.         (line  24)
+* slime-sprof-browser-view-source:       slime-sprof.         (line  28)
+* slime-sprof-report:                    slime-sprof.         (line  19)
+* slime-sprof-start:                     slime-sprof.         (line  13)
+* slime-sprof-stop:                      slime-sprof.         (line  16)
+* slime-sprof-toggle-swank-exclusion:    slime-sprof.         (line  36)
+* slime-switch-to-output-buffer:         REPL.                (line  24)
+* slime-sync-package-and-default-directory: Recovery.         (line  15)
+* slime-temp-buffer-quit <1>:            Multiple connections.
+                                                              (line  67)
+* slime-temp-buffer-quit:                slime-macroexpansion-minor-mode.
+                                                              (line  22)
+* slime-toggle-profile-fdefinition:      Profiling.           (line  11)
+* slime-toggle-trace-fdefinition:        Disassembly.         (line  12)
+* slime-undefine-function:               Evaluation.          (line  58)
+* slime-unprofile-all:                   Profiling.           (line  20)
+* slime-untrace-all:                     Disassembly.         (line  17)
+* slime-update-connection-list:          Multiple connections.
+                                                              (line  63)
+* slime-who-binds:                       Cross-reference.     (line  34)
+* slime-who-calls:                       Cross-reference.     (line  22)
+* slime-who-macroexpands:                Cross-reference.     (line  42)
+* slime-who-references:                  Cross-reference.     (line  30)
+* slime-who-sets:                        Cross-reference.     (line  38)
+* slime-who-specializes:                 Cross-reference.     (line  45)
+
+
+File: slime.info,  Node: Variable Index,  Prev: Command Index,  Up: Top
+
+Variable and Concept Index
+**************************
+
+ [index ]
+* Menu:
+
+* ASCII:                                 Emacs-side customization.
+                                                               (line 33)
+* Character Encoding:                    Emacs-side customization.
+                                                               (line 33)
+* Compilation:                           Compilation.          (line  6)
+* Compiling Functions:                   Compilation.          (line 12)
+* Completion:                            Completion.           (line  6)
+* Contribs:                              Loading Contribs.     (line  6)
+* Contributions:                         Loading Contribs.     (line  6)
+* Cross-referencing:                     Cross-reference.      (line  6)
+* Debugger:                              Debugger.             (line  6)
+* inferior-lisp-program:                 Installation.         (line  9)
+* inferior-slime-mode-map:               inferior-slime-mode.  (line 17)
+* Input History:                         Input Navigation.     (line  6)
+* LATIN-1:                               Emacs-side customization.
+                                                               (line 33)
+* Listener:                              REPL.                 (line  6)
+* load-path:                             Installation.         (line  9)
+* Macros:                                Macro-expansion.      (line  6)
+* Meta-dot:                              Finding definitions.  (line  6)
+* Methods:                               Fancy Inspector.      (line  6)
+* Plugins:                               Loading Contribs.     (line  6)
+* Presentations:                         Presentations.        (line  6)
+* Shortcuts:                             Shortcuts.            (line  6)
+* sldb-hook:                             Hooks.                (line 17)
+* slime-autodoc-use-multiline-p:         slime-autodoc-mode.   (line 31)
+* slime-complete-symbol-function:        Emacs-side customization.
+                                                               (line 17)
+* slime-connected-hook:                  Hooks.                (line 12)
+* slime-default-lisp:                    Multiple Lisps.       (line 17)
+* slime-description-autofocus:           Temporary buffers.    (line 27)
+* slime-filename-translations:           Emacs-side customization.
+                                                               (line 26)
+* slime-header-line-p:                   Banner.               (line 10)
+* slime-lisp-implementations:            Multiple Lisps.       (line 13)
+* slime-mode-hook:                       Hooks.                (line  6)
+* slime-net-coding-system:               Emacs-side customization.
+                                                               (line 33)
+* slime-repl-wrap-history:               Input Navigation.     (line 33)
+* slime-setup:                           Installation.         (line  9)
+* slime-startup-animation:               Banner.               (line 10)
+* slime-use-autodoc-mode:                slime-autodoc-mode.   (line 27)
+* Stepping:                              Stepping.             (line  6)
+* SWANK:*BACKTRACE-PRINTER-BINDINGS*:    Other configurables.  (line 37)
+* SWANK:*COMMUNICATION-STYLE*:           Communication style.  (line  6)
+* SWANK:*CONFIGURE-EMACS-INDENTATION*:   Other configurables.  (line  8)
+* SWANK:*DEDICATED-OUTPUT-STREAM-PORT*:  Other configurables.  (line 64)
+* SWANK:*GLOBAL-DEBUGGER*:               Other configurables.  (line 22)
+* SWANK:*GLOBALLY-REDIRECT-IO*:          Other configurables.  (line 13)
+* SWANK:*LOG-EVENTS*:                    Other configurables.  (line 69)
+* SWANK:*MACROEXPAND-PRINTER-BINDINGS*:  Other configurables.  (line 37)
+* SWANK:*SLDB-PRINTER-BINDINGS*:         Other configurables.  (line 37)
+* SWANK:*SLDB-QUIT-RESTART*:             Other configurables.  (line 28)
+* SWANK:*SWANK-PPRINT-BINDINGS*:         Other configurables.  (line 37)
+* SWANK:*USE-DEDICATED-OUTPUT-STREAM*:   Other configurables.  (line 48)
+* Symbol Completion:                     Completion.           (line  6)
+* TAGS:                                  Finding definitions.  (line  6)
+* TRAMP:                                 TRAMP.                (line  6)
+* Typeout Frame:                         Typeout frames.       (line  6)
+* Unicode:                               Emacs-side customization.
+                                                               (line 33)
+* UTF-8:                                 Emacs-side customization.
+                                                               (line 33)
+* xref:                                  Cross-reference.      (line  6)
 
 
 
 Tag Table:
-Node: Top198
-Node: Introduction578
-Node: Getting started1831
-Node: Platforms2088
-Node: Downloading3247
-Node: CVS3754
-Node: CVS Incantations4813
-Node: Installation5534
-Node: Running6226
-Ref: slime-restart-inferior-lisp6801
-Node: slime-mode6843
-Node: User-interface conventions7230
-Node: Temporary buffers7657
-Node: About key bindings8909
-Node: inferior-lisp10819
-Node: Multithreading12139
-Node: Commands13353
-Node: Programming13929
-Node: Completion14413
-Ref: slime-complete-symbol14770
-Ref: slime-complete-form15069
-Ref: slime-fuzzy-complete-symbol16286
-Ref: slime-fuzzy-completions-mode16880
-Ref: slime-fuzzy-abort16922
-Node: Closure16954
-Ref: slime-close-parens-at-point17157
-Ref: slime-close-all-sexp17426
-Node: Indentation17793
-Ref: slime-reindent-defun17948
-Node: Documentation18540
-Ref: slime-space18914
-Ref: slime-describe-symbol19074
-Ref: slime-describe-function19151
-Ref: slime-apropos19230
-Ref: slime-apropos-all19570
-Ref: slime-apropos-package19681
-Ref: slime-hyperspec-lookup19939
-Ref: common-lisp-hyperspec-format20381
-Node: Cross-reference20495
-Ref: slime-who-calls21194
-Ref: slime-who-references21258
-Ref: slime-who-binds21340
-Ref: slime-who-sets21417
-Ref: slime-who-macroexpands21496
-Ref: slime-who-specializes21572
-Ref: slime-goto-xref21660
-Ref: slime-list-callers22029
-Ref: slime-list-callees22097
-Ref: slime-calls-who22165
-Node: Finding definitions22256
-Ref: slime-edit-definition22689
-Ref: slime-pop-find-definition-stack22775
-Ref: slime-edit-definition-other-window22959
-Ref: slime-edit-definition-other-frame23110
-Ref: slime-edit-definition-with-etags23252
-Node: Macro-expansion23352
-Ref: slime-macroexpand-123529
-Ref: slime-macroexpand-all23707
-Ref: slime-toggle-trace-fdefinition23795
-Ref: slime-untrace-all24012
-Node: Disassembly24169
-Ref: slime-disassemble-symbol24310
-Node: Compilation24418
-Ref: slime-compile-defun24851
-Ref: slime-call-defun24933
-Ref: slime-compile-and-load-file25039
-Ref: slime-compile-file25141
-Ref: slime-load-file25242
-Ref: slime-switch-to-output-buffer25363
-Ref: slime-compile-region25476
-Ref: slime-compiler-macroexpand25541
-Ref: slime-compiler-macroexpand-125642
-Ref: slime-compiler-notes-default-action-or-show-details25745
-Ref: slime-compiler-notes-default-action-or-show-details/mouse25861
-Ref: slime-compiler-notes-mode25998
-Ref: slime-compiler-notes-quit26037
-Ref: slime-compiler-notes-show-details26076
-Ref: slime-next-note26333
-Ref: slime-previous-note26432
-Ref: slime-remove-notes26539
-Node: Evaluation26621
-Ref: slime-eval-defun26958
-Ref: slime-eval-last-expression27104
-Ref: slime-pprint-eval-last-expression27348
-Ref: slime-eval-region27471
-Ref: slime-eval-last-expression-display-output27533
-Ref: slime-interactive-eval27665
-Ref: slime-scratch27758
-Ref: slime-edit-value27948
-Ref: slime-undefine-function28190
-Node: Recovery28274
-Ref: slime-interrupt28424
-Ref: slime-sync-package-and-default-directory28495
-Ref: slime-repl-set-package28636
-Node: Inspector28720
-Ref: slime-inspect29553
-Ref: slime-inspector-operate-on-point29709
-Ref: slime-inspector-describe29887
-Ref: slime-inspector-pop29957
-Ref: slime-inspector-next30046
-Ref: slime-inspector-quit30125
-Ref: slime-inspector-copy-down30193
-Node: Profiling30299
-Ref: slime-toggle-profile-fdefinition30435
-Ref: slime-profile-package30519
-Ref: slime-unprofile-all30596
-Ref: slime-profile-report30660
-Ref: slime-profile-reset30722
-Ref: slime-profiled-functions30782
-Node: Other30869
-Ref: slime-nop30985
-Node: Semantic indentation31140
-Ref: Semantic indentation-Footnote-133228
-Node: Reader conditionals33323
-Node: REPL33647
-Node: REPL commands34389
-Ref: slime-repl-return34517
-Ref: slime-repl-closing-return34759
-Ref: slime-repl-newline-and-indent34911
-Ref: slime-quit35069
-Ref: slime-repl-clear-output35115
-Ref: slime-repl-clear-buffer35240
-Node: Input Navigation35336
-Ref: slime-repl-bol35475
-Ref: slime-repl-next-input35571
-Ref: slime-repl-previous-input35571
-Ref: slime-repl-next-matching-input35685
-Ref: slime-repl-previous-matching-input35685
-Ref: slime-repl-next-prompt35840
-Ref: slime-repl-previous-prompt35840
-Ref: slime-repl-beginning-of-defun35990
-Ref: slime-repl-end-of-defun35990
-Node: Shortcuts36259
-Node: Debugger37873
-Node: Examining frames38489
-Ref: sldb-toggle-details38676
-Ref: sldb-show-source38765
-Ref: sldb-eval-in-frame38910
-Ref: sldb-pprint-eval-in-frame39060
-Ref: sldb-disassemble39195
-Ref: sldb-inspect-in-frame39339
-Node: Restarts39439
-Ref: sldb-abort39586
-Ref: sldb-quit39642
-Ref: sldb-continue39747
-Node: Frame Navigation39940
-Node: Miscellaneous40437
-Ref: sldb-restart-frame40574
-Ref: sldb-return-from-frame40762
-Ref: sldb-step40925
-Ref: sldb-break-with-default-debugger41055
-Ref: in-sldb-face41186
-Node: Extras41364
-Node: slime-selector41599
-Node: slime-autodoc-mode42707
-Node: slime-macroexpansion-minor-mode43294
-Ref: slime-macroexpand-1-inplace43660
-Ref: slime-temp-buffer-quit43981
-Node: Multiple connections44050
-Ref: slime-list-connections45295
-Ref: slime-list-threads45396
-Ref: slime-abort-connection45485
-Ref: slime-restart-connection-at-point45557
-Ref: slime-goto-connection45955
-Ref: slime-connection-list-make-default46047
-Ref: slime-update-connection-list46225
-Ref: slime-connect46428
-Ref: slime-disconnect46496
-Ref: slime-connection-list-mode46560
-Node: Typeout frames46651
-Ref: slime-ensure-typeout-frame47214
-Node: Customization47598
-Node: Emacs-side customization47775
-Ref: slime-complete-symbol-function48683
-Ref: Emacs-side customization-Footnote-150919
-Node: Hooks51038
-Ref: slime-mode-hook51161
-Node: Lisp-side51921
-Node: Communication style52322
-Node: Other configurables54816
-Node: Tips and Tricks57509
-Node: Connecting to a remote lisp57721
-Node: Setting up the lisp image58423
-Ref: Setting up the lisp image-Footnote-160189
-Ref: Setting up the lisp image-Footnote-260268
-Node: Setting up Emacs60442
-Ref: Setting up Emacs-Footnote-161257
-Node: Setting up pathname translations61427
-Node: Global IO Redirection62991
-Node: Auto-SLIME64038
-Node: Credits64455
-Node: Index to Key Bindings68046
-Node: Index to Functions70709
+Node: Top326
+Node: Introduction2613
+Node: Getting started3862
+Node: Platforms4136
+Node: Downloading5305
+Node: CVS5812
+Node: CVS Incantations6828
+Node: Installation7549
+Node: Running8550
+Node: Setup Tuning9079
+Node: Autoloading9554
+Node: Multiple Lisps10312
+Node: Loading Swank faster12733
+Ref: init-example13818
+Node: SLIME mode14107
+Node: User-interface conventions14688
+Node: Temporary buffers15092
+Node: Inferior-lisp16504
+Node: Multithreading17309
+Node: Key bindings18542
+Ref: describe-key19954
+Ref: describe-bindings20081
+Ref: describe-mode20212
+Ref: view-lossage20384
+Node: Evaluation21515
+Node: Compilation23543
+Node: Completion26206
+Node: Finding definitions26822
+Node: Documentation27893
+Node: Cross-reference29940
+Node: Xref buffer commands31596
+Node: Macro-expansion32122
+Node: Disassembly32823
+Node: Recovery33349
+Node: Inspector34075
+Node: Profiling36103
+Node: Other36876
+Node: Semantic indentation37122
+Ref: Semantic indentation-Footnote-139209
+Node: Reader conditionals39304
+Node: Debugger39647
+Node: Examining frames40280
+Node: Restarts41339
+Ref: sldb-quit41541
+Node: Frame Navigation41935
+Node: Stepping42599
+Node: Miscellaneous43248
+Node: Misc44137
+Node: slime-selector44324
+Node: slime-macroexpansion-minor-mode45635
+Node: Multiple connections46459
+Node: Customization49391
+Node: Emacs-side customization49566
+Ref: slime-complete-symbol-function50237
+Ref: slime-net-coding-system50968
+Node: Hooks51634
+Ref: slime-connected-hook51985
+Node: Lisp-side52455
+Node: Communication style52856
+Node: Other configurables55333
+Ref: SWANK:*SLDB-QUIT-RESTART*56524
+Node: Tips and Tricks59028
+Node: Connecting to a remote lisp59253
+Node: Setting up the lisp image59955
+Ref: Setting up the lisp image-Footnote-161794
+Ref: Setting up the lisp image-Footnote-261874
+Node: Setting up Emacs62048
+Ref: Setting up Emacs-Footnote-162863
+Node: Setting up pathname translations63033
+Node: Global IO Redirection64637
+Node: Auto-SLIME65684
+Node: Contributed Packages66101
+Node: Loading Contribs66790
+Node: REPL68008
+Node: REPL commands69356
+Node: Input Navigation70443
+Node: Shortcuts71900
+Node: slime-mrepl73322
+Node: inferior-slime-mode73825
+Node: Compound Completion74491
+Ref: slime-complete-symbol*74668
+Ref: Compound Completion-Footnote-177789
+Node: Fuzzy Completion77908
+Ref: slime-fuzzy-complete-symbol79240
+Node: slime-autodoc-mode79511
+Node: ASDF80716
+Node: Banner82604
+Node: Editing Commands83037
+Node: Fancy Inspector84618
+Node: Presentations85336
+Ref: Presentations-Footnote-191769
+Node: Typeout frames92005
+Node: TRAMP93103
+Node: Documentation Links93375
+Node: Xref and Class Browser93796
+Node: Highlight Edits94376
+Node: Scratch Buffer94832
+Ref: slime-scratch94987
+Node: slime-sprof95597
+Node: slime-fancy96519
+Node: Credits96762
+Node: Key Index101009
+Node: Command Index112371
+Node: Variable Index126965
 
 End Tag Table
